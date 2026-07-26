@@ -1,0 +1,532 @@
+# Implementation Status
+
+## Current phase
+
+Phase 6 - timetable views and versioned draft editing complete.
+
+## Decisions
+
+- Build a single-school MVP before adding any multi-school or billing behavior.
+- Use a pnpm workspace with a Next.js App Router application, a shared TypeScript
+  package, a root Prisma schema, and an independently packaged Python solver.
+- Use Node.js 24 LTS and pnpm 10 for the TypeScript workspace.
+- Use Python 3.12 with `uv` for the solver environment. Keep runtime and
+  development dependencies locked in `uv.lock`.
+- Use PostgreSQL 17 natively in local development and as a CI service.
+- Use Next.js, TypeScript strict mode, Tailwind CSS, Zod, Prisma, bcrypt, and
+  signed HTTP-only sessions for the application.
+- Use FastAPI, Pydantic, Google OR-Tools CP-SAT, pytest, Ruff, and mypy for the
+  solver.
+- Keep the solver pure: it receives a complete immutable JSON snapshot and never
+  queries the application database.
+- The application owns `GenerationJob` persistence. A TypeScript worker that
+  polls jobs and calls the solver will be introduced in Phase 5. Phase 0 does not
+  create a misleading in-process background queue.
+- Rooms are optional per academic term and room constraints can be disabled.
+- Persist immutable solver requests, fingerprints, alternatives, and response
+  metadata when generation is implemented.
+- Generated alternatives are immutable. Editing and regeneration create derived
+  draft schedule versions.
+- Docker Desktop is intentionally not required on the development laptop. This
+  user-approved change replaces local Compose with native services to reduce
+  idle memory use.
+- Pin direct dependency versions and commit both `pnpm-lock.yaml` and `uv.lock`.
+  Dependabot may propose reviewed upgrades; CI must not install floating versions.
+
+## Phase 0 execution plan
+
+### 0. Prerequisites
+
+Install and verify:
+
+- Git.
+- Node.js 24 LTS.
+- Corepack with pnpm 10 activated.
+- Python 3.12.
+- `uv`.
+- PostgreSQL 17.
+
+Installed and verified on 2026-07-24: Git 2.55.0, Node.js 24.18.0, pnpm
+10.34.5, Python 3.12.10, uv 0.11.32, and PostgreSQL 17.10. Docker Desktop was
+installed and then removed at the user's request.
+
+### 1. Repository foundation
+
+1. Initialize Git at the current workspace root.
+2. Remove the duplicated extracted blueprint directory after verifying the
+   root-level copies, while retaining the source PDF text only as reference or
+   moving it under `docs/reference/`.
+3. Add `.gitignore`, `.editorconfig`, `.gitattributes`, `.npmrc`,
+   `.nvmrc`, `package.json`, `pnpm-workspace.yaml`, and lockfiles.
+4. Configure UTF-8, LF normalization, exact package-manager metadata, and Node
+   engine constraints.
+5. Add `.env.example` containing names and safe local defaults only.
+
+### 2. TypeScript workspace
+
+1. Scaffold `apps/web` with Next.js App Router, TypeScript strict mode,
+   Tailwind CSS, ESLint, and the `@/*` import alias.
+2. Create `packages/shared` for stable error codes, DTOs, enums, and Zod schemas.
+3. Add root scripts that delegate through pnpm workspace filters.
+4. Configure Vitest for unit tests and Playwright for later critical flows.
+5. Add a minimal web health endpoint at `GET /api/health`. It must report
+   application status and database reachability without leaking credentials.
+6. Add a minimal page that confirms the application is running; do not add
+   scheduling screens in Phase 0.
+
+### 3. Database foundation
+
+1. Add root `prisma/schema.prisma` configured for PostgreSQL and UUID identifiers.
+2. Add only the minimum foundation models needed to prove connectivity and
+   migrations; Phase 1 owns the scheduling domain schema.
+3. Add `prisma/seed.ts` as an idempotent foundation seed entry point.
+4. Create and apply the initial migration.
+5. Add database client lifecycle handling suitable for Next.js development.
+6. Test database health and migration execution against native PostgreSQL.
+
+### 4. Solver foundation
+
+1. Create the Python package under `services/solver`.
+2. Configure FastAPI, Pydantic, pytest, Ruff, and mypy in `pyproject.toml`.
+3. Add `GET /health`, returning service status and installed OR-Tools version.
+4. Add structured exception handling with stable public error codes and no stack
+   traces in HTTP responses.
+5. Add health endpoint and schema validation tests.
+6. Do not implement prechecks, CP-SAT variables, constraints, objectives,
+   alternatives, or diagnostics in Phase 0.
+
+### 5. Native local orchestration
+
+- PostgreSQL 17 runs as the automatic Windows service `postgresql-x64-17`.
+- Next.js runs through `pnpm dev`.
+- FastAPI runs through `pnpm solver:dev`.
+- GitHub Actions uses a PostgreSQL service container on its hosted Linux runner.
+- The browser never calls the solver directly.
+
+### 6. Quality gates and CI
+
+Configure GitHub Actions with separate jobs:
+
+1. `web-quality`: frozen pnpm install, formatting check, ESLint, TypeScript
+   checking, and Vitest.
+2. `solver-quality`: locked `uv` sync, Ruff format check, Ruff lint, mypy, and
+   pytest.
+3. `integration`: start PostgreSQL and solver services, apply migrations, and
+   verify both health endpoints.
+4. `build`: build the shared package and Next.js production application.
+
+Cache package downloads, not generated build output. Every job must use committed
+lockfiles. Playwright is configured in Phase 0, but browser E2E becomes required
+when the first user workflow is delivered.
+
+### 7. Documentation and verification
+
+1. Create `README.md` with prerequisites, environment setup, architecture,
+   commands, service URLs, testing, and troubleshooting.
+2. Keep `AGENTS.md` commands synchronized with actual scripts.
+3. Run all Phase 0 checks from a clean dependency install.
+4. Verify application and solver health through their native local services.
+5. Record exact versions, commands run, results, limitations, and the next task
+   in the change log below.
+
+## Planned repository tree
+
+```text
+.
+|-- .github/
+|   `-- workflows/ci.yml
+|-- apps/
+|   `-- web/
+|       |-- src/app/
+|       |-- src/lib/
+|       |-- tests/
+|       `-- package.json
+|-- docs/
+|   |-- ACCEPTANCE_TESTS.md
+|   |-- CODEX_BUILD_TASKS.md
+|   |-- DATA_MODEL.md
+|   |-- IMPLEMENTATION_STATUS.md
+|   |-- PRODUCT_BLUEPRINT.md
+|   `-- SOLVER_CONTRACT.md
+|-- packages/
+|   `-- shared/
+|       |-- src/
+|       |-- tests/
+|       `-- package.json
+|-- prisma/
+|   |-- migrations/
+|   |-- schema.prisma
+|   `-- seed.ts
+|-- services/
+|   `-- solver/
+|       |-- app/
+|       |-- tests/
+|       |-- pyproject.toml
+|       `-- uv.lock
+|-- .editorconfig
+|-- .env.example
+|-- .gitattributes
+|-- .gitignore
+|-- .npmrc
+|-- .nvmrc
+|-- AGENTS.md
+|-- README.md
+|-- package.json
+|-- playwright.config.ts
+|-- pnpm-lock.yaml
+|-- pnpm-workspace.yaml
+`-- START_HERE.md
+```
+
+`apps/worker` is intentionally absent until Phase 5. It will use application
+repositories to claim persisted jobs and call the database-independent solver.
+
+## Planned commands
+
+```bash
+pnpm install
+pnpm dev
+pnpm build
+pnpm format
+pnpm format:check
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm test:e2e
+pnpm prisma generate
+pnpm prisma migrate dev
+pnpm prisma db seed
+pnpm solver:dev
+
+cd services/solver
+uv sync --locked
+uv run uvicorn app.main:app --reload --port 8000
+uv run pytest
+uv run ruff format --check .
+uv run ruff check .
+uv run mypy app
+```
+
+The root `pnpm` quality scripts will include the relevant solver checks so CI and
+local development expose one documented quality gate.
+
+## Environment contract
+
+`.env.example` will document:
+
+```text
+NODE_ENV=development
+APP_URL=http://localhost:3000
+AUTH_SECRET=
+DATABASE_URL=postgresql://timetable:timetable@localhost:5432/timetable
+SOLVER_BASE_URL=http://localhost:8000
+SOLVER_INTERNAL_TOKEN=
+SOLVER_REQUEST_TIMEOUT_SECONDS=40
+LOG_LEVEL=info
+```
+
+`AUTH_SECRET`, production database credentials, and `SOLVER_INTERNAL_TOKEN` must
+be supplied outside source control. The documented database credentials are
+local-development values only.
+
+## Risks and resolved ambiguities
+
+- **Workstation prerequisites:** Git, Node, pnpm, Python, uv, and native
+  PostgreSQL are installed and verified. Docker is intentionally absent.
+- **Job ownership contradiction:** The blueprint mentioned a Python worker
+  polling pending jobs, but also forbids solver database access. The application
+  side owns job polling; the Python service remains a pure HTTP solver.
+- **Quality score normalization:** The solver contract returns integer penalties,
+  while the product discussion mentions a score out of 100. Store and expose raw
+  penalties first. Define a stable, profile-aware display normalization in Phase
+  4 before showing percentages; never imply that validity is less than 100%.
+- **Best penalty of zero:** Alternative quality thresholds cannot be calculated
+  only as a percentage of zero. Phase 4 must define an absolute fallback
+  tolerance.
+- **Alternative diversity:** "Different" currently means at least one assignment
+  differs for fixture F. Phase 4 must define a stronger configurable distance for
+  production datasets without changing fixture acceptance.
+- **Fixed-slot cardinality:** A requirement can have several weekly occurrences.
+  Phase 1 must specify whether each fixed slot represents one occurrence and
+  reject more fixed slots than `weeklyOccurrences`.
+- **Daily minimum semantics:** Teacher minimum lessons per day applies only to
+  explicitly selected working days, not automatically to every school day.
+- **Calendar shape:** The initial model assumes the named period definitions are
+  shared by all working days. Per-day bell schedules are outside MVP unless the
+  school confirms they are required before Phase 1.
+- **Authentication:** Phase 1 will use Auth.js with one seeded administrator and
+  database-backed sessions. Public registration and password recovery are out of
+  scope.
+- **Performance:** The 5-second and 30-second targets apply only to named fixtures
+  on recorded hardware. They are not universal guarantees.
+- **Version drift:** Task 1 must record actual pinned versions after dependency
+  resolution. Node 24 LTS satisfies current Next.js and Prisma runtime
+  requirements; Python 3.12 is selected conservatively for binary-package
+  compatibility.
+
+## Phase checklist
+
+### Phase 0 - foundation
+
+- [x] Monorepo initialized
+- [x] Next.js app
+- [x] Solver service
+- [x] PostgreSQL and Prisma
+- [x] Native local services (Docker removed by user decision)
+- [x] CI
+- [x] README
+- [x] Health checks
+
+### Phase 1 - CRUD
+
+- [ ] Authentication
+- [ ] Calendar setup
+- [ ] Teachers
+- [ ] Subjects
+- [ ] Classes
+- [ ] Rooms
+- [ ] Teaching requirements
+- [ ] Availability
+
+### Phase 2 - prechecks and snapshots
+
+- [ ] Readiness validation
+- [ ] Canonical snapshot
+- [ ] SHA-256 fingerprint
+- [ ] Validation UI
+
+### Phase 3 - hard solver
+
+- [ ] Exact counts
+- [ ] Teacher collisions
+- [ ] Class collisions
+- [ ] Room collisions
+- [ ] Availability
+- [ ] Duration
+- [ ] Fixed and forbidden slots
+- [ ] Post-solve validator
+
+### Phase 4 - optimization
+
+- [ ] Soft constraints
+- [ ] Penalty breakdown
+- [ ] Profiles
+- [ ] Alternatives
+- [ ] Benchmarks
+
+### Phase 5 - application integration
+
+- [x] Generation jobs
+- [x] Alternative persistence
+- [x] Timetable views
+- [x] Comparison
+
+### Phase 6 - editing
+
+- [x] Move
+- [x] Swap
+- [x] Lock
+- [x] Undo and redo
+- [ ] Partial regeneration
+
+### Phase 7 - hardening
+
+- [ ] Diagnostics
+- [ ] CSV
+- [ ] Print
+- [ ] Audit
+- [ ] Security review
+- [ ] End-to-end suite
+- [ ] Deployment guide
+
+## Change log
+
+### 2026-07-24 - Task 0 planning
+
+- Read all blueprint documents and preserved the single-school MVP.
+- Defined the Phase 0 repository tree, runtime baselines, package managers,
+  commands, Compose services, environment variables, test tooling, and CI jobs.
+- Resolved generation-job ownership without allowing the solver to query the
+  database.
+- Recorded missing local prerequisites and product-contract ambiguities.
+- Next task: Task 1, repository foundation. Do not implement scheduling features.
+
+### 2026-07-24 - Task 1 repository foundation
+
+- Installed and verified the native Git, Node.js, pnpm, Python, uv, and
+  PostgreSQL toolchain.
+- Removed Docker Desktop and adopted native local services to reduce laptop
+  resource use.
+- Initialized Git and the pnpm monorepo.
+- Added Next.js 16.2.11, Prisma 7.9.0, PostgreSQL 17.10, FastAPI 0.139.2, and
+  OR-Tools 9.15.6755 foundations.
+- Created and applied the `foundation` Prisma migration.
+- Added database-aware web health and OR-Tools-aware solver health endpoints.
+- Added shared TypeScript contracts, unit tests, solver tests, a Chrome browser
+  smoke test, and GitHub Actions CI.
+- Verified formatting, linting, TypeScript checks, strict Python typing, unit
+  tests, solver tests, production build, both live health endpoints, and the
+  Playwright smoke test.
+- Pinned patched transitive releases for `sharp`, `postcss`, and `find-my-way`;
+  the final production dependency audit reports no known vulnerabilities.
+- Known limitation: the sandboxed Vitest process cannot traverse a protected
+  Windows parent directory; the same test suite passes under the normal user
+  context and in CI.
+- Next task: Task 2, Phase 1 domain model. Do not build scheduling or CRUD UI
+  behavior in that task.
+
+### 2026-07-24 - Task 2 domain model
+
+- Replaced the foundation-only schema with normalized school, user, term,
+  calendar, teacher, subject, class, room, availability, teaching requirement,
+  constraint, generation, schedule, assignment, and audit models.
+- Added compound school and term foreign keys, short-code uniqueness, soft
+  deletion fields, job-status indexes, immutable generation snapshots, schedule
+  ancestry, and published-version protection.
+- Added PostgreSQL checks for term dates, calendar indices, period times,
+  workloads, capacities, requirement counts, constraint weights, generation
+  metrics, schedule publishing, and assignment positions.
+- Created and applied migration `20260724133435_phase1_domain`.
+- Added an idempotent Cedars Secondary School seed with one active term, five
+  working days, 25 physical slots including breaks, three teachers, four
+  subjects, two classes, a laboratory, six teaching requirements, part-time
+  availability, and a balanced constraint profile.
+- Verified the seed twice with stable counts: 1 school, 1 term, 3 teachers, 2
+  classes, 6 requirements, and 25 slots.
+- Added school-scoped repository factories and explicit cross-school access
+  rejection.
+- Added 12 focused tests covering calendar slot construction, availability
+  uniqueness, weekly occurrence and duration semantics, fixed-slot cardinality,
+  schedule immutability, derived versions, and school authorization.
+- Next task: Task 3, administrator authentication and setup UI. Do not implement
+  solver behavior during that task.
+
+### 2026-07-24 - Task 3 administrator setup
+
+- Added password-based administrator authentication with bcrypt hashes, signed
+  eight-hour HTTP-only sessions, protected layouts, and school-scoped session
+  verification for every setup mutation.
+- Built responsive setup navigation and pages for the active-term calendar,
+  teachers, subjects, classes, optional rooms, teaching requirements, and
+  teacher availability.
+- Added validated server actions, scoped reference checks, reusable tables,
+  reusable form controls, a weekly availability grid, and loading, empty, and
+  route error states.
+- Added a focused weekly-grid component test and a Playwright workflow covering
+  administrator sign-in and teacher creation.
+- Verified linting, TypeScript, unit tests, the production build, and the
+  authenticated Playwright workflow.
+- Next task: Task 4, deterministic readiness validation and canonical solver
+  snapshots. Do not start solver jobs for invalid input.
+
+### 2026-07-25 - Task 4 readiness validation
+
+- Added a versioned immutable solver snapshot contract covering the active
+  calendar, resources, requirements, availability, fixed slots, forbidden
+  slots, locked assignments, constraint weights, and generation options.
+- Added canonical recursive object-key ordering and deterministic SHA-256 input
+  fingerprints.
+- Implemented deterministic class, teacher, requirement, daily, distinct-day,
+  room, fixed-collision, consecutive-slot, and locked-assignment prechecks.
+- Added stable issue codes, related entity IDs, required and available values,
+  human-readable summaries, and corrective suggestions.
+- Added readable JSON acceptance fixtures B, C, D, and E and integration tests
+  for teacher capacity, fixed teacher collision, double-period capacity, and
+  fixed room collision.
+- Built a protected readiness checklist showing blocking diagnostics, setup
+  links, input counts, schema version, and snapshot fingerprint.
+- Confirmed invalid data stops at readiness; this phase creates no generation
+  job and makes no solver request.
+- Verified formatting, linting, strict TypeScript, 22 unit/component tests, the
+  production build, and the authenticated Playwright workflow.
+- Next task: Task 5, hard-constraint CP-SAT solver and application integration.
+
+### 2026-07-25 - Task 5 hard-constraint solver
+
+- Added strict Pydantic schema-version-1 contracts for `/v1/solve` and
+  `/v1/validate`, with camel-case JSON aliases and unknown-field rejection.
+- Implemented CP-SAT decision variables over precomputed compatible
+  requirement-occurrence, start-slot, and room choices.
+- Enforced exact weekly demand, teacher/class/room collisions, unavailable
+  slots, duration continuity, fixed and forbidden positions, locked
+  assignments, daily occurrence limits, minimum distinct days, teacher and
+  class daily workloads, teacher consecutive-load limits, and room
+  compatibility.
+- Added an independent post-solve validator; a solver result is never returned
+  as feasible when this validation reports a hard-rule violation.
+- Added readable acceptance Fixture A with five days, two classes, three
+  teachers, ten requirements, and part-time first-period unavailability.
+- Added direct solver, solve API, and validate API tests covering exact demand,
+  zero hard violations, availability, fingerprints, metadata, and collision
+  rejection.
+- Connected readiness to synchronous generation with server-side revalidation,
+  immutable job snapshots, fingerprint verification, transactional alternative
+  and diagnostic persistence, failure recording, and a protected result page.
+- Extended Playwright through login, setup, readiness, live CP-SAT generation,
+  persistence, and result rendering.
+- Verified formatting, linting, strict TypeScript and mypy, 22 TypeScript tests,
+  four Python tests, production build, and the live end-to-end workflow.
+- Next task: Task 6, named soft-constraint penalties and configurable weights.
+
+### 2026-07-25 - Task 6 soft constraints
+
+- Added nine named, configurable soft constraints for teacher slot
+  preferences, edge periods, teacher gaps, part-time compactness, compact
+  teaching blocks, subject spread, repeated subjects, subject time bands, and
+  daily workload balance.
+- Extended solver snapshots with teacher employment type and subject time-band
+  and consecutive-period preference metadata.
+- Added a weighted CP-SAT minimization objective using the active constraint
+  profile; zero disables a term.
+- Added an independent assignment scorer and fail-closed verification that the
+  named breakdown exactly sums to both the reported total and solver objective.
+- Added readable acceptance Fixtures I and J for subject spread and part-time
+  compactness comparisons.
+- Added an administrator quality-weight settings page and persisted named
+  penalty breakdowns on generation results.
+- Documented every formula and default weight in `docs/SOFT_CONSTRAINTS.md`.
+- Verified the weighted live generation workflow and result UI.
+- Next task: Task 7, quality-bounded diverse alternatives.
+
+### 2026-07-25 - Task 7 alternatives
+
+- Added configurable generation of one to five alternatives and a 0-100%
+  maximum quality-degradation ceiling.
+- Kept rank 1 as the best weighted solution, then excluded prior assignment
+  patterns and maximized occurrence-level differences against all earlier
+  alternatives.
+- Enforced the quality ceiling as a hard CP-SAT constraint for every later
+  solve and independently revalidated hard feasibility and penalty totals.
+- Added diversity scores and early-stop warnings when the requested number of
+  distinct quality-bounded alternatives does not exist.
+- Added readable acceptance Fixture F with pairwise-difference and quality-bound
+  assertions.
+- Persisted all alternatives, quality scores, diversity scores, breakdowns,
+  runtimes, assignments, and warnings.
+- Added generation controls and a protected comparison interface for switching
+  among alternative ranks.
+- Documented the algorithm in `docs/ALTERNATIVE_GENERATION.md`.
+- Verified a live three-alternative run with quality/diversity pairs `141/0`,
+  `167/17`, and `164/34`, all within the configured 20% quality ceiling.
+- Next task: Task 8, whole-school and resource timetable views.
+
+### 2026-07-25 - Task 8 timetable views and editor
+
+- Added whole-school, class, teacher, and optional room weekly timetable views
+  with stable desktop-first grids and resource filters.
+- Added opening immutable generated alternatives as versioned draft schedules.
+- Added move score previews, drag-and-drop, swaps, an unassigned tray, and
+  assignment lock and unlock controls.
+- Validated candidate edits through the solver before database writes; invalid
+  edits are rejected atomically with stable hard-constraint codes.
+- Preserved every accepted edit as a derived draft version with audit details,
+  score differences, and undo and redo navigation.
+- Added nullable assignment positions with a database pair constraint for the
+  unassigned tray.
+- Added readable acceptance Fixture H for manual-move collision rejection.
+- Extended the authenticated Playwright workflow through draft creation,
+  resource views, atomic rejection, lock, undo, and redo.
+- Verified linting, strict TypeScript and mypy, 22 TypeScript tests, seven Python
+  tests, the production build, and the live end-to-end workflow.
+- Next task: Task 9, partial regeneration around locked and manually positioned
+  assignments.

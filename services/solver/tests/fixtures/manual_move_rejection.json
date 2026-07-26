@@ -1,0 +1,21 @@
+{
+  "id": "H",
+  "name": "Manual move rejection",
+  "assignments": [
+    {
+      "requirementId": "r1",
+      "dayIndex": 0,
+      "periodIndex": 0,
+      "durationPeriods": 1,
+      "roomId": null
+    },
+    {
+      "requirementId": "r4",
+      "dayIndex": 0,
+      "periodIndex": 0,
+      "durationPeriods": 1,
+      "roomId": null
+    }
+  ],
+  "expectedCode": "COLLISION:TEACHER:teacher-a"
+}

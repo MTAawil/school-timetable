@@ -1,0 +1,45 @@
+{
+  "name": "school-timetable",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "packageManager": "pnpm@10.34.5",
+  "pnpm": {
+    "overrides": {
+      "find-my-way": "9.7.0",
+      "postcss": "8.5.12",
+      "sharp": "0.35.0"
+    }
+  },
+  "scripts": {
+    "dev": "pnpm --filter @school-timetable/web dev",
+    "build": "pnpm --filter @school-timetable/shared build && pnpm --filter @school-timetable/web build",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "pnpm --filter @school-timetable/shared lint && pnpm --filter @school-timetable/database lint && pnpm --filter @school-timetable/web lint",
+    "typecheck": "pnpm --filter @school-timetable/shared typecheck && pnpm --filter @school-timetable/database typecheck && pnpm --filter @school-timetable/web typecheck",
+    "test": "pnpm --filter @school-timetable/shared test && pnpm --filter @school-timetable/database test && pnpm --filter @school-timetable/web test",
+    "test:e2e": "playwright test",
+    "prisma": "prisma",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:seed": "prisma db seed",
+    "solver:dev": "uv run --project services/solver uvicorn app.main:app --app-dir services/solver --reload --port 8000",
+    "solver:format": "uv run --project services/solver ruff format services/solver",
+    "solver:format:check": "uv run --project services/solver ruff format --check services/solver",
+    "solver:lint": "uv run --project services/solver ruff check services/solver",
+    "solver:typecheck": "uv run --project services/solver mypy services/solver/app",
+    "solver:test": "uv run --project services/solver pytest services/solver/tests"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.0",
+    "bcryptjs": "3.0.3",
+    "dotenv": "17.2.3",
+    "prettier": "^3.8.0",
+    "prisma": "^7.0.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.0"
+  }
+}

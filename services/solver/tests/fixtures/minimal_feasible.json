@@ -1,0 +1,286 @@
+{
+  "schemaVersion": 1,
+  "jobId": "fixture-a-job",
+  "school": {
+    "id": "school-a",
+    "name": "Fixture A School",
+    "timezone": "Asia/Beirut"
+  },
+  "term": {
+    "id": "term-a",
+    "name": "Fixture A Term",
+    "roomsEnabled": false
+  },
+  "calendar": {
+    "days": [
+      { "id": "mon", "index": 0, "name": "Monday", "isWorking": true },
+      { "id": "tue", "index": 1, "name": "Tuesday", "isWorking": true },
+      { "id": "wed", "index": 2, "name": "Wednesday", "isWorking": true },
+      { "id": "thu", "index": 3, "name": "Thursday", "isWorking": true },
+      { "id": "fri", "index": 4, "name": "Friday", "isWorking": true }
+    ],
+    "periods": [
+      { "id": "p1", "index": 0, "name": "Period 1", "isTeaching": true },
+      { "id": "p2", "index": 1, "name": "Period 2", "isTeaching": true },
+      { "id": "p3", "index": 2, "name": "Period 3", "isTeaching": true },
+      { "id": "p4", "index": 3, "name": "Period 4", "isTeaching": true }
+    ],
+    "enabledSlots": [
+      { "id": "s-0-0", "dayIndex": 0, "periodIndex": 0 },
+      { "id": "s-0-1", "dayIndex": 0, "periodIndex": 1 },
+      { "id": "s-0-2", "dayIndex": 0, "periodIndex": 2 },
+      { "id": "s-0-3", "dayIndex": 0, "periodIndex": 3 },
+      { "id": "s-1-0", "dayIndex": 1, "periodIndex": 0 },
+      { "id": "s-1-1", "dayIndex": 1, "periodIndex": 1 },
+      { "id": "s-1-2", "dayIndex": 1, "periodIndex": 2 },
+      { "id": "s-1-3", "dayIndex": 1, "periodIndex": 3 },
+      { "id": "s-2-0", "dayIndex": 2, "periodIndex": 0 },
+      { "id": "s-2-1", "dayIndex": 2, "periodIndex": 1 },
+      { "id": "s-2-2", "dayIndex": 2, "periodIndex": 2 },
+      { "id": "s-2-3", "dayIndex": 2, "periodIndex": 3 },
+      { "id": "s-3-0", "dayIndex": 3, "periodIndex": 0 },
+      { "id": "s-3-1", "dayIndex": 3, "periodIndex": 1 },
+      { "id": "s-3-2", "dayIndex": 3, "periodIndex": 2 },
+      { "id": "s-3-3", "dayIndex": 3, "periodIndex": 3 },
+      { "id": "s-4-0", "dayIndex": 4, "periodIndex": 0 },
+      { "id": "s-4-1", "dayIndex": 4, "periodIndex": 1 },
+      { "id": "s-4-2", "dayIndex": 4, "periodIndex": 2 },
+      { "id": "s-4-3", "dayIndex": 4, "periodIndex": 3 }
+    ]
+  },
+  "teachers": [
+    {
+      "id": "teacher-a",
+      "name": "Teacher A",
+      "maxLessonsPerDay": 4,
+      "maxConsecutiveLessons": 3
+    },
+    {
+      "id": "teacher-b",
+      "name": "Teacher B",
+      "maxLessonsPerDay": 4,
+      "maxConsecutiveLessons": 3
+    },
+    {
+      "id": "teacher-part-time",
+      "name": "Part-time Teacher",
+      "employmentType": "PART_TIME",
+      "maxLessonsPerDay": 3,
+      "maxConsecutiveLessons": 2
+    }
+  ],
+  "subjects": [
+    { "id": "math", "name": "Mathematics", "defaultRoomType": null },
+    { "id": "science", "name": "Science", "defaultRoomType": null },
+    { "id": "english", "name": "English", "defaultRoomType": null },
+    { "id": "history", "name": "History", "defaultRoomType": null },
+    { "id": "art", "name": "Art", "defaultRoomType": null }
+  ],
+  "classSections": [
+    { "id": "class-a", "name": "Class A", "maxLessonsPerDay": 4 },
+    { "id": "class-b", "name": "Class B", "maxLessonsPerDay": 4 }
+  ],
+  "rooms": [],
+  "requirements": [
+    {
+      "id": "r1",
+      "classSectionId": "class-a",
+      "subjectId": "math",
+      "teacherId": "teacher-a",
+      "weeklyOccurrences": 1,
+      "durationPeriods": 1,
+      "maxOccurrencesPerDay": 1,
+      "minimumDistinctDays": 1,
+      "requiredRoomId": null,
+      "requiredRoomType": null,
+      "fixedSlots": [],
+      "forbiddenSlots": []
+    },
+    {
+      "id": "r2",
+      "classSectionId": "class-a",
+      "subjectId": "science",
+      "teacherId": "teacher-b",
+      "weeklyOccurrences": 1,
+      "durationPeriods": 1,
+      "maxOccurrencesPerDay": 1,
+      "minimumDistinctDays": 1,
+      "requiredRoomId": null,
+      "requiredRoomType": null,
+      "fixedSlots": [],
+      "forbiddenSlots": []
+    },
+    {
+      "id": "r3",
+      "classSectionId": "class-a",
+      "subjectId": "english",
+      "teacherId": "teacher-part-time",
+      "weeklyOccurrences": 1,
+      "durationPeriods": 1,
+      "maxOccurrencesPerDay": 1,
+      "minimumDistinctDays": 1,
+      "requiredRoomId": null,
+      "requiredRoomType": null,
+      "fixedSlots": [],
+      "forbiddenSlots": []
+    },
+    {
+      "id": "r4",
+      "classSectionId": "class-a",
+      "subjectId": "history",
+      "teacherId": "teacher-a",
+      "weeklyOccurrences": 1,
+      "durationPeriods": 1,
+      "maxOccurrencesPerDay": 1,
+      "minimumDistinctDays": 1,
+      "requiredRoomId": null,
+      "requiredRoomType": null,
+      "fixedSlots": [],
+      "forbiddenSlots": []
+    },
+    {
+      "id": "r5",
+      "classSectionId": "class-a",
+      "subjectId": "art",
+      "teacherId": "teacher-b",
+      "weeklyOccurrences": 1,
+      "durationPeriods": 1,
+      "maxOccurrencesPerDay": 1,
+      "minimumDistinctDays": 1,
+      "requiredRoomId": null,
+      "requiredRoomType": null,
+      "fixedSlots": [],
+      "forbiddenSlots": []
+    },
+    {
+      "id": "r6",
+      "classSectionId": "class-b",
+      "subjectId": "math",
+      "teacherId": "teacher-a",
+      "weeklyOccurrences": 1,
+      "durationPeriods": 1,
+      "maxOccurrencesPerDay": 1,
+      "minimumDistinctDays": 1,
+      "requiredRoomId": null,
+      "requiredRoomType": null,
+      "fixedSlots": [],
+      "forbiddenSlots": []
+    },
+    {
+      "id": "r7",
+      "classSectionId": "class-b",
+      "subjectId": "science",
+      "teacherId": "teacher-b",
+      "weeklyOccurrences": 1,
+      "durationPeriods": 1,
+      "maxOccurrencesPerDay": 1,
+      "minimumDistinctDays": 1,
+      "requiredRoomId": null,
+      "requiredRoomType": null,
+      "fixedSlots": [],
+      "forbiddenSlots": []
+    },
+    {
+      "id": "r8",
+      "classSectionId": "class-b",
+      "subjectId": "english",
+      "teacherId": "teacher-part-time",
+      "weeklyOccurrences": 1,
+      "durationPeriods": 1,
+      "maxOccurrencesPerDay": 1,
+      "minimumDistinctDays": 1,
+      "requiredRoomId": null,
+      "requiredRoomType": null,
+      "fixedSlots": [],
+      "forbiddenSlots": []
+    },
+    {
+      "id": "r9",
+      "classSectionId": "class-b",
+      "subjectId": "history",
+      "teacherId": "teacher-a",
+      "weeklyOccurrences": 1,
+      "durationPeriods": 1,
+      "maxOccurrencesPerDay": 1,
+      "minimumDistinctDays": 1,
+      "requiredRoomId": null,
+      "requiredRoomType": null,
+      "fixedSlots": [],
+      "forbiddenSlots": []
+    },
+    {
+      "id": "r10",
+      "classSectionId": "class-b",
+      "subjectId": "art",
+      "teacherId": "teacher-b",
+      "weeklyOccurrences": 1,
+      "durationPeriods": 1,
+      "maxOccurrencesPerDay": 1,
+      "minimumDistinctDays": 1,
+      "requiredRoomId": null,
+      "requiredRoomType": null,
+      "fixedSlots": [],
+      "forbiddenSlots": []
+    }
+  ],
+  "availability": [
+    {
+      "entityType": "TEACHER",
+      "entityId": "teacher-part-time",
+      "dayIndex": 0,
+      "periodIndex": 0,
+      "state": "UNAVAILABLE"
+    },
+    {
+      "entityType": "TEACHER",
+      "entityId": "teacher-part-time",
+      "dayIndex": 1,
+      "periodIndex": 0,
+      "state": "UNAVAILABLE"
+    },
+    {
+      "entityType": "TEACHER",
+      "entityId": "teacher-part-time",
+      "dayIndex": 2,
+      "periodIndex": 0,
+      "state": "UNAVAILABLE"
+    },
+    {
+      "entityType": "TEACHER",
+      "entityId": "teacher-part-time",
+      "dayIndex": 3,
+      "periodIndex": 0,
+      "state": "UNAVAILABLE"
+    },
+    {
+      "entityType": "TEACHER",
+      "entityId": "teacher-part-time",
+      "dayIndex": 4,
+      "periodIndex": 0,
+      "state": "UNAVAILABLE"
+    }
+  ],
+  "lockedAssignments": [],
+  "constraintProfile": {
+    "id": "balanced",
+    "weights": {
+      "TEACHER_AVAILABILITY": 1,
+      "FIRST_LAST_PERIOD": 1,
+      "TEACHER_GAP": 1,
+      "PART_TIME_COMPACTNESS": 1,
+      "TEACHER_CONSECUTIVE_PREFERENCE": 1,
+      "SUBJECT_SPREAD": 1,
+      "REPEATED_SUBJECT_DAY": 1,
+      "LATE_HEAVY_SUBJECT": 1,
+      "DAILY_WORKLOAD_BALANCE": 1
+    }
+  },
+  "options": {
+    "alternativeCount": 1,
+    "timeLimitSeconds": 10,
+    "randomSeed": 12345,
+    "maxQualityDegradationPercent": 20,
+    "roomsEnabled": false,
+    "useExistingScheduleHint": false
+  }
+}

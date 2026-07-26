@@ -1,0 +1,116 @@
+{
+  "fixtureI": {
+    "name": "subject spread scoring",
+    "weight": { "SUBJECT_SPREAD": 10 },
+    "spread": [
+      {
+        "requirementId": "r1",
+        "dayIndex": 0,
+        "periodIndex": 1,
+        "durationPeriods": 1,
+        "roomId": null
+      },
+      {
+        "requirementId": "r1",
+        "dayIndex": 1,
+        "periodIndex": 1,
+        "durationPeriods": 1,
+        "roomId": null
+      },
+      {
+        "requirementId": "r1",
+        "dayIndex": 2,
+        "periodIndex": 1,
+        "durationPeriods": 1,
+        "roomId": null
+      },
+      {
+        "requirementId": "r1",
+        "dayIndex": 3,
+        "periodIndex": 1,
+        "durationPeriods": 1,
+        "roomId": null
+      }
+    ],
+    "compressed": [
+      {
+        "requirementId": "r1",
+        "dayIndex": 0,
+        "periodIndex": 1,
+        "durationPeriods": 1,
+        "roomId": null
+      },
+      {
+        "requirementId": "r1",
+        "dayIndex": 0,
+        "periodIndex": 2,
+        "durationPeriods": 1,
+        "roomId": null
+      },
+      {
+        "requirementId": "r1",
+        "dayIndex": 1,
+        "periodIndex": 1,
+        "durationPeriods": 1,
+        "roomId": null
+      },
+      {
+        "requirementId": "r1",
+        "dayIndex": 1,
+        "periodIndex": 2,
+        "durationPeriods": 1,
+        "roomId": null
+      }
+    ]
+  },
+  "fixtureJ": {
+    "name": "part-time compactness",
+    "weight": { "PART_TIME_COMPACTNESS": 10 },
+    "compact": [
+      {
+        "requirementId": "r3",
+        "dayIndex": 0,
+        "periodIndex": 1,
+        "durationPeriods": 1,
+        "roomId": null
+      },
+      {
+        "requirementId": "r8",
+        "dayIndex": 0,
+        "periodIndex": 2,
+        "durationPeriods": 1,
+        "roomId": null
+      },
+      {
+        "requirementId": "r3",
+        "dayIndex": 0,
+        "periodIndex": 3,
+        "durationPeriods": 1,
+        "roomId": null
+      }
+    ],
+    "gapped": [
+      {
+        "requirementId": "r3",
+        "dayIndex": 0,
+        "periodIndex": 0,
+        "durationPeriods": 1,
+        "roomId": null
+      },
+      {
+        "requirementId": "r8",
+        "dayIndex": 0,
+        "periodIndex": 2,
+        "durationPeriods": 1,
+        "roomId": null
+      },
+      {
+        "requirementId": "r3",
+        "dayIndex": 0,
+        "periodIndex": 3,
+        "durationPeriods": 1,
+        "roomId": null
+      }
+    ]
+  }
+}

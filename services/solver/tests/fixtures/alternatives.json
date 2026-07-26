@@ -1,0 +1,14 @@
+{
+  "id": "F",
+  "name": "quality-bounded diverse alternatives",
+  "baseFixture": "minimal_feasible.json",
+  "options": {
+    "alternativeCount": 3,
+    "timeLimitSeconds": 10,
+    "randomSeed": 24680,
+    "maxQualityDegradationPercent": 25,
+    "roomsEnabled": false,
+    "useExistingScheduleHint": false
+  },
+  "expectedAlternativeCount": 3
+}

@@ -1,0 +1,12 @@
+.next/
+node_modules/
+coverage/
+playwright-report/
+test-results/
+packages/database/generated/
+services/solver/.venv/
+services/solver/.pytest_cache/
+docs/
+school-timetable-codex-blueprint/
+schduel-chat-extracted.txt
+pnpm-lock.yaml

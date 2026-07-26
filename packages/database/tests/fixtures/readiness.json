@@ -1,0 +1,131 @@
+[
+  {
+    "id": "B",
+    "name": "teacher capacity impossible",
+    "dayCount": 2,
+    "periodCount": 5,
+    "roomsEnabled": false,
+    "teachers": [{ "id": "teacher-a", "name": "Teacher A" }],
+    "classes": [{ "id": "class-a", "name": "Class A" }],
+    "rooms": [],
+    "requirements": [
+      {
+        "id": "requirement-b",
+        "teacherId": "teacher-a",
+        "classSectionId": "class-a",
+        "weeklyOccurrences": 12,
+        "durationPeriods": 1,
+        "maxOccurrencesPerDay": 6,
+        "minimumDistinctDays": 1
+      }
+    ],
+    "expected": {
+      "code": "TEACHER_CAPACITY_SHORTAGE",
+      "required": 12,
+      "available": 10
+    }
+  },
+  {
+    "id": "C",
+    "name": "fixed teacher collision",
+    "dayCount": 5,
+    "periodCount": 4,
+    "roomsEnabled": false,
+    "teachers": [{ "id": "teacher-a", "name": "Teacher A" }],
+    "classes": [
+      { "id": "class-a", "name": "Class A" },
+      { "id": "class-b", "name": "Class B" }
+    ],
+    "rooms": [],
+    "requirements": [
+      {
+        "id": "requirement-c1",
+        "teacherId": "teacher-a",
+        "classSectionId": "class-a",
+        "weeklyOccurrences": 1,
+        "durationPeriods": 1,
+        "maxOccurrencesPerDay": 1,
+        "minimumDistinctDays": 1,
+        "fixedSlots": [{ "dayIndex": 0, "periodIndex": 1 }]
+      },
+      {
+        "id": "requirement-c2",
+        "teacherId": "teacher-a",
+        "classSectionId": "class-b",
+        "weeklyOccurrences": 1,
+        "durationPeriods": 1,
+        "maxOccurrencesPerDay": 1,
+        "minimumDistinctDays": 1,
+        "fixedSlots": [{ "dayIndex": 0, "periodIndex": 1 }]
+      }
+    ],
+    "expected": { "code": "FIXED_TEACHER_COLLISION" }
+  },
+  {
+    "id": "D",
+    "name": "double-period impossible",
+    "dayCount": 1,
+    "periodCount": 2,
+    "roomsEnabled": false,
+    "teachers": [{ "id": "teacher-a", "name": "Teacher A" }],
+    "classes": [{ "id": "class-a", "name": "Class A" }],
+    "rooms": [],
+    "requirements": [
+      {
+        "id": "requirement-d",
+        "teacherId": "teacher-a",
+        "classSectionId": "class-a",
+        "weeklyOccurrences": 2,
+        "durationPeriods": 2,
+        "maxOccurrencesPerDay": 2,
+        "minimumDistinctDays": 1
+      }
+    ],
+    "expected": {
+      "code": "INSUFFICIENT_CONSECUTIVE_SLOTS",
+      "required": 2,
+      "available": 1
+    }
+  },
+  {
+    "id": "E",
+    "name": "fixed room collision",
+    "dayCount": 5,
+    "periodCount": 4,
+    "roomsEnabled": true,
+    "teachers": [
+      { "id": "teacher-a", "name": "Teacher A" },
+      { "id": "teacher-b", "name": "Teacher B" }
+    ],
+    "classes": [
+      { "id": "class-a", "name": "Class A" },
+      { "id": "class-b", "name": "Class B" }
+    ],
+    "rooms": [{ "id": "lab", "name": "Laboratory", "type": "LAB" }],
+    "requirements": [
+      {
+        "id": "requirement-e1",
+        "teacherId": "teacher-a",
+        "classSectionId": "class-a",
+        "weeklyOccurrences": 1,
+        "durationPeriods": 1,
+        "maxOccurrencesPerDay": 1,
+        "minimumDistinctDays": 1,
+        "requiredRoomId": "lab",
+        "fixedSlots": [{ "dayIndex": 0, "periodIndex": 1 }]
+      },
+      {
+        "id": "requirement-e2",
+        "teacherId": "teacher-b",
+        "classSectionId": "class-b",
+        "weeklyOccurrences": 1,
+        "durationPeriods": 1,
+        "maxOccurrencesPerDay": 1,
+        "minimumDistinctDays": 1,
+        "requiredRoomId": "lab",
+        "fixedSlots": [{ "dayIndex": 0, "periodIndex": 1 }]
+      }
+    ],
+    "expected": { "code": "FIXED_ROOM_COLLISION" }
+  }
+]

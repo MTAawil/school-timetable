@@ -1,0 +1,110 @@
+from collections import Counter, defaultdict
+from dataclasses import dataclass
+
+from app.models import Assignment, SolveRequest
+
+SOFT_CONSTRAINT_CODES = (
+    "TEACHER_AVAILABILITY",
+    "FIRST_LAST_PERIOD",
+    "TEACHER_GAP",
+    "PART_TIME_COMPACTNESS",
+    "TEACHER_CONSECUTIVE_PREFERENCE",
+    "SUBJECT_SPREAD",
+    "REPEATED_SUBJECT_DAY",
+    "LATE_HEAVY_SUBJECT",
+    "DAILY_WORKLOAD_BALANCE",
+)
+
+
+@dataclass(frozen=True)
+class Score:
+    total: int
+    breakdown: dict[str, int]
+    raw: dict[str, int]
+
+
+def score_assignments(request: SolveRequest, assignments: list[Assignment]) -> Score:
+    weights = request.constraint_profile.weights
+    requirements = {item.id: item for item in request.requirements}
+    subjects = {item.id: item for item in request.subjects}
+    teachers = {item.id: item for item in request.teachers}
+    teaching_periods = sorted(
+        period.index for period in request.calendar.periods if period.is_teaching
+    )
+    working_days = sorted(day.index for day in request.calendar.days if day.is_working)
+    first_period = teaching_periods[0] if teaching_periods else -1
+    last_period = teaching_periods[-1] if teaching_periods else -1
+    period_rank = {period: rank for rank, period in enumerate(teaching_periods)}
+    availability = {
+        (rule.entity_type, rule.entity_id, rule.day_index, rule.period_index): rule.state
+        for rule in request.availability
+    }
+    preferred_by_teacher: dict[str, set[tuple[int, int]]] = defaultdict(set)
+    for rule in request.availability:
+        if rule.entity_type == "TEACHER" and rule.state == "PREFERRED":
+            preferred_by_teacher[rule.entity_id].add((rule.day_index, rule.period_index))
+
+    raw: Counter[str] = Counter()
+    occupied_by_teacher: dict[tuple[str, int], set[int]] = defaultdict(set)
+    subject_days: dict[str, list[int]] = defaultdict(list)
+
+    for assignment in assignments:
+        requirement = requirements[assignment.requirement_id]
+        subject = subjects[requirement.subject_id]
+        subject_days[requirement.id].append(assignment.day_index)
+        for offset in range(assignment.duration_periods):
+            period = assignment.period_index + offset
+            occupied_by_teacher[(requirement.teacher_id, assignment.day_index)].add(period)
+            state = availability.get(
+                ("TEACHER", requirement.teacher_id, assignment.day_index, period)
+            )
+            if state == "DISLIKED":
+                raw["TEACHER_AVAILABILITY"] += 1
+            preferred = preferred_by_teacher.get(requirement.teacher_id)
+            if preferred and (assignment.day_index, period) not in preferred:
+                raw["TEACHER_AVAILABILITY"] += 1
+            if period in (first_period, last_period):
+                raw["FIRST_LAST_PERIOD"] += 1
+            rank = period_rank.get(period, 0)
+            if subject.preferred_time_band == "EARLY":
+                raw["LATE_HEAVY_SUBJECT"] += rank
+            elif subject.preferred_time_band == "LATE":
+                raw["LATE_HEAVY_SUBJECT"] += len(teaching_periods) - rank - 1
+
+    for (teacher_id, _day), periods in occupied_by_teacher.items():
+        if not periods:
+            continue
+        ordered = sorted(periods)
+        internal_gaps = sum(
+            1
+            for period in teaching_periods
+            if ordered[0] < period < ordered[-1] and period not in periods
+        )
+        raw["TEACHER_GAP"] += internal_gaps
+        if teachers[teacher_id].employment_type == "PART_TIME":
+            raw["PART_TIME_COMPACTNESS"] += internal_gaps
+        adjacent = sum(
+            1 for left, right in zip(ordered, ordered[1:], strict=False) if right == left + 1
+        )
+        raw["TEACHER_CONSECUTIVE_PREFERENCE"] += len(ordered) - adjacent
+
+    for days in subject_days.values():
+        repeats = len(days) - len(set(days))
+        raw["SUBJECT_SPREAD"] += repeats
+        raw["REPEATED_SUBJECT_DAY"] += repeats
+
+    for teacher in request.teachers:
+        daily_counts = [
+            len(occupied_by_teacher.get((teacher.id, day), set())) for day in working_days
+        ]
+        total = sum(daily_counts)
+        raw["DAILY_WORKLOAD_BALANCE"] += sum(
+            abs(count * len(working_days) - total) for count in daily_counts
+        )
+
+    breakdown = {
+        code: raw[code] * weights.get(code, 0)
+        for code in SOFT_CONSTRAINT_CODES
+        if weights.get(code, 0) > 0
+    }
+    return Score(total=sum(breakdown.values()), breakdown=breakdown, raw=dict(raw))
