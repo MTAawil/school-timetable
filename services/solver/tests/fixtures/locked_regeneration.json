@@ -1,0 +1,7 @@
+{
+  "id": "G",
+  "name": "Locked regeneration",
+  "lockCount": 3,
+  "forcedMoveAssignmentIndex": 3,
+  "expectedMinimumMovedAssignments": 1
+}

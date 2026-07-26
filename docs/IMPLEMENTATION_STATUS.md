@@ -2,7 +2,7 @@
 
 ## Current phase
 
-Phase 6 - timetable views and versioned draft editing complete.
+Phase 6 - timetable views, versioned editing, and partial regeneration complete.
 
 ## Decisions
 
@@ -327,7 +327,7 @@ local-development values only.
 - [x] Swap
 - [x] Lock
 - [x] Undo and redo
-- [ ] Partial regeneration
+- [x] Partial regeneration
 
 ### Phase 7 - hardening
 
@@ -530,3 +530,26 @@ local-development values only.
   tests, the production build, and the live end-to-end workflow.
 - Next task: Task 9, partial regeneration around locked and manually positioned
   assignments.
+
+### 2026-07-26 - Task 9 partial regeneration
+
+- Extended solver snapshots with existing draft placements while retaining
+  locked assignments as exact hard constraints.
+- Added CP-SAT placement hints and a one-unit movement penalty for each changed
+  unlocked assignment.
+- Added explicit `movementPenalty` and `movedAssignments` response fields,
+  separate from named timetable-quality penalties.
+- Added draft regeneration that persists a new generation job, immutable
+  alternative, derived schedule version, regenerated assignments, response
+  metadata, and audit event in one transaction.
+- Added an application-side lock-preservation check before regenerated results
+  can be persisted.
+- Added a regeneration result summary with moved and preserved-lock counts.
+- Added readable Fixture G and proved three locked assignments remain fixed,
+  hard validation passes, and a forced unlocked move is reported.
+- Extended Playwright through three locks, regeneration, lock preservation,
+  derived version history, and undo availability.
+- Verified formatting, linting, strict TypeScript and mypy, 22 TypeScript tests,
+  eight Python tests, the production build, and the live end-to-end workflow.
+- Next task: Task 10, infeasibility diagnostics, publishing, CSV and print
+  exports, security hardening, and deployment documentation.

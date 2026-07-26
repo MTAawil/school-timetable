@@ -1,11 +1,12 @@
 import { getDatabase } from "@school-timetable/database";
-import { Lock, LockOpen, Redo2, Undo2 } from "lucide-react";
+import { Lock, LockOpen, Redo2, RefreshCw, Undo2 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import {
   moveAssignment,
   previewMove,
+  regenerateSchedule,
   swapAssignments,
   toggleAssignmentLock,
 } from "@/app/(protected)/schedules/actions";
@@ -32,6 +33,7 @@ export default async function SchedulePage({
     previewDay?: string;
     previewPeriod?: string;
     previewDelta?: string;
+    regenerated?: string;
   }>;
 }) {
   const user = await verifySession();
@@ -107,7 +109,13 @@ export default async function SchedulePage({
       assignment.startDayIndex === null || assignment.startPeriodIndex === null,
   );
   const latestAudit = schedule.auditLogs[0]?.details as
-    { scoreDelta?: number } | undefined;
+    | {
+        scoreDelta?: number;
+        movementPenalty?: number;
+        movedAssignments?: unknown[];
+        lockedAssignmentCount?: number;
+      }
+    | undefined;
 
   return (
     <div className="space-y-6">
@@ -162,6 +170,17 @@ export default async function SchedulePage({
               Cancel
             </Link>
           </form>
+        </div>
+      ) : null}
+      {query.regenerated === "1" ? (
+        <div className="border border-[#a8cbbc] bg-[#f1f8f5] px-4 py-3 text-sm">
+          Regeneration complete.{" "}
+          <strong>
+            {String(latestAudit?.movedAssignments?.length ?? 0)} assignments
+            moved
+          </strong>
+          ; {String(latestAudit?.lockedAssignmentCount ?? 0)} locked assignments
+          remained fixed.
         </div>
       ) : null}
       <div className="flex flex-wrap items-center gap-2">
@@ -305,6 +324,16 @@ export default async function SchedulePage({
       </section>
 
       <div className="flex items-center gap-2">
+        <form action={regenerateSchedule}>
+          <input name="scheduleId" type="hidden" value={schedule.id} />
+          <button
+            className={`${buttonClass} inline-flex items-center`}
+            title="Run partial regeneration"
+          >
+            <RefreshCw className="mr-2" size={16} />
+            Regenerate unlocked
+          </button>
+        </form>
         {schedule.parentSchedule ? (
           <Link
             className="inline-flex h-9 items-center border border-[#cfd5d1] bg-white px-3 text-sm"

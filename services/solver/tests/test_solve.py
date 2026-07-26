@@ -104,3 +104,55 @@ def test_fixture_f_returns_distinct_quality_bounded_alternatives() -> None:
     )
     assert all(alternative.total_penalty <= quality_limit for alternative in response.alternatives)
     assert all(alternative.diversity_score is not None for alternative in response.alternatives)
+
+
+def test_fixture_g_keeps_locks_and_reports_regeneration_moves() -> None:
+    fixture = json.loads(
+        (FIXTURE_PATH.parent / "locked_regeneration.json").read_text(encoding="utf-8")
+    )
+    baseline_request = SolveRequest.model_validate(load_fixture())
+    baseline = solve(baseline_request).alternatives[0].assignments
+    locked = baseline[: fixture["lockCount"]]
+    forced = baseline[fixture["forcedMoveAssignmentIndex"]]
+
+    payload = load_fixture()
+    payload["jobId"] = "fixture-g-regeneration"
+    payload["lockedAssignments"] = [assignment.model_dump(by_alias=True) for assignment in locked]
+    payload["existingAssignments"] = [
+        assignment.model_dump(by_alias=True) for assignment in baseline
+    ]
+    payload["options"]["alternativeCount"] = 1
+    payload["options"]["useExistingScheduleHint"] = True
+    requirement = next(
+        item for item in payload["requirements"] if item["id"] == forced.requirement_id
+    )
+    requirement["forbiddenSlots"].append(
+        {"dayIndex": forced.day_index, "periodIndex": forced.period_index}
+    )
+
+    response = solve(SolveRequest.model_validate(payload))
+
+    assert response.status in {"FEASIBLE", "OPTIMAL"}
+    regenerated = response.alternatives[0]
+    locked_positions = {
+        (
+            assignment.requirement_id,
+            assignment.day_index,
+            assignment.period_index,
+            assignment.room_id,
+        )
+        for assignment in locked
+    }
+    regenerated_positions = {
+        (
+            assignment.requirement_id,
+            assignment.day_index,
+            assignment.period_index,
+            assignment.room_id,
+        )
+        for assignment in regenerated.assignments
+    }
+    assert locked_positions <= regenerated_positions
+    assert validate_assignments(SolveRequest.model_validate(payload), regenerated.assignments) == []
+    assert len(regenerated.moved_assignments) >= fixture["expectedMinimumMovedAssignments"]
+    assert regenerated.movement_penalty >= fixture["expectedMinimumMovedAssignments"]

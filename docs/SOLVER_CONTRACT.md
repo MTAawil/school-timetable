@@ -67,6 +67,20 @@ If validation fails, log the violation and return `FAILED`, not `FEASIBLE`.
 
 Prefer quality first. Alternative 2 and later should differ meaningfully from earlier solutions while staying near the best penalty score. Add tests that verify alternatives differ for a fixture designed with many feasible solutions.
 
+## Regeneration
+
+- `lockedAssignments` are hard constraints, including day, period, duration, and
+  room.
+- `existingAssignments` describe the edited draft before regeneration.
+- When `useExistingScheduleHint` is true, the existing placements are supplied
+  as CP-SAT hints and each changed placement adds one movement unit to the
+  optimization objective.
+- Movement units are reported separately as `movementPenalty`; they are not
+  included in the named quality `totalPenalty` or penalty breakdown.
+- `movedAssignments` reports requirement IDs and before/after positions.
+- Every regenerated result passes the same independent hard-constraint
+  validator as a normal generation result.
+
 ## Diagnostics
 
 Diagnostic relaxation is never a valid production schedule. Mark diagnostic assignments and violations separately and never expose them as a selectable schedule alternative.

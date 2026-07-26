@@ -10,6 +10,7 @@ from ortools.sat.python import cp_model
 from app.models import (
     Alternative,
     Assignment,
+    MovedAssignment,
     Position,
     Requirement,
     SolveRequest,
@@ -72,6 +73,8 @@ def compatible_choices(
         if (day, period) in forbidden:
             continue
         for room_id in rooms:
+            if isinstance(fixed, Assignment) and room_id != fixed.room_id:
+                continue
             valid = True
             for offset in range(requirement.duration_periods):
                 position = (day, period + offset)
@@ -340,8 +343,45 @@ def solve(request: SolveRequest) -> SolveResponse:
                 )
             )
     quality_expression = sum(weighted_terms)
-    if weighted_terms:
-        model.minimize(quality_expression)
+    existing_positions = {
+        (
+            assignment.requirement_id,
+            assignment.day_index,
+            assignment.period_index,
+            assignment.room_id,
+        )
+        for assignment in request.existing_assignments
+    }
+    movement_terms = [
+        variable
+        for choice, variable in variables.items()
+        if request.options.use_existing_schedule_hint
+        and (
+            choice.requirement_id,
+            choice.day,
+            choice.period,
+            choice.room_id,
+        )
+        not in existing_positions
+    ]
+    movement_expression = sum(movement_terms)
+    objective_expression = quality_expression + movement_expression
+    if weighted_terms or movement_terms:
+        model.minimize(objective_expression)
+    if request.options.use_existing_schedule_hint:
+        for choice, variable in variables.items():
+            model.add_hint(
+                variable,
+                int(
+                    (
+                        choice.requirement_id,
+                        choice.day,
+                        choice.period,
+                        choice.room_id,
+                    )
+                    in existing_positions
+                ),
+            )
 
     solver = cp_model.CpSolver()
     solver.parameters.max_time_in_seconds = request.options.time_limit_seconds
@@ -369,7 +409,25 @@ def solve(request: SolveRequest) -> SolveResponse:
             constraint_count=constraints,
         )
     score = score_assignments(request, assignments)
-    if weighted_terms and round(solver.objective_value) != score.total:
+    movement_penalty = (
+        sum(
+            1
+            for assignment in assignments
+            if (
+                assignment.requirement_id,
+                assignment.day_index,
+                assignment.period_index,
+                assignment.room_id,
+            )
+            not in existing_positions
+        )
+        if request.options.use_existing_schedule_hint
+        else 0
+    )
+    expected_objective = score.total + (
+        movement_penalty if request.options.use_existing_schedule_hint else 0
+    )
+    if (weighted_terms or movement_terms) and round(solver.objective_value) != expected_objective:
         return SolveResponse(
             job_id=request.job_id,
             input_fingerprint=input_fingerprint(request),
@@ -380,7 +438,7 @@ def solve(request: SolveRequest) -> SolveResponse:
                 {
                     "code": "PENALTY_BREAKDOWN_MISMATCH",
                     "objective": round(solver.objective_value),
-                    "breakdownTotal": score.total,
+                    "breakdownTotal": expected_objective,
                 }
             ],
             warnings=[],
@@ -398,6 +456,12 @@ def solve(request: SolveRequest) -> SolveResponse:
             diversity_score=0,
             penalty_breakdown=score.breakdown,
             assignments=assignments,
+            movement_penalty=movement_penalty,
+            moved_assignments=(
+                _moved_assignments(request.existing_assignments, assignments)
+                if request.options.use_existing_schedule_hint
+                else []
+            ),
             runtime_ms=first_runtime_ms,
             warnings=[],
         )
@@ -490,6 +554,26 @@ def solve(request: SolveRequest) -> SolveResponse:
                 diversity_score=diversity_score,
                 penalty_breakdown=alternative_score.breakdown,
                 assignments=alternative_assignments,
+                movement_penalty=(
+                    sum(
+                        1
+                        for assignment in alternative_assignments
+                        if (
+                            assignment.requirement_id,
+                            assignment.day_index,
+                            assignment.period_index,
+                            assignment.room_id,
+                        )
+                        not in existing_positions
+                    )
+                    if request.options.use_existing_schedule_hint
+                    else 0
+                ),
+                moved_assignments=(
+                    _moved_assignments(request.existing_assignments, alternative_assignments)
+                    if request.options.use_existing_schedule_hint
+                    else []
+                ),
                 runtime_ms=alternative_runtime_ms,
                 warnings=[],
             )
@@ -525,6 +609,37 @@ def _assignments_from_choices(choices: set[Choice]) -> list[Assignment]:
     ]
     assignments.sort(key=lambda item: (item.day_index, item.period_index, item.requirement_id))
     return assignments
+
+
+def _moved_assignments(before: list[Assignment], after: list[Assignment]) -> list[MovedAssignment]:
+    moved: list[MovedAssignment] = []
+    requirement_ids = sorted(
+        {assignment.requirement_id for assignment in before}
+        | {assignment.requirement_id for assignment in after}
+    )
+    for requirement_id in requirement_ids:
+        old_positions = sorted(
+            (assignment.day_index, assignment.period_index)
+            for assignment in before
+            if assignment.requirement_id == requirement_id
+        )
+        new_positions = sorted(
+            (assignment.day_index, assignment.period_index)
+            for assignment in after
+            if assignment.requirement_id == requirement_id
+        )
+        unchanged = set(old_positions) & set(new_positions)
+        old_changed = [position for position in old_positions if position not in unchanged]
+        new_changed = [position for position in new_positions if position not in unchanged]
+        for old, new in zip(old_changed, new_changed, strict=False):
+            moved.append(
+                MovedAssignment(
+                    requirement_id=requirement_id,
+                    before=Position(day_index=old[0], period_index=old[1]),
+                    after=Position(day_index=new[0], period_index=new[1]),
+                )
+            )
+    return moved
 
 
 def _infeasible(

@@ -106,6 +106,7 @@ function buildSnapshot(fixture: Fixture): SolverSnapshot {
     })),
     availability: [],
     lockedAssignments: [],
+    existingAssignments: [],
     constraintProfile: { id: null, weights: {} },
     options: {
       alternativeCount: 3,

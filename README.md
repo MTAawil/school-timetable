@@ -139,11 +139,13 @@ Implemented:
 - Whole-school, class, teacher, and room timetable views
 - Draft editing with move previews, drag-and-drop, swap, unassigned lessons,
   lock controls, atomic hard-constraint rejection, and version history
+- Partial regeneration with hard-fixed locks, existing-placement hints,
+  movement reporting, and derived draft versions
 - Shared validation and error-code package
 - Unit, component, solver, and authenticated browser tests with GitHub Actions CI
 
 Not implemented yet:
 
-- Timetable publishing, partial regeneration, exports, and diagnostics
+- Timetable publishing, exports, and infeasibility diagnostics
 
 See `docs/IMPLEMENTATION_STATUS.md` for the delivery sequence.

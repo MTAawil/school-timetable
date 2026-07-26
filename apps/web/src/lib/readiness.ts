@@ -205,6 +205,7 @@ export async function buildCurrentSnapshot(
         .sort((left, right) =>
           left.requirementId.localeCompare(right.requirementId),
         ) ?? [],
+    existingAssignments: [],
     constraintProfile: {
       id: profile?.id ?? null,
       weights: Object.fromEntries(

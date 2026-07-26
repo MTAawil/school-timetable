@@ -115,6 +115,12 @@ class Assignment(ContractModel):
     room_id: str | None = None
 
 
+class MovedAssignment(ContractModel):
+    requirement_id: str
+    before: Position
+    after: Position
+
+
 class ConstraintProfile(ContractModel):
     id: str | None
     weights: dict[str, int]
@@ -142,6 +148,7 @@ class SolveRequest(ContractModel):
     requirements: list[Requirement]
     availability: list[Availability]
     locked_assignments: list[Assignment]
+    existing_assignments: list[Assignment] = []
     constraint_profile: ConstraintProfile
     options: SolveOptions
 
@@ -153,6 +160,8 @@ class Alternative(ContractModel):
     diversity_score: int | None = None
     penalty_breakdown: dict[str, int]
     assignments: list[Assignment]
+    movement_penalty: int = 0
+    moved_assignments: list[MovedAssignment] = []
     runtime_ms: int
     warnings: list[str]
 

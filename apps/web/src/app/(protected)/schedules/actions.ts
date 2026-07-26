@@ -1,9 +1,11 @@
 "use server";
 
 import {
+  fingerprintSnapshot,
   getDatabase,
   type Prisma,
   type SolverSnapshot,
+  solverSchemaVersion,
 } from "@school-timetable/database";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -31,6 +33,49 @@ type ValidationResult = {
 
 const idSchema = z.uuid();
 const positionSchema = z.coerce.number().int().nonnegative();
+const solverAssignmentSchema = z.object({
+  requirementId: z.string(),
+  dayIndex: z.number().int().nonnegative(),
+  periodIndex: z.number().int().nonnegative(),
+  durationPeriods: z.number().int().positive(),
+  roomId: z.string().nullable(),
+});
+const regenerationResponseSchema = z.object({
+  jobId: z.string(),
+  inputFingerprint: z.string(),
+  status: z.enum(["FEASIBLE", "OPTIMAL", "INFEASIBLE", "FAILED"]),
+  runtimeMs: z.number().int().nonnegative(),
+  alternatives: z.array(
+    z.object({
+      rank: z.number().int().positive(),
+      solverStatus: z.enum(["FEASIBLE", "OPTIMAL"]),
+      totalPenalty: z.number().int().nonnegative(),
+      diversityScore: z.number().int().nonnegative().nullable().optional(),
+      penaltyBreakdown: z.record(z.string(), z.number().int()),
+      assignments: z.array(solverAssignmentSchema),
+      movementPenalty: z.number().int().nonnegative(),
+      movedAssignments: z.array(
+        z.object({
+          requirementId: z.string(),
+          before: z.object({
+            dayIndex: z.number().int().nonnegative(),
+            periodIndex: z.number().int().nonnegative(),
+          }),
+          after: z.object({
+            dayIndex: z.number().int().nonnegative(),
+            periodIndex: z.number().int().nonnegative(),
+          }),
+        }),
+      ),
+      runtimeMs: z.number().int().nonnegative(),
+      warnings: z.array(z.string()),
+    }),
+  ),
+  diagnostics: z.array(z.record(z.string(), z.unknown())),
+  warnings: z.array(z.string()),
+  variableCount: z.number().int().nonnegative(),
+  constraintCount: z.number().int().nonnegative(),
+});
 
 function jsonValue(value: unknown): Prisma.InputJsonValue {
   return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
@@ -309,4 +354,222 @@ export async function toggleAssignmentLock(formData: FormData): Promise<void> {
     details: { assignmentId, isLocked: assignment.isLocked },
   });
   redirect(`/schedules/${schedule.id}`);
+}
+
+export async function regenerateSchedule(formData: FormData): Promise<void> {
+  const user = await verifySession();
+  const scheduleId = idSchema.parse(formData.get("scheduleId"));
+  const parent = await loadSchedule(scheduleId, user.schoolId);
+  const positioned = parent.assignments.filter(
+    (
+      assignment,
+    ): assignment is typeof assignment & {
+      startDayIndex: number;
+      startPeriodIndex: number;
+    } =>
+      assignment.startDayIndex !== null && assignment.startPeriodIndex !== null,
+  );
+  const toSnapshotAssignment = (assignment: (typeof positioned)[number]) => ({
+    requirementId: assignment.teachingRequirementId,
+    dayIndex: assignment.startDayIndex,
+    periodIndex: assignment.startPeriodIndex,
+    durationPeriods: assignment.durationPeriods,
+    roomId: assignment.roomId,
+  });
+  const existingAssignments = positioned.map(toSnapshotAssignment);
+  const lockedAssignments = positioned
+    .filter((assignment) => assignment.isLocked)
+    .map(toSnapshotAssignment);
+  const baseSnapshot = parent.inputSnapshot as unknown as SolverSnapshot;
+  const snapshot: SolverSnapshot = {
+    ...baseSnapshot,
+    lockedAssignments,
+    existingAssignments,
+    options: {
+      ...baseSnapshot.options,
+      alternativeCount: 1,
+      useExistingScheduleHint: true,
+    },
+  };
+  const fingerprint = fingerprintSnapshot(snapshot);
+  const db = getDatabase();
+  const job = await db.generationJob.create({
+    data: {
+      schoolId: user.schoolId,
+      termId: parent.termId,
+      constraintProfileId: snapshot.constraintProfile.id,
+      status: "RUNNING",
+      inputSnapshot: jsonValue(snapshot),
+      inputFingerprint: fingerprint,
+      solverSchemaVersion,
+      options: jsonValue(snapshot.options),
+      startedAt: new Date(),
+    },
+  });
+  let createdScheduleId: string | null = null;
+
+  try {
+    const baseUrl = process.env.SOLVER_BASE_URL ?? "http://127.0.0.1:8000";
+    const timeoutSeconds = Number(
+      process.env.SOLVER_REQUEST_TIMEOUT_SECONDS ?? "40",
+    );
+    const response = await fetch(`${baseUrl}/v1/solve`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ...snapshot, jobId: job.id }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(timeoutSeconds * 1000),
+    });
+    if (!response.ok) throw new Error(`SOLVER_HTTP_${String(response.status)}`);
+    const result = regenerationResponseSchema.parse(await response.json());
+    if (result.jobId !== job.id || result.inputFingerprint !== fingerprint) {
+      throw new Error("SOLVER_RESPONSE_IDENTITY_MISMATCH");
+    }
+    const alternative = result.alternatives[0];
+    if (!alternative) throw new Error(`REGENERATION_${result.status}`);
+
+    const outputPositions = new Set(
+      alternative.assignments.map(
+        (assignment) =>
+          `${assignment.requirementId}:${String(assignment.dayIndex)}:${String(
+            assignment.periodIndex,
+          )}:${assignment.roomId ?? ""}`,
+      ),
+    );
+    const locksPreserved = lockedAssignments.every((assignment) =>
+      outputPositions.has(
+        `${assignment.requirementId}:${String(assignment.dayIndex)}:${String(
+          assignment.periodIndex,
+        )}:${assignment.roomId ?? ""}`,
+      ),
+    );
+    if (!locksPreserved) throw new Error("LOCKED_ASSIGNMENT_MOVED");
+
+    const assignmentDetails = new Map(
+      parent.assignments.map((assignment) => [
+        assignment.teachingRequirementId,
+        {
+          classSectionId: assignment.classSectionId,
+          teacherId: assignment.teacherId,
+        },
+      ]),
+    );
+    const lockedPositions = new Set(
+      lockedAssignments.map(
+        (assignment) =>
+          `${assignment.requirementId}:${String(assignment.dayIndex)}:${String(
+            assignment.periodIndex,
+          )}:${assignment.roomId ?? ""}`,
+      ),
+    );
+    const created = await db.$transaction(async (transaction) => {
+      const storedAlternative = await transaction.generationAlternative.create({
+        data: {
+          schoolId: user.schoolId,
+          generationJobId: job.id,
+          rank: alternative.rank,
+          solverStatus: alternative.solverStatus,
+          totalPenalty: alternative.totalPenalty,
+          diversityScore: alternative.diversityScore ?? null,
+          penaltyBreakdown: jsonValue(alternative.penaltyBreakdown),
+          assignments: jsonValue(alternative.assignments),
+          runtimeMs: alternative.runtimeMs,
+          warnings: jsonValue(alternative.warnings),
+        },
+      });
+      const latest = await transaction.schedule.findFirst({
+        where: { schoolId: user.schoolId, termId: parent.termId },
+        orderBy: { version: "desc" },
+      });
+      const schedule = await transaction.schedule.create({
+        data: {
+          schoolId: user.schoolId,
+          termId: parent.termId,
+          generationJobId: job.id,
+          generationAlternativeId: storedAlternative.id,
+          parentScheduleId: parent.id,
+          name: parent.name,
+          version: (latest?.version ?? parent.version) + 1,
+          status: "DRAFT",
+          inputSnapshot: jsonValue(snapshot),
+          inputFingerprint: fingerprint,
+        },
+      });
+      await transaction.scheduleAssignment.createMany({
+        data: alternative.assignments.map((assignment) => {
+          const details = assignmentDetails.get(assignment.requirementId);
+          if (!details) throw new Error("SCHEDULE_REQUIREMENT_NOT_FOUND");
+          const positionKey = `${assignment.requirementId}:${String(
+            assignment.dayIndex,
+          )}:${String(assignment.periodIndex)}:${assignment.roomId ?? ""}`;
+          return {
+            schoolId: user.schoolId,
+            termId: parent.termId,
+            scheduleId: schedule.id,
+            teachingRequirementId: assignment.requirementId,
+            classSectionId: details.classSectionId,
+            teacherId: details.teacherId,
+            startDayIndex: assignment.dayIndex,
+            startPeriodIndex: assignment.periodIndex,
+            durationPeriods: assignment.durationPeriods,
+            roomId: assignment.roomId,
+            isLocked: lockedPositions.has(positionKey),
+            source: "GENERATED" as const,
+          };
+        }),
+      });
+      await transaction.auditLog.create({
+        data: {
+          schoolId: user.schoolId,
+          userId: user.id,
+          scheduleId: schedule.id,
+          action: "SCHEDULE_REGENERATED",
+          entityType: "Schedule",
+          entityId: schedule.id,
+          details: jsonValue({
+            parentScheduleId: parent.id,
+            generationJobId: job.id,
+            movementPenalty: alternative.movementPenalty,
+            movedAssignments: alternative.movedAssignments,
+            lockedAssignmentCount: lockedAssignments.length,
+          }),
+        },
+      });
+      await transaction.generationJob.update({
+        where: { id: job.id },
+        data: {
+          status: result.status,
+          responseMetadata: jsonValue({
+            runtimeMs: result.runtimeMs,
+            variableCount: result.variableCount,
+            constraintCount: result.constraintCount,
+            movementPenalty: alternative.movementPenalty,
+            movedAssignments: alternative.movedAssignments,
+            warnings: result.warnings,
+          }),
+          completedAt: new Date(),
+        },
+      });
+      return schedule;
+    });
+    createdScheduleId = created.id;
+  } catch (error) {
+    await db.generationJob.update({
+      where: { id: job.id },
+      data: {
+        status: "FAILED",
+        errorCode: "REGENERATION_FAILED",
+        errorMessage:
+          error instanceof Error
+            ? error.message
+            : "Regeneration failed unexpectedly.",
+        completedAt: new Date(),
+      },
+    });
+    redirect(`/schedules/${parent.id}?error=REGENERATION_FAILED`);
+  }
+  if (!createdScheduleId) {
+    redirect(`/schedules/${parent.id}?error=REGENERATION_FAILED`);
+  }
+  redirect(`/schedules/${createdScheduleId}?regenerated=1`);
 }

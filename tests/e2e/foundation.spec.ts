@@ -62,17 +62,30 @@ test("administrator can sign in and add a teacher", async ({ page }) => {
   const unchangedUrl = page.url();
   await firstRow.getByLabel("Move day").selectOption(collisionDay);
   await firstRow.getByLabel("Move period").selectOption(collisionPeriod);
-  await firstRow
-    .getByRole("button", { name: "Preview", exact: true })
-    .click();
+  await firstRow.getByRole("button", { name: "Preview", exact: true }).click();
   await expect(page).toHaveURL(/error=COLLISION/, { timeout: 10_000 });
-  await expect(page.locator('div[role="alert"]')).toContainText(
-    "COLLISION:",
-  );
+  await expect(page.locator('div[role="alert"]')).toContainText("COLLISION:");
   expect(page.url().split("?")[0]).toBe(unchangedUrl.split("?")[0]);
 
-  await page.getByTitle("Lock").first().click();
+  await page.getByTitle("Lock", { exact: true }).first().click();
   await expect(page.getByRole("link", { name: "Undo" })).toBeVisible();
   await page.getByRole("link", { name: "Undo" }).click();
   await expect(page.getByRole("link", { name: "Redo" })).toBeVisible();
+  await page.getByRole("link", { name: "Redo" }).click();
+
+  let previousScheduleUrl = page.url();
+  await page.getByTitle("Lock", { exact: true }).first().click();
+  await page.waitForURL((url) => url.toString() !== previousScheduleUrl);
+  previousScheduleUrl = page.url();
+  await page.getByTitle("Lock", { exact: true }).first().click();
+  await page.waitForURL((url) => url.toString() !== previousScheduleUrl);
+  await expect(page.getByTitle("Unlock")).toHaveCount(3);
+
+  await page.getByRole("button", { name: "Regenerate unlocked" }).click();
+  await expect(page).toHaveURL(/regenerated=1/, { timeout: 45_000 });
+  await expect(
+    page.getByText(/3 locked assignments remained fixed/),
+  ).toBeVisible();
+  await expect(page.getByTitle("Unlock")).toHaveCount(3);
+  await expect(page.getByRole("link", { name: "Undo" })).toBeVisible();
 });

@@ -1,9 +1,6 @@
 "use server";
 
-import {
-  getDatabase,
-  type Prisma,
-} from "@school-timetable/database";
+import { getDatabase, type Prisma } from "@school-timetable/database";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 

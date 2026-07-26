@@ -71,6 +71,7 @@ export type SolverSnapshot = {
   }[];
   availability: SnapshotAvailability[];
   lockedAssignments: SnapshotAssignment[];
+  existingAssignments: SnapshotAssignment[];
   constraintProfile: {
     id: string | null;
     weights: Record<string, number>;
