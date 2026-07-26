@@ -2,7 +2,7 @@
 
 ## Current phase
 
-Phase 6 - timetable views, versioned editing, and partial regeneration complete.
+Single-school MVP complete through Task 10 release hardening.
 
 ## Decisions
 
@@ -279,40 +279,40 @@ local-development values only.
 
 ### Phase 1 - CRUD
 
-- [ ] Authentication
-- [ ] Calendar setup
-- [ ] Teachers
-- [ ] Subjects
-- [ ] Classes
-- [ ] Rooms
-- [ ] Teaching requirements
-- [ ] Availability
+- [x] Authentication
+- [x] Calendar setup
+- [x] Teachers
+- [x] Subjects
+- [x] Classes
+- [x] Rooms
+- [x] Teaching requirements
+- [x] Availability
 
 ### Phase 2 - prechecks and snapshots
 
-- [ ] Readiness validation
-- [ ] Canonical snapshot
-- [ ] SHA-256 fingerprint
-- [ ] Validation UI
+- [x] Readiness validation
+- [x] Canonical snapshot
+- [x] SHA-256 fingerprint
+- [x] Validation UI
 
 ### Phase 3 - hard solver
 
-- [ ] Exact counts
-- [ ] Teacher collisions
-- [ ] Class collisions
-- [ ] Room collisions
-- [ ] Availability
-- [ ] Duration
-- [ ] Fixed and forbidden slots
-- [ ] Post-solve validator
+- [x] Exact counts
+- [x] Teacher collisions
+- [x] Class collisions
+- [x] Room collisions
+- [x] Availability
+- [x] Duration
+- [x] Fixed and forbidden slots
+- [x] Post-solve validator
 
 ### Phase 4 - optimization
 
-- [ ] Soft constraints
-- [ ] Penalty breakdown
-- [ ] Profiles
-- [ ] Alternatives
-- [ ] Benchmarks
+- [x] Soft constraints
+- [x] Penalty breakdown
+- [x] Profiles
+- [x] Alternatives
+- [x] Benchmarks
 
 ### Phase 5 - application integration
 
@@ -331,13 +331,14 @@ local-development values only.
 
 ### Phase 7 - hardening
 
-- [ ] Diagnostics
-- [ ] CSV
-- [ ] Print
-- [ ] Audit
-- [ ] Security review
-- [ ] End-to-end suite
-- [ ] Deployment guide
+- [x] Diagnostics
+- [x] CSV
+- [x] Print
+- [x] Audit
+- [x] Publishing
+- [x] Security review
+- [x] End-to-end suite
+- [x] Deployment guide
 
 ## Change log
 
@@ -553,3 +554,29 @@ local-development values only.
   eight Python tests, the production build, and the live end-to-end workflow.
 - Next task: Task 10, infeasibility diagnostics, publishing, CSV and print
   exports, security hardening, and deployment documentation.
+
+### 2026-07-26 - Task 10 release hardening
+
+- Added deterministic infeasibility diagnostics for empty assignment domains
+  and conflicting locks, followed by a separate minimum-collision relaxation
+  model for grouped resource diagnostics.
+- Kept diagnostic relaxation output separate from selectable alternatives.
+- Added fully validated publication with automatic archival of the previous
+  published term version and immutable published schedules.
+- Added UTF-8 CSV export with spreadsheet-formula neutralization and printable
+  timetable views.
+- Added a protected activity page and generation/publication audit events,
+  complementing existing edit, lock, and regeneration events.
+- Added 1 MB web action limits, 5 MB solver limits, optional internal solver
+  authentication, request timeouts, and browser security response headers.
+- Extended Playwright through CSV export, printable teacher view, publication,
+  immutable controls, and audit visibility; added the workflow to CI.
+- Added measured fixture benchmarks for the development ThinkPad and a
+  production deployment, backup, secrets, migration, and verification guide.
+- Updated security overrides to patched PostCSS 8.5.18 and Valibot 1.4.2; the
+  production dependency audit reports no known vulnerabilities.
+- Verified formatting, linting, strict TypeScript and mypy, 22 TypeScript tests,
+  11 Python tests, a 19-route production build, and the complete live
+  end-to-end release workflow.
+- Remaining work is post-MVP: multi-school operation, teacher accounts, billing,
+  attendance, and other explicitly excluded product areas.

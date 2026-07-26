@@ -6,6 +6,7 @@ import {
   ClipboardList,
   DoorOpen,
   Grid3X3,
+  History,
   LayoutDashboard,
   LogOut,
   ShieldCheck,
@@ -29,6 +30,7 @@ const navigation = [
   { href: "/availability", label: "Availability", icon: Grid3X3 },
   { href: "/readiness", label: "Readiness", icon: ShieldCheck },
   { href: "/schedules", label: "Timetables", icon: CalendarRange },
+  { href: "/audit", label: "Activity", icon: History },
   {
     href: "/settings/constraints",
     label: "Quality weights",

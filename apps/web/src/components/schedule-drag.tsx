@@ -6,15 +6,21 @@ import { previewMove } from "@/app/(protected)/schedules/actions";
 
 export function DraggableAssignment({
   assignmentId,
+  disabled = false,
   children,
 }: {
   assignmentId: string;
+  disabled?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <div
-      draggable
+      draggable={!disabled}
       onDragStart={(event) => {
+        if (disabled) {
+          event.preventDefault();
+          return;
+        }
         event.dataTransfer.setData("text/assignment-id", assignmentId);
         event.dataTransfer.effectAllowed = "move";
       }}

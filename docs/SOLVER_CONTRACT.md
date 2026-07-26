@@ -83,4 +83,14 @@ Prefer quality first. Alternative 2 and later should differ meaningfully from ea
 
 ## Diagnostics
 
-Diagnostic relaxation is never a valid production schedule. Mark diagnostic assignments and violations separately and never expose them as a selectable schedule alternative.
+Diagnostics run in this order:
+
+1. Deterministic empty-domain and locked-assignment checks.
+2. A separate CP-SAT relaxation that minimizes teacher, class, and room
+   occupancy overflow.
+3. A stable grouped hard-constraint diagnostic when collision relaxation alone
+   cannot isolate the cause.
+
+Diagnostic relaxation is never a valid production schedule. Diagnostic results
+contain no selectable alternatives and are persisted separately from feasible
+generation alternatives.

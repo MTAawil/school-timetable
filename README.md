@@ -141,11 +141,18 @@ Implemented:
   lock controls, atomic hard-constraint rejection, and version history
 - Partial regeneration with hard-fixed locks, existing-placement hints,
   movement reporting, and derived draft versions
+- Deterministic and relaxation-based infeasibility diagnostics
+- Validated publication, CSV export, printable resource views, and activity log
+- Payload limits, request timeouts, internal solver authentication, and
+  security response headers
 - Shared validation and error-code package
 - Unit, component, solver, and authenticated browser tests with GitHub Actions CI
 
 Not implemented yet:
 
-- Timetable publishing, exports, and infeasibility diagnostics
+- None for the agreed single-school MVP. Multi-school operation, teacher
+  accounts, billing, and attendance remain post-MVP.
 
-See `docs/IMPLEMENTATION_STATUS.md` for the delivery sequence.
+See `docs/IMPLEMENTATION_STATUS.md` for delivery status,
+`docs/DEPLOYMENT.md` for release operations, and `docs/BENCHMARKS.md` for
+measured fixture performance.

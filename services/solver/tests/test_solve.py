@@ -156,3 +156,16 @@ def test_fixture_g_keeps_locks_and_reports_regeneration_moves() -> None:
     assert validate_assignments(SolveRequest.model_validate(payload), regenerated.assignments) == []
     assert len(regenerated.moved_assignments) >= fixture["expectedMinimumMovedAssignments"]
     assert regenerated.movement_penalty >= fixture["expectedMinimumMovedAssignments"]
+
+
+def test_infeasible_response_contains_deterministic_diagnostics_only() -> None:
+    payload = load_fixture()
+    requirement = next(item for item in payload["requirements"] if item["id"] == "r1")
+    requirement["fixedSlots"] = [{"dayIndex": 0, "periodIndex": 99}]
+
+    response = solve(SolveRequest.model_validate(payload))
+
+    assert response.status == "INFEASIBLE"
+    assert response.alternatives == []
+    assert response.diagnostics
+    assert response.diagnostics[0]["code"] == "NO_COMPATIBLE_PLACEMENT"

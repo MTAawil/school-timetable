@@ -111,11 +111,17 @@ async function validateCandidate(
   snapshot: SolverSnapshot,
   scheduleId: string,
   assignments: CandidateAssignment[],
+  allowIncomplete = true,
 ): Promise<ValidationResult> {
   const baseUrl = process.env.SOLVER_BASE_URL ?? "http://127.0.0.1:8000";
   const response = await fetch(`${baseUrl}/v1/validate`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      ...(process.env.SOLVER_INTERNAL_TOKEN
+        ? { "x-solver-token": process.env.SOLVER_INTERNAL_TOKEN }
+        : {}),
+    },
     body: JSON.stringify({
       input: { ...snapshot, jobId: `edit-${scheduleId}` },
       assignments: assignments
@@ -134,7 +140,7 @@ async function validateCandidate(
           durationPeriods: assignment.durationPeriods,
           roomId: assignment.roomId,
         })),
-      allowIncomplete: true,
+      allowIncomplete,
     }),
     cache: "no-store",
     signal: AbortSignal.timeout(20_000),
@@ -415,7 +421,12 @@ export async function regenerateSchedule(formData: FormData): Promise<void> {
     );
     const response = await fetch(`${baseUrl}/v1/solve`, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        ...(process.env.SOLVER_INTERNAL_TOKEN
+          ? { "x-solver-token": process.env.SOLVER_INTERNAL_TOKEN }
+          : {}),
+      },
       body: JSON.stringify({ ...snapshot, jobId: job.id }),
       cache: "no-store",
       signal: AbortSignal.timeout(timeoutSeconds * 1000),
@@ -572,4 +583,60 @@ export async function regenerateSchedule(formData: FormData): Promise<void> {
     redirect(`/schedules/${parent.id}?error=REGENERATION_FAILED`);
   }
   redirect(`/schedules/${createdScheduleId}?regenerated=1`);
+}
+
+export async function publishSchedule(formData: FormData): Promise<void> {
+  const user = await verifySession();
+  const scheduleId = idSchema.parse(formData.get("scheduleId"));
+  const schedule = await loadSchedule(scheduleId, user.schoolId);
+  const assignments = candidatesFrom(schedule.assignments);
+  if (
+    assignments.some(
+      (assignment) =>
+        assignment.dayIndex === null || assignment.periodIndex === null,
+    )
+  ) {
+    reject(scheduleId, "PUBLISH_INCOMPLETE");
+  }
+  const validation = await validateCandidate(
+    schedule.inputSnapshot as unknown as SolverSnapshot,
+    schedule.id,
+    assignments,
+    false,
+  );
+  if (!validation.valid) {
+    reject(scheduleId, validation.errors[0] ?? "PUBLISH_INVALID");
+  }
+
+  await getDatabase().$transaction(async (transaction) => {
+    await transaction.schedule.updateMany({
+      where: {
+        schoolId: user.schoolId,
+        termId: schedule.termId,
+        status: "PUBLISHED",
+        id: { not: schedule.id },
+      },
+      data: { status: "ARCHIVED" },
+    });
+    await transaction.schedule.update({
+      where: { id: schedule.id },
+      data: { status: "PUBLISHED", publishedAt: new Date() },
+    });
+    await transaction.auditLog.create({
+      data: {
+        schoolId: user.schoolId,
+        userId: user.id,
+        scheduleId: schedule.id,
+        action: "SCHEDULE_PUBLISHED",
+        entityType: "Schedule",
+        entityId: schedule.id,
+        details: jsonValue({
+          version: schedule.version,
+          assignmentCount: assignments.length,
+          totalPenalty: validation.totalPenalty,
+        }),
+      },
+    });
+  });
+  redirect(`/schedules/${schedule.id}?published=1`);
 }

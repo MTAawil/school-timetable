@@ -70,3 +70,54 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm prisma generate
       - run: pnpm prisma migrate deploy
+
+  end-to-end:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: timetable
+          POSTGRES_USER: timetable
+          POSTGRES_PASSWORD: timetable
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U timetable"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      NODE_ENV: test
+      APP_URL: http://127.0.0.1:3000
+      AUTH_SECRET: ci-auth-secret-with-at-least-thirty-two-characters
+      SEED_ADMIN_PASSWORD: TimetableAdmin2026!
+      DATABASE_URL: postgresql://timetable:timetable@localhost:5432/timetable
+      SOLVER_BASE_URL: http://127.0.0.1:8000
+      SOLVER_INTERNAL_TOKEN: ci-internal-solver-token
+      SOLVER_REQUEST_TIMEOUT_SECONDS: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.34.5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: pnpm install --frozen-lockfile
+      - run: uv sync --project services/solver --locked
+      - run: pnpm prisma generate
+      - run: pnpm prisma migrate deploy
+      - run: pnpm prisma db seed
+      - run: pnpm exec playwright install --with-deps chrome
+      - name: Start solver
+        run: >-
+          uv run --project services/solver uvicorn app.main:app
+          --app-dir services/solver --host 127.0.0.1 --port 8000
+          > solver.log 2>&1 &
+      - run: pnpm test:e2e

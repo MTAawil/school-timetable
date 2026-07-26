@@ -642,6 +642,113 @@ def _moved_assignments(before: list[Assignment], after: list[Assignment]) -> lis
     return moved
 
 
+def _diagnose_infeasibility(request: SolveRequest) -> list[dict[str, object]]:
+    diagnostics: list[dict[str, object]] = []
+    choices_by_occurrence: dict[tuple[str, int], list[Choice]] = {}
+    requirement_by_id = {requirement.id: requirement for requirement in request.requirements}
+    for requirement in request.requirements:
+        for occurrence in range(requirement.weekly_occurrences):
+            choices = compatible_choices(request, requirement, occurrence)
+            choices_by_occurrence[(requirement.id, occurrence)] = choices
+            if not choices:
+                diagnostics.append(
+                    {
+                        "code": "NO_COMPATIBLE_PLACEMENT",
+                        "summary": "A required lesson has no compatible start slot.",
+                        "requirementId": requirement.id,
+                        "occurrence": occurrence,
+                    }
+                )
+    if diagnostics:
+        return diagnostics
+
+    locked_errors = validate_assignments(
+        request,
+        request.locked_assignments,
+        allow_incomplete=True,
+    )
+    if locked_errors:
+        return [
+            {
+                "code": "LOCKED_ASSIGNMENT_CONFLICT",
+                "summary": "Locked assignments conflict with a hard constraint.",
+                "errors": locked_errors,
+            }
+        ]
+
+    diagnostic_model = cp_model.CpModel()
+    variables: dict[Choice, cp_model.IntVar] = {}
+    for occurrence_key, choices in choices_by_occurrence.items():
+        occurrence_variables: list[cp_model.IntVar] = []
+        for choice in choices:
+            variable = diagnostic_model.new_bool_var(
+                f"diagnostic_{occurrence_key[0]}_{occurrence_key[1]}_{choice.day}_{choice.period}"
+            )
+            variables[choice] = variable
+            occurrence_variables.append(variable)
+        diagnostic_model.add_exactly_one(occurrence_variables)
+
+    occupancy: dict[tuple[str, str, int, int], list[cp_model.IntVar]] = defaultdict(list)
+    for choice, variable in variables.items():
+        requirement = requirement_by_id[choice.requirement_id]
+        for offset in range(choice.duration):
+            period = choice.period + offset
+            occupancy[("TEACHER", requirement.teacher_id, choice.day, period)].append(variable)
+            occupancy[("CLASS_SECTION", requirement.class_section_id, choice.day, period)].append(
+                variable
+            )
+            if choice.room_id:
+                occupancy[("ROOM", choice.room_id, choice.day, period)].append(variable)
+
+    overflow_by_resource: dict[tuple[str, str, int, int], cp_model.IntVar] = {}
+    for resource, candidates in occupancy.items():
+        if len(candidates) < 2:
+            continue
+        overflow = diagnostic_model.new_int_var(0, len(candidates) - 1, "overflow")
+        diagnostic_model.add(overflow >= sum(candidates) - 1)
+        overflow_by_resource[resource] = overflow
+    if overflow_by_resource:
+        diagnostic_model.minimize(sum(overflow_by_resource.values()))
+        diagnostic_solver = cp_model.CpSolver()
+        diagnostic_solver.parameters.max_time_in_seconds = min(
+            5, request.options.time_limit_seconds
+        )
+        diagnostic_solver.parameters.num_search_workers = 1
+        status = diagnostic_solver.solve(diagnostic_model)
+        if status in (cp_model.FEASIBLE, cp_model.OPTIMAL):
+            conflicts = [
+                {
+                    "resourceType": resource[0],
+                    "resourceId": resource[1],
+                    "dayIndex": resource[2],
+                    "periodIndex": resource[3],
+                    "overlap": diagnostic_solver.value(overflow),
+                }
+                for resource, overflow in sorted(overflow_by_resource.items())
+                if diagnostic_solver.value(overflow) > 0
+            ]
+            if conflicts:
+                return [
+                    {
+                        "code": "RESOURCE_COLLISION_RELAXATION",
+                        "summary": "The smallest relaxed model still requires resource collisions.",
+                        "conflicts": conflicts,
+                    }
+                ]
+    return [
+        {
+            "code": "HARD_CONSTRAINT_GROUP_CONFLICT",
+            "summary": "Daily limits or distribution rules conflict as a group.",
+            "groups": [
+                "DAILY_LIMITS",
+                "DISTINCT_DAYS",
+                "FIXED_AND_FORBIDDEN_SLOTS",
+                "RESOURCE_CAPACITY",
+            ],
+        }
+    ]
+
+
 def _infeasible(
     request: SolveRequest, started: float, variable_count: int, constraint_count: int
 ) -> SolveResponse:
@@ -651,7 +758,7 @@ def _infeasible(
         status="INFEASIBLE",
         runtime_ms=round((time.monotonic() - started) * 1000),
         alternatives=[],
-        diagnostics=[],
+        diagnostics=_diagnose_infeasibility(request),
         warnings=[],
         variable_count=variable_count,
         constraint_count=constraint_count,

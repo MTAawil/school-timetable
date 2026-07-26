@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import {
   moveAssignment,
   previewMove,
+  publishSchedule,
   regenerateSchedule,
   swapAssignments,
   toggleAssignmentLock,
@@ -15,6 +16,7 @@ import {
   DraggableAssignment,
   ScheduleDropCell,
 } from "@/components/schedule-drag";
+import { PrintButton } from "@/components/print-button";
 import { verifySession } from "@/lib/auth/dal";
 
 type ViewType = "school" | "class" | "teacher" | "room";
@@ -34,6 +36,7 @@ export default async function SchedulePage({
     previewPeriod?: string;
     previewDelta?: string;
     regenerated?: string;
+    published?: string;
   }>;
 }) {
   const user = await verifySession();
@@ -183,6 +186,12 @@ export default async function SchedulePage({
           remained fixed.
         </div>
       ) : null}
+      {query.published === "1" ? (
+        <div className="border border-[#a8cbbc] bg-[#f1f8f5] px-4 py-3 text-sm">
+          Schedule version {String(schedule.version)} is now published and
+          immutable.
+        </div>
+      ) : null}
       <div className="flex flex-wrap items-center gap-2">
         {(["school", "class", "teacher", "room"] as const).map((item) => (
           <Link
@@ -256,7 +265,9 @@ export default async function SchedulePage({
                     >
                       <ScheduleDropCell
                         dayIndex={day.dayIndex}
-                        disabled={!period.isTeaching}
+                        disabled={
+                          !period.isTeaching || schedule.status !== "DRAFT"
+                        }
                         periodIndex={period.periodIndex}
                         scheduleId={schedule.id}
                       >
@@ -264,6 +275,10 @@ export default async function SchedulePage({
                           {cell.map((assignment) => (
                             <DraggableAssignment
                               assignmentId={assignment.id}
+                              disabled={
+                                schedule.status !== "DRAFT" ||
+                                assignment.isLocked
+                              }
                               key={assignment.id}
                             >
                               <a
@@ -297,7 +312,10 @@ export default async function SchedulePage({
 
       <section className="border border-[#dce1dc] bg-white p-4">
         <h2 className="font-semibold">Unassigned tray ({tray.length})</h2>
-        <ScheduleDropCell scheduleId={schedule.id}>
+        <ScheduleDropCell
+          disabled={schedule.status !== "DRAFT"}
+          scheduleId={schedule.id}
+        >
           <div className="mt-3 flex min-h-14 flex-wrap gap-2 border border-dashed border-[#cfd5d1] p-2">
             {tray.length === 0 ? (
               <p className="text-sm text-[#66706b]">
@@ -307,6 +325,7 @@ export default async function SchedulePage({
               tray.map((assignment) => (
                 <DraggableAssignment
                   assignmentId={assignment.id}
+                  disabled={schedule.status !== "DRAFT" || assignment.isLocked}
                   key={assignment.id}
                 >
                   <a
@@ -323,34 +342,55 @@ export default async function SchedulePage({
         </ScheduleDropCell>
       </section>
 
-      <div className="flex items-center gap-2">
-        <form action={regenerateSchedule}>
-          <input name="scheduleId" type="hidden" value={schedule.id} />
-          <button
-            className={`${buttonClass} inline-flex items-center`}
-            title="Run partial regeneration"
-          >
-            <RefreshCw className="mr-2" size={16} />
-            Regenerate unlocked
-          </button>
-        </form>
-        {schedule.parentSchedule ? (
-          <Link
-            className="inline-flex h-9 items-center border border-[#cfd5d1] bg-white px-3 text-sm"
-            href={`/schedules/${schedule.parentSchedule.id}`}
-          >
-            <Undo2 className="mr-2" size={16} />
-            Undo
-          </Link>
+      <div className="flex flex-wrap items-center gap-2 print:hidden">
+        {schedule.status === "DRAFT" ? (
+          <form action={regenerateSchedule}>
+            <input name="scheduleId" type="hidden" value={schedule.id} />
+            <button
+              className={`${buttonClass} inline-flex items-center`}
+              title="Run partial regeneration"
+            >
+              <RefreshCw className="mr-2" size={16} />
+              Regenerate unlocked
+            </button>
+          </form>
         ) : null}
-        {schedule.derivedSchedules[0] ? (
-          <Link
-            className="inline-flex h-9 items-center border border-[#cfd5d1] bg-white px-3 text-sm"
-            href={`/schedules/${schedule.derivedSchedules[0].id}`}
-          >
-            <Redo2 className="mr-2" size={16} />
-            Redo
-          </Link>
+        {schedule.status === "DRAFT" ? (
+          <form action={publishSchedule}>
+            <input name="scheduleId" type="hidden" value={schedule.id} />
+            <button className="h-10 border border-[#0e6b4f] bg-white px-4 text-sm font-semibold text-[#0e6b4f]">
+              Publish
+            </button>
+          </form>
+        ) : null}
+        <Link
+          className="inline-flex h-9 items-center border border-[#cfd5d1] bg-white px-3 text-sm"
+          href={`/schedules/${schedule.id}/export`}
+        >
+          Export CSV
+        </Link>
+        <PrintButton />
+        {schedule.status === "DRAFT" ? (
+          <>
+            {schedule.parentSchedule ? (
+              <Link
+                className="inline-flex h-9 items-center border border-[#cfd5d1] bg-white px-3 text-sm"
+                href={`/schedules/${schedule.parentSchedule.id}`}
+              >
+                <Undo2 className="mr-2" size={16} />
+                Undo
+              </Link>
+            ) : null}
+            {schedule.derivedSchedules[0] ? (
+              <Link
+                className="inline-flex h-9 items-center border border-[#cfd5d1] bg-white px-3 text-sm"
+                href={`/schedules/${schedule.derivedSchedules[0].id}`}
+              >
+                <Redo2 className="mr-2" size={16} />
+                Redo
+              </Link>
+            ) : null}
+          </>
         ) : null}
         {latestAudit?.scoreDelta !== undefined ? (
           <p className="ml-auto text-sm text-[#66706b]">
@@ -363,134 +403,144 @@ export default async function SchedulePage({
         ) : null}
       </div>
 
-      <section className="space-y-3">
-        <h2 className="text-base font-semibold">Assignment editor</h2>
-        <div className="divide-y divide-[#dce1dc] border border-[#dce1dc] bg-white">
-          {schedule.assignments.map((assignment) => (
-            <div
-              className="grid gap-3 p-4 xl:grid-cols-[220px_1fr_1fr_auto]"
-              id={`assignment-${assignment.id}`}
-              key={assignment.id}
-            >
-              <div>
-                <p className="font-semibold">
-                  {assignment.classSection.shortCode} ·{" "}
-                  {assignment.teachingRequirement.subject.shortCode}
-                </p>
-                <p className="mt-1 text-xs text-[#66706b]">
-                  {assignment.teacher.name}
-                </p>
-              </div>
-              <form action={previewMove} className="flex gap-2">
-                <input name="scheduleId" type="hidden" value={schedule.id} />
-                <input
-                  name="assignmentId"
-                  type="hidden"
-                  value={assignment.id}
-                />
-                <input name="target" type="hidden" value="slot" />
-                <select
-                  aria-label="Move day"
-                  className={inputClass}
-                  defaultValue={assignment.startDayIndex ?? days[0]?.dayIndex}
-                  name="dayIndex"
-                >
-                  {days.map((day) => (
-                    <option key={day.id} value={day.dayIndex}>
-                      {day.name}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  aria-label="Move period"
-                  className={inputClass}
-                  defaultValue={
-                    assignment.startPeriodIndex ?? periods[0]?.periodIndex
-                  }
-                  name="periodIndex"
-                >
-                  {periods
-                    .filter((period) => period.isTeaching)
-                    .map((period) => (
-                      <option key={period.id} value={period.periodIndex}>
-                        {period.name}
-                      </option>
-                    ))}
-                </select>
-                <button
-                  className={`${buttonClass} shrink-0`}
-                  disabled={assignment.isLocked}
-                >
-                  Preview
-                </button>
-              </form>
-              <form action={swapAssignments} className="flex gap-2">
-                <input name="scheduleId" type="hidden" value={schedule.id} />
-                <input
-                  name="assignmentId"
-                  type="hidden"
-                  value={assignment.id}
-                />
-                <select
-                  aria-label="Swap with"
-                  className={inputClass}
-                  name="swapWithId"
-                >
-                  {schedule.assignments
-                    .filter((item) => item.id !== assignment.id)
-                    .map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.classSection.shortCode} ·{" "}
-                        {item.teachingRequirement.subject.shortCode}
-                      </option>
-                    ))}
-                </select>
-                <button
-                  className="h-10 shrink-0 border border-[#9ba59f] bg-white px-3 text-sm font-semibold"
-                  disabled={assignment.isLocked}
-                >
-                  Swap
-                </button>
-              </form>
-              <div className="flex gap-2">
-                <form action={previewMove}>
+      {schedule.status === "DRAFT" ? (
+        <section className="space-y-3">
+          <h2 className="text-base font-semibold">Assignment editor</h2>
+          <div className="divide-y divide-[#dce1dc] border border-[#dce1dc] bg-white">
+            {schedule.assignments.map((assignment) => (
+              <div
+                className="grid gap-3 p-4 xl:grid-cols-[220px_1fr_1fr_auto]"
+                id={`assignment-${assignment.id}`}
+                key={assignment.id}
+              >
+                <div>
+                  <p className="font-semibold">
+                    {assignment.classSection.shortCode} ·{" "}
+                    {assignment.teachingRequirement.subject.shortCode}
+                  </p>
+                  <p className="mt-1 text-xs text-[#66706b]">
+                    {assignment.teacher.name}
+                  </p>
+                </div>
+                <form action={previewMove} className="flex gap-2">
                   <input name="scheduleId" type="hidden" value={schedule.id} />
                   <input
                     name="assignmentId"
                     type="hidden"
                     value={assignment.id}
                   />
-                  <input name="target" type="hidden" value="tray" />
+                  <input name="target" type="hidden" value="slot" />
+                  <select
+                    aria-label="Move day"
+                    className={inputClass}
+                    defaultValue={assignment.startDayIndex ?? days[0]?.dayIndex}
+                    name="dayIndex"
+                  >
+                    {days.map((day) => (
+                      <option key={day.id} value={day.dayIndex}>
+                        {day.name}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    aria-label="Move period"
+                    className={inputClass}
+                    defaultValue={
+                      assignment.startPeriodIndex ?? periods[0]?.periodIndex
+                    }
+                    name="periodIndex"
+                  >
+                    {periods
+                      .filter((period) => period.isTeaching)
+                      .map((period) => (
+                        <option key={period.id} value={period.periodIndex}>
+                          {period.name}
+                        </option>
+                      ))}
+                  </select>
                   <button
-                    className="h-10 border border-[#9ba59f] bg-white px-3 text-sm"
+                    className={`${buttonClass} shrink-0`}
                     disabled={assignment.isLocked}
                   >
-                    Preview unassign
+                    Preview
                   </button>
                 </form>
-                <form action={toggleAssignmentLock}>
+                <form action={swapAssignments} className="flex gap-2">
                   <input name="scheduleId" type="hidden" value={schedule.id} />
                   <input
                     name="assignmentId"
                     type="hidden"
                     value={assignment.id}
                   />
-                  <button
-                    className="flex h-10 w-10 items-center justify-center border border-[#9ba59f] bg-white"
-                    title={assignment.isLocked ? "Unlock" : "Lock"}
+                  <select
+                    aria-label="Swap with"
+                    className={inputClass}
+                    name="swapWithId"
                   >
-                    {assignment.isLocked ? (
-                      <Lock size={16} />
-                    ) : (
-                      <LockOpen size={16} />
-                    )}
+                    {schedule.assignments
+                      .filter((item) => item.id !== assignment.id)
+                      .map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.classSection.shortCode} ·{" "}
+                          {item.teachingRequirement.subject.shortCode}
+                        </option>
+                      ))}
+                  </select>
+                  <button
+                    className="h-10 shrink-0 border border-[#9ba59f] bg-white px-3 text-sm font-semibold"
+                    disabled={assignment.isLocked}
+                  >
+                    Swap
                   </button>
                 </form>
+                <div className="flex gap-2">
+                  <form action={previewMove}>
+                    <input
+                      name="scheduleId"
+                      type="hidden"
+                      value={schedule.id}
+                    />
+                    <input
+                      name="assignmentId"
+                      type="hidden"
+                      value={assignment.id}
+                    />
+                    <input name="target" type="hidden" value="tray" />
+                    <button
+                      className="h-10 border border-[#9ba59f] bg-white px-3 text-sm"
+                      disabled={assignment.isLocked}
+                    >
+                      Preview unassign
+                    </button>
+                  </form>
+                  <form action={toggleAssignmentLock}>
+                    <input
+                      name="scheduleId"
+                      type="hidden"
+                      value={schedule.id}
+                    />
+                    <input
+                      name="assignmentId"
+                      type="hidden"
+                      value={assignment.id}
+                    />
+                    <button
+                      className="flex h-10 w-10 items-center justify-center border border-[#9ba59f] bg-white"
+                      title={assignment.isLocked ? "Unlock" : "Lock"}
+                    >
+                      {assignment.isLocked ? (
+                        <Lock size={16} />
+                      ) : (
+                        <LockOpen size={16} />
+                      )}
+                    </button>
+                  </form>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </section>
+            ))}
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

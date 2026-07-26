@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from ortools.init.python import init  # type: ignore[import-untyped]
@@ -15,6 +17,26 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url=None,
 )
+
+MAX_REQUEST_BYTES = 5 * 1024 * 1024
+
+
+@app.middleware("http")
+async def enforce_request_boundary(request: Request, call_next):  # type: ignore[no-untyped-def]
+    if request.method in {"POST", "PUT", "PATCH"}:
+        content_length = request.headers.get("content-length")
+        if content_length and int(content_length) > MAX_REQUEST_BYTES:
+            return JSONResponse(
+                status_code=413,
+                content={"code": "PAYLOAD_TOO_LARGE", "message": "Request payload exceeds 5 MB."},
+            )
+        expected_token = os.getenv("SOLVER_INTERNAL_TOKEN")
+        if expected_token and request.headers.get("x-solver-token") != expected_token:
+            return JSONResponse(
+                status_code=401,
+                content={"code": "SOLVER_UNAUTHORIZED", "message": "Solver token is invalid."},
+            )
+    return await call_next(request)
 
 
 @app.get("/health")

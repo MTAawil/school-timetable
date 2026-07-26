@@ -95,7 +95,12 @@ export async function generateTimetable(formData: FormData): Promise<void> {
     );
     const response = await fetch(`${baseUrl}/v1/solve`, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        ...(process.env.SOLVER_INTERNAL_TOKEN
+          ? { "x-solver-token": process.env.SOLVER_INTERNAL_TOKEN }
+          : {}),
+      },
       body: JSON.stringify({ ...snapshot, jobId: job.id }),
       cache: "no-store",
       signal: AbortSignal.timeout(timeoutSeconds * 1000),
@@ -156,6 +161,20 @@ export async function generateTimetable(formData: FormData): Promise<void> {
             warnings: solverResult.warnings,
           }),
           completedAt: new Date(),
+        },
+      });
+      await transaction.auditLog.create({
+        data: {
+          schoolId: user.schoolId,
+          userId: user.id,
+          action: "TIMETABLE_GENERATED",
+          entityType: "GenerationJob",
+          entityId: job.id,
+          details: jsonValue({
+            status: solverResult.status,
+            alternativeCount: solverResult.alternatives.length,
+            inputFingerprint: fingerprint,
+          }),
         },
       });
     });

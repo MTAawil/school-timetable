@@ -88,4 +88,23 @@ test("administrator can sign in and add a teacher", async ({ page }) => {
   ).toBeVisible();
   await expect(page.getByTitle("Unlock")).toHaveCount(3);
   await expect(page.getByRole("link", { name: "Undo" })).toBeVisible();
+
+  await page.getByRole("link", { name: "Teacher", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Print" })).toBeVisible();
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("link", { name: "Export CSV" }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toMatch(/^schedule-v\d+\.csv$/);
+
+  await page.getByRole("button", { name: "Publish" }).click();
+  await expect(page).toHaveURL(/published=1/, { timeout: 15_000 });
+  await expect(page.getByText(/is now published and immutable/)).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Regenerate unlocked" }),
+  ).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Publish" })).toHaveCount(0);
+
+  await page.goto("/audit");
+  await expect(page.getByRole("heading", { name: "Activity" })).toBeVisible();
+  await expect(page.getByText("SCHEDULE PUBLISHED").first()).toBeVisible();
 });
