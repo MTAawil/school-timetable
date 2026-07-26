@@ -4,8 +4,8 @@ A single-school weekly timetable application. The repository separates the
 Next.js administration application from the database-independent Python
 optimization service.
 
-Phase 0 provides the development foundation only. Scheduling domain screens and
-CP-SAT model behavior begin in later phases documented under `docs/`.
+For a non-technical explanation of what the software does and how a school uses
+it, read [`USER_GUIDE.md`](USER_GUIDE.md).
 
 ## Architecture
 
