@@ -2,8 +2,8 @@
 
 ## Current phase
 
-Stable single-school MVP complete on `main`. Supervisor workflow redesign R2 is
-complete on `feature/supervisor-workflow-redesign`; R3 is the next task.
+Stable single-school MVP complete on `main`. Supervisor workflow redesign R3 is
+complete on `feature/supervisor-workflow-redesign`; R4 is the next task.
 
 ## Decisions
 
@@ -42,14 +42,15 @@ complete on `feature/supervisor-workflow-redesign`; R3 is the next task.
 
 ## Active redesign execution plan
 
-Current task: R3 - Subjects and Curriculum Matrix.
+Current task: R4 - Teacher and Teaching Allocation Workflow.
 
 1. R0 documentation and fixtures are complete and approved.
 2. The isolated redesign database and additive R1 migration are complete.
 3. R2 - School Setup Workflow is complete.
-4. Implement R3 through R8 in the README order.
-5. Update README task statuses and this section after every completed task.
-6. Do not merge to `main` before full verification and supervisor approval.
+4. R3 - Subjects and Curriculum Matrix is complete.
+5. Implement R4 through R8 in the README order.
+6. Update README task statuses and this section after every completed task.
+7. Do not merge to `main` before full verification and supervisor approval.
 
 ## Redesign change log
 
@@ -109,6 +110,27 @@ Current task: R3 - Subjects and Curriculum Matrix.
   deterministic daily period construction.
 - Verified lint, strict TypeScript checks, 38 unit/domain/migration tests, and
   the 19-route production build.
+
+### 2026-07-28 - R3 subjects and curriculum matrix
+
+- Replaced the technical subject list with an editable school-owned catalogue,
+  an idempotent 16-subject starter set, and custom subject creation.
+- Added subject activation and deactivation while retaining historical rows and
+  deactivating current curriculum safely.
+- Added a grade-by-subject matrix for physical weekly sessions, main-subject
+  status, and optional double-session eligibility.
+- Applied the approved main-subject defaults for Arabic, English, Mathematics,
+  G11 Physics, and G12 LS sciences.
+- Added immediate hard-rule feedback for non-main daily limits, disabled
+  required doubles, main-subject daily capacity, and total class capacity.
+- Displays calculated clock time from the configured uniform session duration
+  without changing physical session demand.
+- Saves grade curriculum transactionally and materializes it into every active
+  class section while preserving later teacher ownership.
+- Updated School Setup so sections created after curriculum configuration
+  inherit all active grade curriculum immediately.
+- Verified formatting, lint, strict TypeScript checks, 43
+  unit/domain/migration/UI tests, and the 19-route production build.
 
 ## Phase 0 execution plan
 

@@ -116,15 +116,15 @@ classes without visiting technical entity pages.
 
 #### R3 - Subjects and Curriculum Matrix
 
-Status: **Not started**
+Status: **Complete**
 
-- [ ] Provide an editable default subject catalogue.
-- [ ] Allow custom subjects.
-- [ ] Build the grade-by-subject weekly-session matrix.
-- [ ] Configure whether each grade-subject is main.
-- [ ] Configure optional double-session eligibility.
-- [ ] Copy grade curriculum requirements to every generated section.
-- [ ] Display calculated teaching hours from session duration.
+- [x] Provide an editable default subject catalogue.
+- [x] Allow custom subjects.
+- [x] Build the grade-by-subject weekly-session matrix.
+- [x] Configure whether each grade-subject is main.
+- [x] Configure optional double-session eligibility.
+- [x] Copy grade curriculum requirements to every generated section.
+- [x] Display calculated teaching hours from session duration.
 
 Completion rule: every class has an explicit weekly curriculum, and the UI
 shows missing or impossible curriculum values immediately.
@@ -211,8 +211,8 @@ and the supervisor approves the workflow.
 ### Working Status
 
 - Current branch: `feature/supervisor-workflow-redesign`
-- Current task: **R3 - Subjects and Curriculum Matrix**
-- Last completed task: **R2 - School Setup Workflow**
+- Current task: **R4 - Teacher and Teaching Allocation Workflow**
+- Last completed task: **R3 - Subjects and Curriculum Matrix**
 - Stable MVP branch: `main`
 
 ## Architecture

@@ -216,6 +216,14 @@ export async function saveGradeSections(formData: FormData): Promise<void> {
           },
         },
       });
+      const activeCurriculum = await transaction.gradeCurriculum.findMany({
+        where: {
+          schoolId: user.schoolId,
+          termId: term.id,
+          gradeLevelId: gradeLevel.id,
+          isActive: true,
+        },
+      });
       const existingByLabel = new Map(
         existingSections.map((section) => [section.sectionLabel, section]),
       );
@@ -228,6 +236,7 @@ export async function saveGradeSections(formData: FormData): Promise<void> {
         const existing = existingByLabel.get(label);
         const generatedName = `${grade.name}-${label}`;
         const generatedShortCode = `${grade.code.replaceAll("_", "")}-${label}`;
+        let classSectionId: string;
         if (existing) {
           const sectionName =
             existing.sectionName === existing.generatedName
@@ -237,7 +246,7 @@ export async function saveGradeSections(formData: FormData): Promise<void> {
             existing.shortCode === existing.generatedShortCode
               ? generatedShortCode
               : existing.shortCode;
-          await transaction.classSection.update({
+          const classSection = await transaction.classSection.update({
             where: { id: existing.id },
             data: {
               grade: grade.name,
@@ -249,8 +258,9 @@ export async function saveGradeSections(formData: FormData): Promise<void> {
               generatedShortCode,
             },
           });
+          classSectionId = classSection.id;
         } else {
-          await transaction.classSection.create({
+          const classSection = await transaction.classSection.create({
             data: {
               schoolId: user.schoolId,
               termId: term.id,
@@ -261,6 +271,37 @@ export async function saveGradeSections(formData: FormData): Promise<void> {
               shortCode: generatedShortCode,
               generatedName,
               generatedShortCode,
+            },
+          });
+          classSectionId = classSection.id;
+        }
+
+        for (const curriculum of activeCurriculum) {
+          await transaction.classCurriculum.upsert({
+            where: {
+              schoolId_termId_classSectionId_subjectId: {
+                schoolId: user.schoolId,
+                termId: term.id,
+                classSectionId,
+                subjectId: curriculum.subjectId,
+              },
+            },
+            update: {
+              gradeCurriculumId: curriculum.id,
+              weeklySessions: curriculum.weeklySessions,
+              isMainSubject: curriculum.isMainSubject,
+              allowDoubleSession: curriculum.allowDoubleSession,
+              isActive: true,
+            },
+            create: {
+              schoolId: user.schoolId,
+              termId: term.id,
+              classSectionId,
+              gradeCurriculumId: curriculum.id,
+              subjectId: curriculum.subjectId,
+              weeklySessions: curriculum.weeklySessions,
+              isMainSubject: curriculum.isMainSubject,
+              allowDoubleSession: curriculum.allowDoubleSession,
             },
           });
         }
