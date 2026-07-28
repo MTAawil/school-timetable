@@ -2,8 +2,8 @@
 
 ## Current phase
 
-Stable single-school MVP complete on `main`. Supervisor workflow redesign R1 is
-complete on `feature/supervisor-workflow-redesign`; R2 is the next task.
+Stable single-school MVP complete on `main`. Supervisor workflow redesign R2 is
+complete on `feature/supervisor-workflow-redesign`; R3 is the next task.
 
 ## Decisions
 
@@ -42,12 +42,12 @@ complete on `feature/supervisor-workflow-redesign`; R2 is the next task.
 
 ## Active redesign execution plan
 
-Current task: R2 - School Setup Workflow.
+Current task: R3 - Subjects and Curriculum Matrix.
 
 1. R0 documentation and fixtures are complete and approved.
 2. The isolated redesign database and additive R1 migration are complete.
-3. Implement R2 - School Setup Workflow.
-4. Continue with R2 through R8 in the README order.
+3. R2 - School Setup Workflow is complete.
+4. Implement R3 through R8 in the README order.
 5. Update README task statuses and this section after every completed task.
 6. Do not merge to `main` before full verification and supervisor approval.
 
@@ -87,6 +87,28 @@ Current task: R2 - School Setup Workflow.
   lint, strict TypeScript checks, and 35 unit/domain/migration tests.
 - Root `pnpm format` remains unable to scan the solver's generated
   `.pytest_cache` under the managed Windows sandbox; targeted formatting passed.
+
+### 2026-07-28 - R2 school setup workflow
+
+- Replaced the setup link directory with a direct supervisor workspace for the
+  school week and grade sections.
+- Added validated working-day selection, uniform session duration, first-session
+  time, and one configurable break.
+- Rebuilds normalized days, periods, and slots transactionally and refuses
+  changes that would invalidate schedule history, fixed requirements, or
+  teacher restrictions.
+- Added the 17 approved editable grade templates and section counts from zero
+  through 52.
+- Generates stable spreadsheet-style section labels (`A` through `Z`, then
+  `AA`) and predictable names such as `G7-A`.
+- Keeps generated class names and short codes editable and preserves manual
+  overrides when a grade template is renamed.
+- Blocks section-count reductions when curriculum, legacy requirements, or
+  schedule assignments reference the removed section.
+- Added focused tests for default grades, stable codes, section labels, and
+  deterministic daily period construction.
+- Verified lint, strict TypeScript checks, 38 unit/domain/migration tests, and
+  the 19-route production build.
 
 ## Phase 0 execution plan
 

@@ -102,14 +102,14 @@ untouched.
 
 #### R2 - School Setup Workflow
 
-Status: **Not started**
+Status: **Complete**
 
-- [ ] Build one guided school-week setup.
-- [ ] Configure working days, sessions per day, session duration, and one break.
-- [ ] Show editable grade templates.
-- [ ] Let the supervisor select section counts.
-- [ ] Generate predictable section names such as G7-A and G7-B.
-- [ ] Allow generated section names to be edited.
+- [x] Build one guided school-week setup.
+- [x] Configure working days, sessions per day, session duration, and one break.
+- [x] Show editable grade templates.
+- [x] Let the supervisor select section counts.
+- [x] Generate predictable section names such as G7-A and G7-B.
+- [x] Allow generated section names to be edited.
 
 Completion rule: a supervisor can create the complete school week and all
 classes without visiting technical entity pages.
@@ -211,8 +211,8 @@ and the supervisor approves the workflow.
 ### Working Status
 
 - Current branch: `feature/supervisor-workflow-redesign`
-- Current task: **R2 - School Setup Workflow**
-- Last completed task: **R1 - Isolated Database and Domain Migration**
+- Current task: **R3 - Subjects and Curriculum Matrix**
+- Last completed task: **R2 - School Setup Workflow**
 - Stable MVP branch: `main`
 
 ## Architecture

@@ -1,5 +1,92 @@
 import { z } from "zod";
 
+export const defaultGradeLevels = [
+  "KG1",
+  "KG2",
+  "KG3",
+  "G1",
+  "G2",
+  "G3",
+  "G4",
+  "G5",
+  "G6",
+  "G7",
+  "G8",
+  "G9",
+  "G10",
+  "G11",
+  "G12 LS",
+  "G12 ES",
+  "G12 GS",
+] as const;
+
+export function gradeCode(name: string): string {
+  return name.trim().toUpperCase().replaceAll(" ", "_");
+}
+
+export function sectionLabel(index: number): string {
+  if (!Number.isInteger(index) || index < 0) {
+    throw new Error("SECTION_INDEX_INVALID");
+  }
+
+  let value = index + 1;
+  let label = "";
+  while (value > 0) {
+    value -= 1;
+    label = String.fromCharCode(65 + (value % 26)) + label;
+    value = Math.floor(value / 26);
+  }
+  return label;
+}
+
+export type SchoolPeriod = {
+  periodIndex: number;
+  name: string;
+  startsAtMinutes: number;
+  endsAtMinutes: number;
+  isTeaching: boolean;
+};
+
+export function buildSchoolPeriods(
+  configuration: z.input<typeof schoolWeekConfigurationSchema>,
+): SchoolPeriod[] {
+  const input = schoolWeekConfigurationSchema.parse(configuration);
+  const periods: SchoolPeriod[] = [];
+  let startsAtMinutes = input.firstSessionStartMinutes;
+
+  for (let session = 1; session <= input.sessionsPerDay; session += 1) {
+    periods.push({
+      periodIndex: periods.length,
+      name: `Session ${String(session)}`,
+      startsAtMinutes,
+      endsAtMinutes: startsAtMinutes + input.sessionDurationMinutes,
+      isTeaching: true,
+    });
+    startsAtMinutes += input.sessionDurationMinutes;
+
+    if (session === input.breakAfterSession) {
+      periods.push({
+        periodIndex: periods.length,
+        name: "Break",
+        startsAtMinutes,
+        endsAtMinutes: startsAtMinutes + input.breakDurationMinutes,
+        isTeaching: false,
+      });
+      startsAtMinutes += input.breakDurationMinutes;
+    }
+  }
+
+  const finalPeriod = periods.at(-1);
+  if (!finalPeriod) {
+    throw new Error("SCHOOL_DAY_HAS_NO_PERIODS");
+  }
+  if (finalPeriod.endsAtMinutes > 1440) {
+    throw new Error("SCHOOL_DAY_EXCEEDS_MIDNIGHT");
+  }
+
+  return periods;
+}
+
 export const schoolWeekConfigurationSchema = z
   .object({
     workingDayCount: z.number().int().min(1).max(7),

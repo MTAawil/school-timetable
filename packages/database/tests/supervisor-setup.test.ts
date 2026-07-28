@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  buildSchoolPeriods,
   curriculumSemanticsSchema,
+  defaultGradeLevels,
   findTeacherWorkloadMismatches,
+  gradeCode,
   schoolWeekConfigurationSchema,
+  sectionLabel,
 } from "../src/domain/supervisor-setup.js";
 
 describe("supervisor setup domain", () => {
@@ -69,6 +73,65 @@ describe("supervisor setup domain", () => {
         teacherId: "rawan",
         declaredWeeklySessions: 9,
         allocatedWeeklySessions: 10,
+      },
+    ]);
+  });
+
+  it("provides the approved grade defaults and stable codes", () => {
+    expect(defaultGradeLevels).toHaveLength(17);
+    expect(defaultGradeLevels.at(-1)).toBe("G12 GS");
+    expect(gradeCode("G12 LS")).toBe("G12_LS");
+  });
+
+  it("creates spreadsheet-style section labels", () => {
+    expect([0, 25, 26, 27].map(sectionLabel)).toEqual(["A", "Z", "AA", "AB"]);
+  });
+
+  it("builds uniform sessions with one break", () => {
+    const periods = buildSchoolPeriods({
+      workingDayCount: 5,
+      sessionsPerDay: 4,
+      sessionDurationMinutes: 50,
+      firstSessionStartMinutes: 480,
+      breakAfterSession: 2,
+      breakDurationMinutes: 20,
+    });
+
+    expect(periods).toEqual([
+      {
+        periodIndex: 0,
+        name: "Session 1",
+        startsAtMinutes: 480,
+        endsAtMinutes: 530,
+        isTeaching: true,
+      },
+      {
+        periodIndex: 1,
+        name: "Session 2",
+        startsAtMinutes: 530,
+        endsAtMinutes: 580,
+        isTeaching: true,
+      },
+      {
+        periodIndex: 2,
+        name: "Break",
+        startsAtMinutes: 580,
+        endsAtMinutes: 600,
+        isTeaching: false,
+      },
+      {
+        periodIndex: 3,
+        name: "Session 3",
+        startsAtMinutes: 600,
+        endsAtMinutes: 650,
+        isTeaching: true,
+      },
+      {
+        periodIndex: 4,
+        name: "Session 4",
+        startsAtMinutes: 650,
+        endsAtMinutes: 700,
+        isTeaching: true,
       },
     ]);
   });
