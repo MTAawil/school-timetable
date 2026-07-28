@@ -146,15 +146,15 @@ class-subject is owned by exactly one teacher before generation.
 
 #### R5 - Teacher Restrictions
 
-Status: **Not started**
+Status: **Complete**
 
-- [ ] Build a simple weekly restriction grid.
-- [ ] Support hard unavailable periods.
-- [ ] Support preferred and avoid-if-possible periods.
-- [ ] Configure maximum consecutive teaching sessions.
-- [ ] Configure an optional hard daily maximum.
-- [ ] Add soft weekly workload balancing for full-time teachers.
-- [ ] Add compactness preferences for part-time teachers.
+- [x] Build a simple weekly restriction grid.
+- [x] Support hard unavailable periods.
+- [x] Support preferred and avoid-if-possible periods.
+- [x] Configure maximum consecutive teaching sessions.
+- [x] Configure an optional hard daily maximum.
+- [x] Add soft weekly workload balancing for full-time teachers.
+- [x] Add compactness preferences for part-time teachers.
 
 Completion rule: the supervisor can understand and enter restrictions without
 editing raw constraint records or weights.
@@ -211,8 +211,8 @@ and the supervisor approves the workflow.
 ### Working Status
 
 - Current branch: `feature/supervisor-workflow-redesign`
-- Current task: **R5 - Teacher Restrictions**
-- Last completed task: **R4 - Teacher and Teaching Allocation Workflow**
+- Current task: **R6 - Readiness and Solver Rules**
+- Last completed task: **R5 - Teacher Restrictions**
 - Stable MVP branch: `main`
 
 ## Architecture

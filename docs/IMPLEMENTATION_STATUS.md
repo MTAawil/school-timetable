@@ -2,8 +2,8 @@
 
 ## Current phase
 
-Stable single-school MVP complete on `main`. Supervisor workflow redesign R4 is
-complete on `feature/supervisor-workflow-redesign`; R5 is the next task.
+Stable single-school MVP complete on `main`. Supervisor workflow redesign R5 is
+complete on `feature/supervisor-workflow-redesign`; R6 is the next task.
 
 ## Decisions
 
@@ -42,16 +42,17 @@ complete on `feature/supervisor-workflow-redesign`; R5 is the next task.
 
 ## Active redesign execution plan
 
-Current task: R5 - Teacher Restrictions.
+Current task: R6 - Readiness and Solver Rules.
 
 1. R0 documentation and fixtures are complete and approved.
 2. The isolated redesign database and additive R1 migration are complete.
 3. R2 - School Setup Workflow is complete.
 4. R3 - Subjects and Curriculum Matrix is complete.
 5. R4 - Teacher and Teaching Allocation Workflow is complete.
-6. Implement R5 through R8 in the README order.
-7. Update README task statuses and this section after every completed task.
-8. Do not merge to `main` before full verification and supervisor approval.
+6. R5 - Teacher Restrictions is complete.
+7. Implement R6 through R8 in the README order.
+8. Update README task statuses and this section after every completed task.
+9. Do not merge to `main` before full verification and supervisor approval.
 
 ## Redesign change log
 
@@ -152,6 +153,26 @@ Current task: R5 - Teacher Restrictions.
 - Added shared domain tests for exact, under, and excessive workloads plus a UI
   test for uncovered and excessive states.
 - Verified formatting, lint, strict TypeScript checks, 46
+  unit/domain/migration/UI tests, and the 19-route production build.
+
+### 2026-07-28 - R5 teacher restrictions
+
+- Replaced unavailable-only checkboxes with one four-state weekly grid:
+  Available, Preferred, Avoid, and Unavailable.
+- Stores only non-default states as normalized teacher availability rules;
+  unavailable is hard while preferred and avoid remain soft.
+- Added optional hard daily and consecutive-session limits directly beside the
+  selected teacher's grid.
+- Validates the complete submitted teaching-slot set against the current
+  calendar and rejects stale forms transactionally.
+- Displays hard available capacity against the teacher's exact weekly workload
+  while restrictions are edited.
+- Applies full-time daily balancing or part-time compactness automatically from
+  employment type, without exposing raw constraint weights.
+- Removed the obsolete unavailable-only write path.
+- Added shared capacity and employment-preference tests and expanded the grid UI
+  test across hard, soft, break, and shortage states.
+- Verified formatting, lint, strict TypeScript checks, 48
   unit/domain/migration/UI tests, and the 19-route production build.
 
 ## Phase 0 execution plan

@@ -15,7 +15,6 @@ import { z } from "zod";
 import { verifySession } from "@/lib/auth/dal";
 import { getActiveTerm, optionalInteger, optionalText } from "@/lib/setup";
 
-const idSchema = z.uuid();
 const dayNameSchema = z.enum([
   "Monday",
   "Tuesday",
@@ -535,51 +534,4 @@ export async function setRoomsEnabled(formData: FormData): Promise<void> {
   });
   revalidatePath("/rooms");
   revalidatePath("/settings/calendar");
-}
-
-export async function saveTeacherAvailability(
-  formData: FormData,
-): Promise<void> {
-  const user = await verifySession();
-  const term = await getActiveTerm(user.schoolId);
-  const teacherId = idSchema.parse(formData.get("teacherId"));
-  const teacher = await getDatabase().teacher.findFirst({
-    where: { id: teacherId, schoolId: user.schoolId, deletedAt: null },
-  });
-  if (!teacher) {
-    throw new Error("TEACHER_NOT_FOUND");
-  }
-
-  const db = getDatabase();
-  await db.$transaction(async (transaction) => {
-    await transaction.availabilityRule.deleteMany({
-      where: {
-        schoolId: user.schoolId,
-        termId: term.id,
-        entityType: "TEACHER",
-        entityId: teacherId,
-      },
-    });
-
-    const unavailableSlots = Array.from(formData.keys())
-      .filter((key) => key.startsWith("slot:"))
-      .map((key) => {
-        const [, dayIndex, periodIndex] = key.split(":");
-        return {
-          schoolId: user.schoolId,
-          termId: term.id,
-          entityType: "TEACHER" as const,
-          entityId: teacherId,
-          dayIndex: Number(dayIndex),
-          periodIndex: Number(periodIndex),
-          state: "UNAVAILABLE" as const,
-        };
-      });
-    if (unavailableSlots.length > 0) {
-      await transaction.availabilityRule.createMany({
-        data: unavailableSlots,
-      });
-    }
-  });
-  revalidatePath("/availability");
 }

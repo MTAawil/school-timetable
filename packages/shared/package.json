@@ -6,7 +6,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./curriculum": "./src/curriculum.ts",
-    "./teacher-allocation": "./src/teacher-allocation.ts"
+    "./teacher-allocation": "./src/teacher-allocation.ts",
+    "./teacher-restrictions": "./src/teacher-restrictions.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",
