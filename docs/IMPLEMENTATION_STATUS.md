@@ -2,8 +2,8 @@
 
 ## Current phase
 
-Stable single-school MVP complete on `main`. Supervisor workflow redesign R5 is
-complete on `feature/supervisor-workflow-redesign`; R6 is the next task.
+Stable single-school MVP complete on `main`. Supervisor workflow redesign R6 is
+complete on `feature/supervisor-workflow-redesign`; R7 is the next task.
 
 ## Decisions
 
@@ -42,7 +42,7 @@ complete on `feature/supervisor-workflow-redesign`; R6 is the next task.
 
 ## Active redesign execution plan
 
-Current task: R6 - Readiness and Solver Rules.
+Current task: R7 - Simplified Application Flow.
 
 1. R0 documentation and fixtures are complete and approved.
 2. The isolated redesign database and additive R1 migration are complete.
@@ -50,9 +50,10 @@ Current task: R6 - Readiness and Solver Rules.
 4. R3 - Subjects and Curriculum Matrix is complete.
 5. R4 - Teacher and Teaching Allocation Workflow is complete.
 6. R5 - Teacher Restrictions is complete.
-7. Implement R6 through R8 in the README order.
-8. Update README task statuses and this section after every completed task.
-9. Do not merge to `main` before full verification and supervisor approval.
+7. R6 - Readiness and Solver Rules is complete.
+8. Implement R7 and R8 in the README order.
+9. Update README task statuses and this section after every completed task.
+10. Do not merge to `main` before full verification and supervisor approval.
 
 ## Redesign change log
 
@@ -174,6 +175,29 @@ Current task: R6 - Readiness and Solver Rules.
   test across hard, soft, break, and shortage states.
 - Verified formatting, lint, strict TypeScript checks, 48
   unit/domain/migration/UI tests, and the 19-route production build.
+
+### 2026-07-28 - R6 readiness and solver rules
+
+- Introduced solver snapshot schema version 2 while retaining schema version 1
+  parsing, solving, validation, scoring, locks, and regeneration for historical
+  schedules.
+- Built new snapshots from normalized class curriculum with physical weekly
+  sessions, main-subject and optional-double flags, declared teacher workloads,
+  and school-week break configuration; rooms are omitted as contracted.
+- Added deterministic supervisor readiness checks with stable correction codes
+  for incomplete setup, curriculum capacity, teacher ownership, exact workload,
+  subject frequency, optional doubles, and teacher hard capacity.
+- Enforced non-main daily uniqueness and main-subject adjacent optional doubles
+  in CP-SAT, including break-aware adjacency and consecutive-teaching limits.
+- Added independent version-2 post-validation for exact demand, daily subject
+  frequency, double adjacency, break crossing, and declared teacher totals.
+- Added named `FULL_TIME_DAILY_BALANCE` scoring while preserving part-time
+  compactness and all legacy scoring behavior.
+- Updated the readiness page to use supervisor terminology and direct every new
+  blocker to Setup, Subjects, Teachers, or Availability.
+- Verified formatting, workspace lint, strict TypeScript and mypy, 52
+  TypeScript tests, 14 solver tests, the 19-route production build, and the
+  local solver health endpoint.
 
 ## Phase 0 execution plan
 

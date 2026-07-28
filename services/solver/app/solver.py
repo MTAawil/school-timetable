@@ -76,7 +76,7 @@ def compatible_choices(
             if isinstance(fixed, Assignment) and room_id != fixed.room_id:
                 continue
             valid = True
-            for offset in range(requirement.duration_periods):
+            for offset in range(requirement.occurrence_duration):
                 position = (day, period + offset)
                 if position not in enabled or position[1] not in teaching:
                     valid = False
@@ -101,7 +101,7 @@ def compatible_choices(
                         day,
                         period,
                         room_id,
-                        requirement.duration_periods,
+                        requirement.occurrence_duration,
                     )
                 )
     return choices
@@ -115,7 +115,7 @@ def solve(request: SolveRequest) -> SolveResponse:
     requirement_by_id = {item.id: item for item in request.requirements}
 
     for requirement in request.requirements:
-        for occurrence in range(requirement.weekly_occurrences):
+        for occurrence in range(requirement.occurrence_count):
             choices = compatible_choices(request, requirement, occurrence)
             occurrence_variables = []
             for choice in choices:
@@ -131,10 +131,12 @@ def solve(request: SolveRequest) -> SolveResponse:
 
     occupancy: dict[tuple[str, str, int, int], list[cp_model.IntVar]] = defaultdict(list)
     starts_by_day: dict[tuple[str, int], list[cp_model.IntVar]] = defaultdict(list)
+    starts_by_period: dict[tuple[str, int, int], list[cp_model.IntVar]] = defaultdict(list)
     day_used: dict[tuple[str, int], cp_model.IntVar] = {}
     for choice, variable in variables.items():
         requirement = requirement_by_id[choice.requirement_id]
         starts_by_day[(choice.requirement_id, choice.day)].append(variable)
+        starts_by_period[(choice.requirement_id, choice.day, choice.period)].append(variable)
         for offset in range(choice.duration):
             period = choice.period + offset
             occupancy[("teacher", requirement.teacher_id, choice.day, period)].append(variable)
@@ -168,6 +170,12 @@ def solve(request: SolveRequest) -> SolveResponse:
                         right != left + 1 for left, right in zip(window, window[1:], strict=False)
                     ):
                         continue
+                    if (
+                        request.schema_version == 2
+                        and request.week_configuration
+                        and request.week_configuration.break_after_session - 1 in window[:-1]
+                    ):
+                        continue
                     window_variables = [
                         variable
                         for period in window
@@ -193,17 +201,43 @@ def solve(request: SolveRequest) -> SolveResponse:
         for day in days:
             starts = starts_by_day.get((requirement.id, day), [])
             if starts:
-                model.add(sum(starts) <= requirement.max_occurrences_per_day)
+                model.add(sum(starts) <= requirement.daily_occurrence_limit)
                 constraints += 1
                 used = model.new_bool_var(f"used_{requirement.id}_{day}")
                 day_used[(requirement.id, day)] = used
                 model.add(sum(starts) >= used)
-                model.add(sum(starts) <= requirement.max_occurrences_per_day * used)
+                model.add(sum(starts) <= requirement.daily_occurrence_limit * used)
                 constraints += 2
+                if (
+                    request.schema_version == 2
+                    and requirement.is_main_subject
+                    and requirement.allow_double_session
+                ):
+                    adjacent_pairs: list[cp_model.IntVar] = []
+                    for left, right in zip(teaching_periods, teaching_periods[1:], strict=False):
+                        if right != left + 1:
+                            continue
+                        if (
+                            request.week_configuration
+                            and left == request.week_configuration.break_after_session - 1
+                        ):
+                            continue
+                        left_starts = starts_by_period.get((requirement.id, day, left), [])
+                        right_starts = starts_by_period.get((requirement.id, day, right), [])
+                        if not left_starts or not right_starts:
+                            continue
+                        pair = model.new_bool_var(f"subject_pair_{requirement.id}_{day}_{left}")
+                        model.add(pair <= sum(left_starts))
+                        model.add(pair <= sum(right_starts))
+                        model.add(pair >= sum(left_starts) + sum(right_starts) - 1)
+                        constraints += 3
+                        adjacent_pairs.append(pair)
+                    model.add(sum(starts) <= 1 + sum(adjacent_pairs))
+                    constraints += 1
         used_variables = [
             day_used[(requirement.id, day)] for day in days if (requirement.id, day) in day_used
         ]
-        model.add(sum(used_variables) >= requirement.minimum_distinct_days)
+        model.add(sum(used_variables) >= requirement.distinct_day_minimum)
         constraints += 1
 
     raw_terms: dict[str, list[cp_model.LinearExpr]] = defaultdict(list)
@@ -245,7 +279,7 @@ def solve(request: SolveRequest) -> SolveResponse:
     occupied_indicator: dict[tuple[str, int, int], cp_model.IntVar] = {}
     for teacher in request.teachers:
         total_periods = sum(
-            requirement.weekly_occurrences * requirement.duration_periods
+            requirement.occurrence_count * requirement.occurrence_duration
             for requirement in request.requirements
             if requirement.teacher_id == teacher.id
         )
@@ -315,7 +349,13 @@ def solve(request: SolveRequest) -> SolveResponse:
                     sum(daily_indicators) * len(days) - total_periods,
                 )
                 constraints += 1
-                raw_terms["DAILY_WORKLOAD_BALANCE"].append(imbalance)
+                balance_code = (
+                    "FULL_TIME_DAILY_BALANCE"
+                    if request.schema_version == 2 and teacher.employment_type == "FULL_TIME"
+                    else "DAILY_WORKLOAD_BALANCE"
+                )
+                if request.schema_version == 1 or teacher.employment_type == "FULL_TIME":
+                    raw_terms[balance_code].append(imbalance)
 
     for requirement in request.requirements:
         requirement_used = [
@@ -324,10 +364,10 @@ def solve(request: SolveRequest) -> SolveResponse:
         if requirement_used:
             repeat_penalty = model.new_int_var(
                 0,
-                requirement.weekly_occurrences,
+                requirement.occurrence_count,
                 f"repeat_{requirement.id}",
             )
-            model.add(repeat_penalty == requirement.weekly_occurrences - sum(requirement_used))
+            model.add(repeat_penalty == requirement.occurrence_count - sum(requirement_used))
             constraints += 1
             raw_terms["SUBJECT_SPREAD"].append(repeat_penalty)
             raw_terms["REPEATED_SUBJECT_DAY"].append(repeat_penalty)
@@ -398,6 +438,7 @@ def solve(request: SolveRequest) -> SolveResponse:
     validation_errors = validate_assignments(request, assignments)
     if validation_errors:
         return SolveResponse(
+            schema_version=request.schema_version,
             job_id=request.job_id,
             input_fingerprint=input_fingerprint(request),
             status="FAILED",
@@ -429,6 +470,7 @@ def solve(request: SolveRequest) -> SolveResponse:
     )
     if (weighted_terms or movement_terms) and round(solver.objective_value) != expected_objective:
         return SolveResponse(
+            schema_version=request.schema_version,
             job_id=request.job_id,
             input_fingerprint=input_fingerprint(request),
             status="FAILED",
@@ -504,6 +546,7 @@ def solve(request: SolveRequest) -> SolveResponse:
         alternative_errors = validate_assignments(request, alternative_assignments)
         if alternative_errors:
             return SolveResponse(
+                schema_version=request.schema_version,
                 job_id=request.job_id,
                 input_fingerprint=input_fingerprint(request),
                 status="FAILED",
@@ -523,6 +566,7 @@ def solve(request: SolveRequest) -> SolveResponse:
         alternative_score = score_assignments(request, alternative_assignments)
         if alternative_score.total > quality_limit:
             return SolveResponse(
+                schema_version=request.schema_version,
                 job_id=request.job_id,
                 input_fingerprint=input_fingerprint(request),
                 status="FAILED",
@@ -584,6 +628,7 @@ def solve(request: SolveRequest) -> SolveResponse:
     if len(alternatives) < request.options.alternative_count:
         warnings.append("Fewer distinct alternatives were available within the quality limit.")
     return SolveResponse(
+        schema_version=request.schema_version,
         job_id=request.job_id,
         input_fingerprint=input_fingerprint(request),
         status=first_status,
@@ -647,7 +692,7 @@ def _diagnose_infeasibility(request: SolveRequest) -> list[dict[str, object]]:
     choices_by_occurrence: dict[tuple[str, int], list[Choice]] = {}
     requirement_by_id = {requirement.id: requirement for requirement in request.requirements}
     for requirement in request.requirements:
-        for occurrence in range(requirement.weekly_occurrences):
+        for occurrence in range(requirement.occurrence_count):
             choices = compatible_choices(request, requirement, occurrence)
             choices_by_occurrence[(requirement.id, occurrence)] = choices
             if not choices:
@@ -753,6 +798,7 @@ def _infeasible(
     request: SolveRequest, started: float, variable_count: int, constraint_count: int
 ) -> SolveResponse:
     return SolveResponse(
+        schema_version=request.schema_version,
         job_id=request.job_id,
         input_fingerprint=input_fingerprint(request),
         status="INFEASIBLE",

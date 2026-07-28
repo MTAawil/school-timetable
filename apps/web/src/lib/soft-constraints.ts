@@ -52,9 +52,16 @@ export const softConstraints = [
     defaultWeight: 4,
   },
   {
+    code: "FULL_TIME_DAILY_BALANCE",
+    label: "Full-time daily balance",
+    description:
+      "Distribute each full-time teacher's weekly sessions evenly across working days.",
+    defaultWeight: 2,
+  },
+  {
     code: "DAILY_WORKLOAD_BALANCE",
-    label: "Daily workload balance",
-    description: "Reduce large differences in a teacher's daily lesson count.",
+    label: "Legacy daily workload balance",
+    description: "Preserve scoring for historical version-1 schedules.",
     defaultWeight: 2,
   },
 ] as const;

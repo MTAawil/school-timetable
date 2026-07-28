@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 
-export const solverSchemaVersion = 1;
+export const solverSchemaVersion = 2;
 
 export type SnapshotAvailabilityState =
   "AVAILABLE" | "PREFERRED" | "DISLIKED" | "UNAVAILABLE";
@@ -21,8 +21,7 @@ export type SnapshotAssignment = {
   roomId: string | null;
 };
 
-export type SolverSnapshot = {
-  schemaVersion: 1;
+type SnapshotBase = {
   school: { id: string; name: string; timezone: string };
   term: { id: string; name: string; roomsEnabled: boolean };
   calendar: {
@@ -35,19 +34,38 @@ export type SolverSnapshot = {
     }[];
     enabledSlots: { id: string; dayIndex: number; periodIndex: number }[];
   };
-  teachers: {
-    id: string;
-    name: string;
-    employmentType: "FULL_TIME" | "PART_TIME";
-    maxLessonsPerDay: number | null;
-    maxConsecutiveLessons: number | null;
-  }[];
   subjects: {
     id: string;
     name: string;
     preferredTimeBand: "EARLY" | "NEUTRAL" | "LATE";
     consecutivePeriodsPreferred: boolean;
     defaultRoomType: string | null;
+  }[];
+  availability: SnapshotAvailability[];
+  lockedAssignments: SnapshotAssignment[];
+  existingAssignments: SnapshotAssignment[];
+  constraintProfile: {
+    id: string | null;
+    weights: Record<string, number>;
+  };
+  options: {
+    alternativeCount: number;
+    timeLimitSeconds: number;
+    randomSeed: number;
+    maxQualityDegradationPercent: number;
+    roomsEnabled: boolean;
+    useExistingScheduleHint: boolean;
+  };
+};
+
+export type LegacySolverSnapshot = SnapshotBase & {
+  schemaVersion: 1;
+  teachers: {
+    id: string;
+    name: string;
+    employmentType: "FULL_TIME" | "PART_TIME";
+    maxLessonsPerDay: number | null;
+    maxConsecutiveLessons: number | null;
   }[];
   classSections: {
     id: string;
@@ -69,22 +87,46 @@ export type SolverSnapshot = {
     fixedSlots: { dayIndex: number; periodIndex: number }[];
     forbiddenSlots: { dayIndex: number; periodIndex: number }[];
   }[];
-  availability: SnapshotAvailability[];
-  lockedAssignments: SnapshotAssignment[];
-  existingAssignments: SnapshotAssignment[];
-  constraintProfile: {
-    id: string | null;
-    weights: Record<string, number>;
-  };
-  options: {
-    alternativeCount: number;
-    timeLimitSeconds: number;
-    randomSeed: number;
-    maxQualityDegradationPercent: number;
-    roomsEnabled: boolean;
-    useExistingScheduleHint: boolean;
-  };
 };
+
+export type SupervisorSolverSnapshot = SnapshotBase & {
+  schemaVersion: 2;
+  weekConfiguration: {
+    workingDayCount: number;
+    sessionsPerDay: number;
+    sessionDurationMinutes: number;
+    breakAfterSession: number;
+    breakDurationMinutes: number;
+  } | null;
+  teachers: {
+    id: string;
+    name: string;
+    employmentType: "FULL_TIME" | "PART_TIME";
+    weeklyTeachingSessions: number;
+    maxLessonsPerDay: number | null;
+    maxConsecutiveLessons: number | null;
+  }[];
+  classSections: {
+    id: string;
+    name: string;
+    shortCode: string;
+    maxLessonsPerDay: number | null;
+  }[];
+  rooms: [];
+  requirements: {
+    id: string;
+    classSectionId: string;
+    subjectId: string;
+    teacherId: string | null;
+    weeklySessions: number;
+    isMainSubject: boolean;
+    allowDoubleSession: boolean;
+    fixedSlots: { dayIndex: number; periodIndex: number }[];
+    forbiddenSlots: { dayIndex: number; periodIndex: number }[];
+  }[];
+};
+
+export type SolverSnapshot = LegacySolverSnapshot | SupervisorSolverSnapshot;
 
 function canonicalize(value: unknown): unknown {
   if (Array.isArray(value)) {

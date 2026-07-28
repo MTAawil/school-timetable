@@ -13,6 +13,7 @@ SOFT_CONSTRAINT_CODES = (
     "REPEATED_SUBJECT_DAY",
     "LATE_HEAVY_SUBJECT",
     "DAILY_WORKLOAD_BALANCE",
+    "FULL_TIME_DAILY_BALANCE",
 )
 
 
@@ -98,9 +99,14 @@ def score_assignments(request: SolveRequest, assignments: list[Assignment]) -> S
             len(occupied_by_teacher.get((teacher.id, day), set())) for day in working_days
         ]
         total = sum(daily_counts)
-        raw["DAILY_WORKLOAD_BALANCE"] += sum(
-            abs(count * len(working_days) - total) for count in daily_counts
+        balance_code = (
+            "FULL_TIME_DAILY_BALANCE"
+            if request.schema_version == 2 and teacher.employment_type == "FULL_TIME"
+            else "DAILY_WORKLOAD_BALANCE"
         )
+        if request.schema_version == 2 and teacher.employment_type != "FULL_TIME":
+            continue
+        raw[balance_code] += sum(abs(count * len(working_days) - total) for count in daily_counts)
 
     breakdown = {
         code: raw[code] * weights.get(code, 0)

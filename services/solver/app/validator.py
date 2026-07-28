@@ -28,7 +28,7 @@ def validate_assignments(
     rooms = {room.id: room for room in request.rooms}
 
     for requirement in request.requirements:
-        if not allow_incomplete and counts[requirement.id] != requirement.weekly_occurrences:
+        if not allow_incomplete and counts[requirement.id] != requirement.occurrence_count:
             errors.append(f"EXACT_DEMAND:{requirement.id}")
 
     for assignment in assignments:
@@ -36,7 +36,7 @@ def validate_assignments(
         if current_requirement is None:
             errors.append(f"UNKNOWN_REQUIREMENT:{assignment.requirement_id}")
             continue
-        if assignment.duration_periods != current_requirement.duration_periods:
+        if assignment.duration_periods != current_requirement.occurrence_duration:
             errors.append(f"INVALID_DURATION:{current_requirement.id}")
         if (
             current_requirement.required_room_id
@@ -75,16 +75,51 @@ def validate_assignments(
         if (
             not allow_incomplete
             and len(days_by_requirement.get(requirement.id, set()))
-            < requirement.minimum_distinct_days
+            < requirement.distinct_day_minimum
         ):
             errors.append(f"DISTINCT_DAYS:{requirement.id}")
         if any(
-            count > requirement.max_occurrences_per_day
+            count > requirement.daily_occurrence_limit
             for (requirement_id, _day), count in daily_counts.items()
             if requirement_id == requirement.id
         ):
             errors.append(f"MAX_OCCURRENCES_PER_DAY:{requirement.id}")
+        if request.schema_version == 2:
+            assignments_by_day: dict[int, list[Assignment]] = {}
+            for assignment in assignments:
+                if assignment.requirement_id == requirement.id:
+                    assignments_by_day.setdefault(assignment.day_index, []).append(assignment)
+            class_section = next(
+                item for item in request.class_sections if item.id == requirement.class_section_id
+            )
+            subject = next(item for item in request.subjects if item.id == requirement.subject_id)
+            for daily in assignments_by_day.values():
+                if len(daily) < 2:
+                    continue
+                if not requirement.is_main_subject:
+                    errors.append(f"SUBJECT_DAILY_REPEAT:{class_section.name}:{subject.name}")
+                    continue
+                pair_periods = sorted(item.period_index for item in daily)
+                crosses_break = bool(
+                    request.week_configuration
+                    and pair_periods[0] == request.week_configuration.break_after_session - 1
+                )
+                if (
+                    not requirement.allow_double_session
+                    or len(pair_periods) != 2
+                    or pair_periods[1] != pair_periods[0] + 1
+                    or crosses_break
+                ):
+                    errors.append(f"MAIN_DOUBLE_NOT_CONSECUTIVE:{requirement.id}")
     for teacher in request.teachers:
+        if request.schema_version == 2:
+            allocated = sum(
+                requirement.occurrence_count
+                for requirement in request.requirements
+                if requirement.teacher_id == teacher.id
+            )
+            if allocated != teacher.weekly_teaching_sessions:
+                errors.append(f"TEACHER_WORKLOAD_MISMATCH:{teacher.id}")
         if teacher.max_lessons_per_day and any(
             count > teacher.max_lessons_per_day
             for (teacher_id, _day), count in teacher_daily_periods.items()
@@ -98,7 +133,16 @@ def validate_assignments(
                 run = 0
                 previous: int | None = None
                 for period in sorted(periods):
-                    run = run + 1 if previous is not None and period == previous + 1 else 1
+                    crosses_break = bool(
+                        request.schema_version == 2
+                        and request.week_configuration
+                        and previous == request.week_configuration.break_after_session - 1
+                    )
+                    run = (
+                        run + 1
+                        if previous is not None and period == previous + 1 and not crosses_break
+                        else 1
+                    )
                     if run > teacher.max_consecutive_lessons:
                         errors.append(f"TEACHER_MAX_CONSECUTIVE:{teacher.id}")
                     previous = period

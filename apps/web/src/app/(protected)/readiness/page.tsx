@@ -18,6 +18,16 @@ const issueDestinations: Record<string, string> = {
   FIXED_ROOM_COLLISION: "/requirements",
   INSUFFICIENT_CONSECUTIVE_SLOTS: "/requirements",
   LOCKED_ASSIGNMENT_CONFLICT: "/requirements",
+  SCHOOL_WEEK_INCOMPLETE: "/setup",
+  BREAK_CONFIGURATION_INVALID: "/setup",
+  CURRICULUM_EMPTY: "/subjects",
+  CURRICULUM_EXCEEDS_CLASS_CAPACITY: "/subjects",
+  CLASS_SUBJECT_UNASSIGNED: "/teachers",
+  CLASS_SUBJECT_MULTIPLE_TEACHERS: "/teachers",
+  TEACHER_WORKLOAD_MISMATCH: "/teachers",
+  NON_MAIN_DAILY_CAPACITY_SHORTAGE: "/subjects",
+  DOUBLE_REQUIRED_BUT_DISABLED: "/subjects",
+  MAIN_DAILY_CAPACITY_SHORTAGE: "/subjects",
 };
 
 export default async function ReadinessPage() {
@@ -67,7 +77,7 @@ export default async function ReadinessPage() {
           ["Teaching slots", teachingSlots],
           ["Teachers", snapshot.teachers.length],
           ["Classes", snapshot.classSections.length],
-          ["Requirements", snapshot.requirements.length],
+          ["Class subjects", snapshot.requirements.length],
         ].map(([label, value]) => (
           <div key={label} className="bg-white p-4">
             <dt className="text-xs uppercase text-[#66706b]">{label}</dt>
@@ -106,14 +116,22 @@ export default async function ReadinessPage() {
                     </div>
                   ) : null}
                 </div>
-                <ul className="mt-3 space-y-1 text-sm text-[#66706b]">
-                  {issue.suggestions.map((suggestion) => (
-                    <li key={suggestion}>• {suggestion}</li>
-                  ))}
+                <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-[#66706b]">
+                  {issue.suggestions
+                    .filter((suggestion) => !suggestion.startsWith("/"))
+                    .map((suggestion) => (
+                      <li key={suggestion}>{suggestion}</li>
+                    ))}
                 </ul>
                 <Link
                   className="mt-4 inline-flex h-9 items-center border border-[#9ba59f] bg-white px-3 text-sm font-semibold hover:bg-[#f0f2ef]"
-                  href={issueDestinations[issue.code] ?? "/setup"}
+                  href={
+                    issue.suggestions.find((suggestion) =>
+                      suggestion.startsWith("/"),
+                    ) ??
+                    issueDestinations[issue.code] ??
+                    "/setup"
+                  }
                 >
                   Review setup
                 </Link>
@@ -174,7 +192,7 @@ export default async function ReadinessPage() {
 
       <section className="border-t border-[#dce1dc] pt-5">
         <p className="text-xs uppercase text-[#66706b]">
-          Input fingerprint · schema {snapshot.schemaVersion}
+          Input fingerprint | schema {snapshot.schemaVersion}
         </p>
         <code className="mt-2 block break-all text-xs text-[#3d4742]">
           {fingerprint}

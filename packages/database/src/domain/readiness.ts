@@ -1,4 +1,9 @@
-import type { SnapshotAssignment, SolverSnapshot } from "./solver-snapshot";
+import type {
+  LegacySolverSnapshot,
+  SnapshotAssignment,
+  SolverSnapshot,
+  SupervisorSolverSnapshot,
+} from "./solver-snapshot";
 
 export type ReadinessIssueCode =
   | "CLASS_CAPACITY_SHORTAGE"
@@ -11,7 +16,17 @@ export type ReadinessIssueCode =
   | "FIXED_CLASS_COLLISION"
   | "FIXED_ROOM_COLLISION"
   | "INSUFFICIENT_CONSECUTIVE_SLOTS"
-  | "LOCKED_ASSIGNMENT_CONFLICT";
+  | "LOCKED_ASSIGNMENT_CONFLICT"
+  | "SCHOOL_WEEK_INCOMPLETE"
+  | "BREAK_CONFIGURATION_INVALID"
+  | "CURRICULUM_EMPTY"
+  | "CURRICULUM_EXCEEDS_CLASS_CAPACITY"
+  | "CLASS_SUBJECT_UNASSIGNED"
+  | "CLASS_SUBJECT_MULTIPLE_TEACHERS"
+  | "TEACHER_WORKLOAD_MISMATCH"
+  | "NON_MAIN_DAILY_CAPACITY_SHORTAGE"
+  | "DOUBLE_REQUIRED_BUT_DISABLED"
+  | "MAIN_DAILY_CAPACITY_SHORTAGE";
 
 export type ReadinessIssue = {
   code: ReadinessIssueCode;
@@ -27,14 +42,14 @@ export type ReadinessResult = {
   issues: ReadinessIssue[];
 };
 
-type Requirement = SolverSnapshot["requirements"][number];
+type Requirement = LegacySolverSnapshot["requirements"][number];
 type Position = { dayIndex: number; periodIndex: number };
 
 const positionKey = (dayIndex: number, periodIndex: number) =>
   `${String(dayIndex)}:${String(periodIndex)}`;
 
 function entityName(
-  snapshot: SolverSnapshot,
+  snapshot: LegacySolverSnapshot,
   type: "teacher" | "class" | "room" | "requirement",
   id: string,
 ) {
@@ -113,8 +128,53 @@ function capacityWithDailyLimit(
   );
 }
 
+function teacherCapacity(
+  positions: Position[],
+  unavailable: Set<string>,
+  dailyLimit: number | null,
+  consecutiveLimit: number | null,
+  breakAfterSession: number | null,
+) {
+  if (consecutiveLimit === null) {
+    return capacityWithDailyLimit(positions, unavailable, dailyLimit);
+  }
+  const periodsByDay = new Map<number, number[]>();
+  for (const position of positions) {
+    if (unavailable.has(positionKey(position.dayIndex, position.periodIndex))) {
+      continue;
+    }
+    const periods = periodsByDay.get(position.dayIndex) ?? [];
+    periods.push(position.periodIndex);
+    periodsByDay.set(position.dayIndex, periods);
+  }
+  let weekly = 0;
+  for (const periods of periodsByDay.values()) {
+    let daily = 0;
+    let run = 0;
+    let previous: number | null = null;
+    const finishRun = () => {
+      daily += run - Math.floor(run / (consecutiveLimit + 1));
+      run = 0;
+    };
+    for (const period of periods.sort((left, right) => left - right)) {
+      const crossesBreak =
+        breakAfterSession !== null &&
+        previous === breakAfterSession - 1 &&
+        period === breakAfterSession;
+      if (previous !== null && (period !== previous + 1 || crossesBreak)) {
+        finishRun();
+      }
+      run += 1;
+      previous = period;
+    }
+    finishRun();
+    weekly += dailyLimit === null ? daily : Math.min(daily, dailyLimit);
+  }
+  return weekly;
+}
+
 function compatibleStarts(
-  snapshot: SolverSnapshot,
+  snapshot: LegacySolverSnapshot,
   requirement: Requirement,
 ): Position[] {
   const positions = teachingPositions(snapshot);
@@ -162,7 +222,7 @@ function compatibleStarts(
 }
 
 function addCollisionIssues(
-  snapshot: SolverSnapshot,
+  snapshot: LegacySolverSnapshot,
   issues: ReadinessIssue[],
   assignments: SnapshotAssignment[],
 ) {
@@ -236,7 +296,9 @@ function addCollisionIssues(
   }
 }
 
-export function validateReadiness(snapshot: SolverSnapshot): ReadinessResult {
+function validateLegacyReadiness(
+  snapshot: LegacySolverSnapshot,
+): ReadinessResult {
   const issues: ReadinessIssue[] = [];
   const positions = teachingPositions(snapshot);
 
@@ -486,4 +548,226 @@ export function validateReadiness(snapshot: SolverSnapshot): ReadinessResult {
     ),
   );
   return { ready: uniqueIssues.length === 0, issues: uniqueIssues };
+}
+
+function validateSupervisorReadiness(
+  snapshot: SupervisorSolverSnapshot,
+): ReadinessResult {
+  const issues: ReadinessIssue[] = [];
+  const workingDays = snapshot.calendar.days.filter((day) => day.isWorking);
+  const teachingPeriods = snapshot.calendar.periods.filter(
+    (period) => period.isTeaching,
+  );
+  const week = snapshot.weekConfiguration;
+
+  if (
+    !week ||
+    week.workingDayCount <= 0 ||
+    week.sessionsPerDay <= 0 ||
+    week.sessionDurationMinutes <= 0 ||
+    workingDays.length !== week.workingDayCount ||
+    teachingPeriods.length !== week.sessionsPerDay
+  ) {
+    issues.push({
+      code: "SCHOOL_WEEK_INCOMPLETE",
+      summary: "Complete the school week before generating a timetable.",
+      entityIds: [snapshot.term.id],
+      suggestions: ["/setup"],
+    });
+  } else if (
+    week.breakAfterSession <= 0 ||
+    week.breakAfterSession >= week.sessionsPerDay ||
+    week.breakDurationMinutes <= 0
+  ) {
+    issues.push({
+      code: "BREAK_CONFIGURATION_INVALID",
+      summary: "The break must be between two teaching sessions.",
+      entityIds: [snapshot.term.id],
+      suggestions: ["/setup"],
+    });
+  }
+
+  if (snapshot.requirements.length === 0) {
+    issues.push({
+      code: "CURRICULUM_EMPTY",
+      summary: "Add subjects and weekly sessions to the class curriculum.",
+      entityIds: [snapshot.term.id],
+      suggestions: ["/subjects"],
+    });
+  }
+
+  const workingDayCount = workingDays.length;
+  const weeklyClassCapacity = workingDayCount * teachingPeriods.length;
+  for (const classSection of snapshot.classSections) {
+    const curriculum = snapshot.requirements.filter(
+      (item) => item.classSectionId === classSection.id,
+    );
+    const required = curriculum.reduce(
+      (total, item) => total + item.weeklySessions,
+      0,
+    );
+    const dailyLimit = classSection.maxLessonsPerDay ?? teachingPeriods.length;
+    const available = Math.min(
+      weeklyClassCapacity,
+      workingDayCount * dailyLimit,
+    );
+    if (required > available) {
+      issues.push({
+        code: "CURRICULUM_EXCEEDS_CLASS_CAPACITY",
+        summary: `${classSection.name} needs ${String(required)} sessions but can fit ${String(available)}.`,
+        entityIds: [classSection.id],
+        required,
+        available,
+        suggestions: ["/subjects", "/setup"],
+      });
+    }
+  }
+
+  for (const requirement of snapshot.requirements) {
+    const classSection = snapshot.classSections.find(
+      (item) => item.id === requirement.classSectionId,
+    );
+    const subject = snapshot.subjects.find(
+      (item) => item.id === requirement.subjectId,
+    );
+    const label = `${classSection?.name ?? requirement.classSectionId} ${subject?.name ?? requirement.subjectId}`;
+    if (!requirement.teacherId) {
+      issues.push({
+        code: "CLASS_SUBJECT_UNASSIGNED",
+        summary: `${label} does not have a teacher.`,
+        entityIds: [requirement.classSectionId, requirement.subjectId],
+        required: 1,
+        available: 0,
+        suggestions: ["/teachers"],
+      });
+    }
+    if (
+      !requirement.isMainSubject &&
+      requirement.weeklySessions > workingDayCount
+    ) {
+      issues.push({
+        code: "NON_MAIN_DAILY_CAPACITY_SHORTAGE",
+        summary: `${label} needs ${String(requirement.weeklySessions)} sessions but a non-main subject can occur only once per day.`,
+        entityIds: [
+          requirement.id,
+          requirement.classSectionId,
+          requirement.subjectId,
+        ],
+        required: requirement.weeklySessions,
+        available: workingDayCount,
+        suggestions: ["/subjects"],
+      });
+    }
+    if (
+      requirement.isMainSubject &&
+      !requirement.allowDoubleSession &&
+      requirement.weeklySessions > workingDayCount
+    ) {
+      issues.push({
+        code: "DOUBLE_REQUIRED_BUT_DISABLED",
+        summary: `${label} needs a same-day pair, but double sessions are disabled.`,
+        entityIds: [
+          requirement.id,
+          requirement.classSectionId,
+          requirement.subjectId,
+        ],
+        required: requirement.weeklySessions,
+        available: workingDayCount,
+        suggestions: ["/subjects"],
+      });
+    }
+    if (
+      requirement.isMainSubject &&
+      requirement.weeklySessions > workingDayCount * 2
+    ) {
+      issues.push({
+        code: "MAIN_DAILY_CAPACITY_SHORTAGE",
+        summary: `${label} exceeds the two-session daily maximum.`,
+        entityIds: [
+          requirement.id,
+          requirement.classSectionId,
+          requirement.subjectId,
+        ],
+        required: requirement.weeklySessions,
+        available: workingDayCount * 2,
+        suggestions: ["/subjects"],
+      });
+    }
+  }
+
+  const ownership = new Map<string, string[]>();
+  for (const requirement of snapshot.requirements) {
+    const key = `${requirement.classSectionId}:${requirement.subjectId}`;
+    const teacherIds = ownership.get(key) ?? [];
+    if (requirement.teacherId && !teacherIds.includes(requirement.teacherId)) {
+      teacherIds.push(requirement.teacherId);
+    }
+    ownership.set(key, teacherIds);
+  }
+  for (const [key, teacherIds] of ownership) {
+    if (teacherIds.length <= 1) continue;
+    const [classSectionId = "", subjectId = ""] = key.split(":");
+    issues.push({
+      code: "CLASS_SUBJECT_MULTIPLE_TEACHERS",
+      summary: "A class-subject is assigned to more than one teacher.",
+      entityIds: [classSectionId, subjectId, ...teacherIds],
+      required: 1,
+      available: teacherIds.length,
+      suggestions: ["/teachers"],
+    });
+  }
+
+  const positions = teachingPositions(snapshot);
+  for (const teacher of snapshot.teachers) {
+    const allocated = snapshot.requirements
+      .filter((item) => item.teacherId === teacher.id)
+      .reduce((total, item) => total + item.weeklySessions, 0);
+    if (allocated !== teacher.weeklyTeachingSessions) {
+      issues.push({
+        code: "TEACHER_WORKLOAD_MISMATCH",
+        summary: `${teacher.name} declares ${String(teacher.weeklyTeachingSessions)} sessions but is allocated ${String(allocated)}.`,
+        entityIds: [teacher.id],
+        required: teacher.weeklyTeachingSessions,
+        available: allocated,
+        suggestions: ["/teachers"],
+      });
+    }
+    const available = teacherCapacity(
+      positions,
+      unavailableSet(snapshot, "TEACHER", teacher.id),
+      teacher.maxLessonsPerDay,
+      teacher.maxConsecutiveLessons,
+      week?.breakAfterSession ?? null,
+    );
+    if (teacher.weeklyTeachingSessions > available) {
+      issues.push({
+        code: "TEACHER_CAPACITY_SHORTAGE",
+        summary: `${teacher.name} declares ${String(teacher.weeklyTeachingSessions)} sessions but only ${String(available)} are available.`,
+        entityIds: [teacher.id],
+        required: teacher.weeklyTeachingSessions,
+        available,
+        suggestions: ["/availability", "/teachers"],
+      });
+    }
+  }
+
+  const uniqueIssues = Array.from(
+    new Map(
+      issues.map((issue) => [
+        `${issue.code}:${issue.entityIds.join(":")}`,
+        issue,
+      ]),
+    ).values(),
+  ).sort((left, right) =>
+    `${left.code}:${left.entityIds.join(":")}`.localeCompare(
+      `${right.code}:${right.entityIds.join(":")}`,
+    ),
+  );
+  return { ready: uniqueIssues.length === 0, issues: uniqueIssues };
+}
+
+export function validateReadiness(snapshot: SolverSnapshot): ReadinessResult {
+  return snapshot.schemaVersion === 1
+    ? validateLegacyReadiness(snapshot)
+    : validateSupervisorReadiness(snapshot);
 }

@@ -161,19 +161,19 @@ editing raw constraint records or weights.
 
 #### R6 - Readiness and Solver Rules
 
-Status: **Not started**
+Status: **Complete**
 
-- [ ] Validate exact teacher workload totals.
-- [ ] Validate complete class curriculum coverage.
-- [ ] Validate one teacher per class-subject.
-- [ ] Reject impossible non-main subject frequency.
-- [ ] Enforce at most one non-main subject session per class per day.
-- [ ] Allow optional main-subject doubles with at most two consecutive sessions.
-- [ ] Balance full-time teacher workloads with a soft penalty.
-- [ ] Keep part-time schedules compact where possible.
-- [ ] Preserve every existing collision, availability, locking, regeneration,
+- [x] Validate exact teacher workload totals.
+- [x] Validate complete class curriculum coverage.
+- [x] Validate one teacher per class-subject.
+- [x] Reject impossible non-main subject frequency.
+- [x] Enforce at most one non-main subject session per class per day.
+- [x] Allow optional main-subject doubles with at most two consecutive sessions.
+- [x] Balance full-time teacher workloads with a soft penalty.
+- [x] Keep part-time schedules compact where possible.
+- [x] Preserve every existing collision, availability, locking, regeneration,
       and post-solve validation guarantee.
-- [ ] Add focused solver fixtures and tests for every changed rule.
+- [x] Add focused solver fixtures and tests for every changed rule.
 
 Completion rule: readiness stops deterministic failures, the solver never
 weakens a hard rule, and every returned schedule passes independent validation.
@@ -211,8 +211,8 @@ and the supervisor approves the workflow.
 ### Working Status
 
 - Current branch: `feature/supervisor-workflow-redesign`
-- Current task: **R6 - Readiness and Solver Rules**
-- Last completed task: **R5 - Teacher Restrictions**
+- Current task: **R7 - Simplified Application Flow**
+- Last completed task: **R6 - Readiness and Solver Rules**
 - Stable MVP branch: `main`
 
 ## Architecture

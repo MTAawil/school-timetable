@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 def to_camel(value: str) -> str:
@@ -50,12 +50,21 @@ class Calendar(ContractModel):
     enabled_slots: list[Slot]
 
 
+class WeekConfiguration(ContractModel):
+    working_day_count: int = Field(ge=1)
+    sessions_per_day: int = Field(ge=1)
+    session_duration_minutes: int = Field(ge=1)
+    break_after_session: int = Field(ge=1)
+    break_duration_minutes: int = Field(ge=1)
+
+
 class Teacher(ContractModel):
     id: str
     name: str
     employment_type: Literal["FULL_TIME", "PART_TIME"] = "FULL_TIME"
     max_lessons_per_day: int | None = Field(default=None, ge=1)
     max_consecutive_lessons: int | None = Field(default=None, ge=1)
+    weekly_teaching_sessions: int | None = Field(default=None, ge=0)
 
 
 class Subject(ContractModel):
@@ -89,14 +98,43 @@ class Requirement(ContractModel):
     class_section_id: str
     subject_id: str
     teacher_id: str
-    weekly_occurrences: int = Field(ge=1)
-    duration_periods: int = Field(ge=1)
-    max_occurrences_per_day: int = Field(ge=1)
-    minimum_distinct_days: int = Field(ge=1)
+    weekly_occurrences: int | None = Field(default=None, ge=1)
+    duration_periods: int | None = Field(default=None, ge=1)
+    max_occurrences_per_day: int | None = Field(default=None, ge=1)
+    minimum_distinct_days: int | None = Field(default=None, ge=1)
+    weekly_sessions: int | None = Field(default=None, ge=1)
+    is_main_subject: bool = False
+    allow_double_session: bool = False
     required_room_id: str | None = None
     required_room_type: str | None = None
     fixed_slots: list[Position]
     forbidden_slots: list[Position]
+
+    @model_validator(mode="after")
+    def validate_demand(self) -> "Requirement":
+        legacy = self.weekly_occurrences is not None and self.duration_periods is not None
+        redesigned = self.weekly_sessions is not None
+        if legacy == redesigned:
+            raise ValueError("Requirement must contain exactly one demand representation.")
+        return self
+
+    @property
+    def occurrence_count(self) -> int:
+        return self.weekly_sessions or self.weekly_occurrences or 0
+
+    @property
+    def occurrence_duration(self) -> int:
+        return 1 if self.weekly_sessions is not None else self.duration_periods or 1
+
+    @property
+    def daily_occurrence_limit(self) -> int:
+        if self.weekly_sessions is not None:
+            return 2 if self.is_main_subject and self.allow_double_session else 1
+        return self.max_occurrences_per_day or 1
+
+    @property
+    def distinct_day_minimum(self) -> int:
+        return self.minimum_distinct_days or 1
 
 
 class Availability(ContractModel):
@@ -136,11 +174,12 @@ class SolveOptions(ContractModel):
 
 
 class SolveRequest(ContractModel):
-    schema_version: Literal[1]
+    schema_version: Literal[1, 2]
     job_id: str
     school: School
     term: Term
     calendar: Calendar
+    week_configuration: WeekConfiguration | None = None
     teachers: list[Teacher]
     subjects: list[Subject]
     class_sections: list[ClassSection]
@@ -151,6 +190,19 @@ class SolveRequest(ContractModel):
     existing_assignments: list[Assignment] = []
     constraint_profile: ConstraintProfile
     options: SolveOptions
+
+    @model_validator(mode="after")
+    def validate_schema_demand(self) -> "SolveRequest":
+        for requirement in self.requirements:
+            if self.schema_version == 1 and requirement.weekly_occurrences is None:
+                raise ValueError("Schema version 1 requires weeklyOccurrences.")
+            if self.schema_version == 2 and requirement.weekly_sessions is None:
+                raise ValueError("Schema version 2 requires weeklySessions.")
+        if self.schema_version == 2 and any(
+            teacher.weekly_teaching_sessions is None for teacher in self.teachers
+        ):
+            raise ValueError("Schema version 2 requires declared teacher workloads.")
+        return self
 
 
 class Alternative(ContractModel):
@@ -167,7 +219,7 @@ class Alternative(ContractModel):
 
 
 class SolveResponse(ContractModel):
-    schema_version: Literal[1] = 1
+    schema_version: Literal[1, 2]
     job_id: str
     input_fingerprint: str
     status: Literal["FEASIBLE", "OPTIMAL", "INFEASIBLE", "FAILED"]

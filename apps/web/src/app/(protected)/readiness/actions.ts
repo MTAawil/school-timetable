@@ -21,7 +21,7 @@ const assignmentSchema = z.object({
 });
 
 const solveResponseSchema = z.object({
-  schemaVersion: z.literal(1),
+  schemaVersion: z.literal(2),
   jobId: z.string(),
   inputFingerprint: z.string().regex(/^[a-f0-9]{64}$/),
   status: z.enum(["FEASIBLE", "OPTIMAL", "INFEASIBLE", "FAILED"]),
