@@ -39,6 +39,10 @@ export type ClassSectionMinAggregateOutputType = {
   schoolId: string | null
   termId: string | null
   grade: string | null
+  gradeLevelId: string | null
+  sectionLabel: string | null
+  generatedName: string | null
+  generatedShortCode: string | null
   sectionName: string | null
   shortCode: string | null
   homeroomTeacherId: string | null
@@ -55,6 +59,10 @@ export type ClassSectionMaxAggregateOutputType = {
   schoolId: string | null
   termId: string | null
   grade: string | null
+  gradeLevelId: string | null
+  sectionLabel: string | null
+  generatedName: string | null
+  generatedShortCode: string | null
   sectionName: string | null
   shortCode: string | null
   homeroomTeacherId: string | null
@@ -71,6 +79,10 @@ export type ClassSectionCountAggregateOutputType = {
   schoolId: number
   termId: number
   grade: number
+  gradeLevelId: number
+  sectionLabel: number
+  generatedName: number
+  generatedShortCode: number
   sectionName: number
   shortCode: number
   homeroomTeacherId: number
@@ -97,6 +109,10 @@ export type ClassSectionMinAggregateInputType = {
   schoolId?: true
   termId?: true
   grade?: true
+  gradeLevelId?: true
+  sectionLabel?: true
+  generatedName?: true
+  generatedShortCode?: true
   sectionName?: true
   shortCode?: true
   homeroomTeacherId?: true
@@ -113,6 +129,10 @@ export type ClassSectionMaxAggregateInputType = {
   schoolId?: true
   termId?: true
   grade?: true
+  gradeLevelId?: true
+  sectionLabel?: true
+  generatedName?: true
+  generatedShortCode?: true
   sectionName?: true
   shortCode?: true
   homeroomTeacherId?: true
@@ -129,6 +149,10 @@ export type ClassSectionCountAggregateInputType = {
   schoolId?: true
   termId?: true
   grade?: true
+  gradeLevelId?: true
+  sectionLabel?: true
+  generatedName?: true
+  generatedShortCode?: true
   sectionName?: true
   shortCode?: true
   homeroomTeacherId?: true
@@ -232,6 +256,10 @@ export type ClassSectionGroupByOutputType = {
   schoolId: string
   termId: string
   grade: string
+  gradeLevelId: string | null
+  sectionLabel: string | null
+  generatedName: string | null
+  generatedShortCode: string | null
   sectionName: string
   shortCode: string
   homeroomTeacherId: string | null
@@ -271,6 +299,10 @@ export type ClassSectionWhereInput = {
   schoolId?: Prisma.UuidFilter<"ClassSection"> | string
   termId?: Prisma.UuidFilter<"ClassSection"> | string
   grade?: Prisma.StringFilter<"ClassSection"> | string
+  gradeLevelId?: Prisma.UuidNullableFilter<"ClassSection"> | string | null
+  sectionLabel?: Prisma.StringNullableFilter<"ClassSection"> | string | null
+  generatedName?: Prisma.StringNullableFilter<"ClassSection"> | string | null
+  generatedShortCode?: Prisma.StringNullableFilter<"ClassSection"> | string | null
   sectionName?: Prisma.StringFilter<"ClassSection"> | string
   shortCode?: Prisma.StringFilter<"ClassSection"> | string
   homeroomTeacherId?: Prisma.UuidNullableFilter<"ClassSection"> | string | null
@@ -284,6 +316,8 @@ export type ClassSectionWhereInput = {
   term?: Prisma.XOR<Prisma.AcademicTermScalarRelationFilter, Prisma.AcademicTermWhereInput>
   homeroomTeacher?: Prisma.XOR<Prisma.TeacherNullableScalarRelationFilter, Prisma.TeacherWhereInput> | null
   fixedRoom?: Prisma.XOR<Prisma.RoomNullableScalarRelationFilter, Prisma.RoomWhereInput> | null
+  gradeLevel?: Prisma.XOR<Prisma.GradeLevelNullableScalarRelationFilter, Prisma.GradeLevelWhereInput> | null
+  classCurricula?: Prisma.ClassCurriculumListRelationFilter
   requirements?: Prisma.TeachingRequirementListRelationFilter
   assignments?: Prisma.ScheduleAssignmentListRelationFilter
 }
@@ -293,6 +327,10 @@ export type ClassSectionOrderByWithRelationInput = {
   schoolId?: Prisma.SortOrder
   termId?: Prisma.SortOrder
   grade?: Prisma.SortOrder
+  gradeLevelId?: Prisma.SortOrderInput | Prisma.SortOrder
+  sectionLabel?: Prisma.SortOrderInput | Prisma.SortOrder
+  generatedName?: Prisma.SortOrderInput | Prisma.SortOrder
+  generatedShortCode?: Prisma.SortOrderInput | Prisma.SortOrder
   sectionName?: Prisma.SortOrder
   shortCode?: Prisma.SortOrder
   homeroomTeacherId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -306,6 +344,8 @@ export type ClassSectionOrderByWithRelationInput = {
   term?: Prisma.AcademicTermOrderByWithRelationInput
   homeroomTeacher?: Prisma.TeacherOrderByWithRelationInput
   fixedRoom?: Prisma.RoomOrderByWithRelationInput
+  gradeLevel?: Prisma.GradeLevelOrderByWithRelationInput
+  classCurricula?: Prisma.ClassCurriculumOrderByRelationAggregateInput
   requirements?: Prisma.TeachingRequirementOrderByRelationAggregateInput
   assignments?: Prisma.ScheduleAssignmentOrderByRelationAggregateInput
 }
@@ -313,6 +353,7 @@ export type ClassSectionOrderByWithRelationInput = {
 export type ClassSectionWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   schoolId_termId_shortCode?: Prisma.ClassSectionSchoolIdTermIdShortCodeCompoundUniqueInput
+  schoolId_termId_gradeLevelId_sectionLabel?: Prisma.ClassSectionSchoolIdTermIdGradeLevelIdSectionLabelCompoundUniqueInput
   id_termId_schoolId?: Prisma.ClassSectionIdTermIdSchoolIdCompoundUniqueInput
   AND?: Prisma.ClassSectionWhereInput | Prisma.ClassSectionWhereInput[]
   OR?: Prisma.ClassSectionWhereInput[]
@@ -320,6 +361,10 @@ export type ClassSectionWhereUniqueInput = Prisma.AtLeast<{
   schoolId?: Prisma.UuidFilter<"ClassSection"> | string
   termId?: Prisma.UuidFilter<"ClassSection"> | string
   grade?: Prisma.StringFilter<"ClassSection"> | string
+  gradeLevelId?: Prisma.UuidNullableFilter<"ClassSection"> | string | null
+  sectionLabel?: Prisma.StringNullableFilter<"ClassSection"> | string | null
+  generatedName?: Prisma.StringNullableFilter<"ClassSection"> | string | null
+  generatedShortCode?: Prisma.StringNullableFilter<"ClassSection"> | string | null
   sectionName?: Prisma.StringFilter<"ClassSection"> | string
   shortCode?: Prisma.StringFilter<"ClassSection"> | string
   homeroomTeacherId?: Prisma.UuidNullableFilter<"ClassSection"> | string | null
@@ -333,15 +378,21 @@ export type ClassSectionWhereUniqueInput = Prisma.AtLeast<{
   term?: Prisma.XOR<Prisma.AcademicTermScalarRelationFilter, Prisma.AcademicTermWhereInput>
   homeroomTeacher?: Prisma.XOR<Prisma.TeacherNullableScalarRelationFilter, Prisma.TeacherWhereInput> | null
   fixedRoom?: Prisma.XOR<Prisma.RoomNullableScalarRelationFilter, Prisma.RoomWhereInput> | null
+  gradeLevel?: Prisma.XOR<Prisma.GradeLevelNullableScalarRelationFilter, Prisma.GradeLevelWhereInput> | null
+  classCurricula?: Prisma.ClassCurriculumListRelationFilter
   requirements?: Prisma.TeachingRequirementListRelationFilter
   assignments?: Prisma.ScheduleAssignmentListRelationFilter
-}, "id" | "schoolId_termId_shortCode" | "id_termId_schoolId">
+}, "id" | "schoolId_termId_shortCode" | "schoolId_termId_gradeLevelId_sectionLabel" | "id_termId_schoolId">
 
 export type ClassSectionOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   schoolId?: Prisma.SortOrder
   termId?: Prisma.SortOrder
   grade?: Prisma.SortOrder
+  gradeLevelId?: Prisma.SortOrderInput | Prisma.SortOrder
+  sectionLabel?: Prisma.SortOrderInput | Prisma.SortOrder
+  generatedName?: Prisma.SortOrderInput | Prisma.SortOrder
+  generatedShortCode?: Prisma.SortOrderInput | Prisma.SortOrder
   sectionName?: Prisma.SortOrder
   shortCode?: Prisma.SortOrder
   homeroomTeacherId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -366,6 +417,10 @@ export type ClassSectionScalarWhereWithAggregatesInput = {
   schoolId?: Prisma.UuidWithAggregatesFilter<"ClassSection"> | string
   termId?: Prisma.UuidWithAggregatesFilter<"ClassSection"> | string
   grade?: Prisma.StringWithAggregatesFilter<"ClassSection"> | string
+  gradeLevelId?: Prisma.UuidNullableWithAggregatesFilter<"ClassSection"> | string | null
+  sectionLabel?: Prisma.StringNullableWithAggregatesFilter<"ClassSection"> | string | null
+  generatedName?: Prisma.StringNullableWithAggregatesFilter<"ClassSection"> | string | null
+  generatedShortCode?: Prisma.StringNullableWithAggregatesFilter<"ClassSection"> | string | null
   sectionName?: Prisma.StringWithAggregatesFilter<"ClassSection"> | string
   shortCode?: Prisma.StringWithAggregatesFilter<"ClassSection"> | string
   homeroomTeacherId?: Prisma.UuidNullableWithAggregatesFilter<"ClassSection"> | string | null
@@ -380,6 +435,9 @@ export type ClassSectionScalarWhereWithAggregatesInput = {
 export type ClassSectionCreateInput = {
   id?: string
   grade: string
+  sectionLabel?: string | null
+  generatedName?: string | null
+  generatedShortCode?: string | null
   sectionName: string
   shortCode: string
   maxLessonsPerDay?: number | null
@@ -391,6 +449,8 @@ export type ClassSectionCreateInput = {
   term: Prisma.AcademicTermCreateNestedOneWithoutClassSectionsInput
   homeroomTeacher?: Prisma.TeacherCreateNestedOneWithoutHomeroomSectionsInput
   fixedRoom?: Prisma.RoomCreateNestedOneWithoutHomeroomSectionsInput
+  gradeLevel?: Prisma.GradeLevelCreateNestedOneWithoutClassSectionsInput
+  classCurricula?: Prisma.ClassCurriculumCreateNestedManyWithoutClassSectionInput
   requirements?: Prisma.TeachingRequirementCreateNestedManyWithoutClassSectionInput
   assignments?: Prisma.ScheduleAssignmentCreateNestedManyWithoutClassSectionInput
 }
@@ -400,6 +460,10 @@ export type ClassSectionUncheckedCreateInput = {
   schoolId: string
   termId: string
   grade: string
+  gradeLevelId?: string | null
+  sectionLabel?: string | null
+  generatedName?: string | null
+  generatedShortCode?: string | null
   sectionName: string
   shortCode: string
   homeroomTeacherId?: string | null
@@ -409,6 +473,7 @@ export type ClassSectionUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  classCurricula?: Prisma.ClassCurriculumUncheckedCreateNestedManyWithoutClassSectionInput
   requirements?: Prisma.TeachingRequirementUncheckedCreateNestedManyWithoutClassSectionInput
   assignments?: Prisma.ScheduleAssignmentUncheckedCreateNestedManyWithoutClassSectionInput
 }
@@ -416,6 +481,9 @@ export type ClassSectionUncheckedCreateInput = {
 export type ClassSectionUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   grade?: Prisma.StringFieldUpdateOperationsInput | string
+  sectionLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedShortCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sectionName?: Prisma.StringFieldUpdateOperationsInput | string
   shortCode?: Prisma.StringFieldUpdateOperationsInput | string
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -427,6 +495,8 @@ export type ClassSectionUpdateInput = {
   term?: Prisma.AcademicTermUpdateOneRequiredWithoutClassSectionsNestedInput
   homeroomTeacher?: Prisma.TeacherUpdateOneWithoutHomeroomSectionsNestedInput
   fixedRoom?: Prisma.RoomUpdateOneWithoutHomeroomSectionsNestedInput
+  gradeLevel?: Prisma.GradeLevelUpdateOneWithoutClassSectionsNestedInput
+  classCurricula?: Prisma.ClassCurriculumUpdateManyWithoutClassSectionNestedInput
   requirements?: Prisma.TeachingRequirementUpdateManyWithoutClassSectionNestedInput
   assignments?: Prisma.ScheduleAssignmentUpdateManyWithoutClassSectionNestedInput
 }
@@ -436,6 +506,10 @@ export type ClassSectionUncheckedUpdateInput = {
   schoolId?: Prisma.StringFieldUpdateOperationsInput | string
   termId?: Prisma.StringFieldUpdateOperationsInput | string
   grade?: Prisma.StringFieldUpdateOperationsInput | string
+  gradeLevelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sectionLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedShortCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sectionName?: Prisma.StringFieldUpdateOperationsInput | string
   shortCode?: Prisma.StringFieldUpdateOperationsInput | string
   homeroomTeacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -445,6 +519,7 @@ export type ClassSectionUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  classCurricula?: Prisma.ClassCurriculumUncheckedUpdateManyWithoutClassSectionNestedInput
   requirements?: Prisma.TeachingRequirementUncheckedUpdateManyWithoutClassSectionNestedInput
   assignments?: Prisma.ScheduleAssignmentUncheckedUpdateManyWithoutClassSectionNestedInput
 }
@@ -454,6 +529,10 @@ export type ClassSectionCreateManyInput = {
   schoolId: string
   termId: string
   grade: string
+  gradeLevelId?: string | null
+  sectionLabel?: string | null
+  generatedName?: string | null
+  generatedShortCode?: string | null
   sectionName: string
   shortCode: string
   homeroomTeacherId?: string | null
@@ -468,6 +547,9 @@ export type ClassSectionCreateManyInput = {
 export type ClassSectionUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   grade?: Prisma.StringFieldUpdateOperationsInput | string
+  sectionLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedShortCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sectionName?: Prisma.StringFieldUpdateOperationsInput | string
   shortCode?: Prisma.StringFieldUpdateOperationsInput | string
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -482,6 +564,10 @@ export type ClassSectionUncheckedUpdateManyInput = {
   schoolId?: Prisma.StringFieldUpdateOperationsInput | string
   termId?: Prisma.StringFieldUpdateOperationsInput | string
   grade?: Prisma.StringFieldUpdateOperationsInput | string
+  gradeLevelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sectionLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedShortCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sectionName?: Prisma.StringFieldUpdateOperationsInput | string
   shortCode?: Prisma.StringFieldUpdateOperationsInput | string
   homeroomTeacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -509,6 +595,13 @@ export type ClassSectionSchoolIdTermIdShortCodeCompoundUniqueInput = {
   shortCode: string
 }
 
+export type ClassSectionSchoolIdTermIdGradeLevelIdSectionLabelCompoundUniqueInput = {
+  schoolId: string
+  termId: string
+  gradeLevelId: string
+  sectionLabel: string
+}
+
 export type ClassSectionIdTermIdSchoolIdCompoundUniqueInput = {
   id: string
   termId: string
@@ -520,6 +613,10 @@ export type ClassSectionCountOrderByAggregateInput = {
   schoolId?: Prisma.SortOrder
   termId?: Prisma.SortOrder
   grade?: Prisma.SortOrder
+  gradeLevelId?: Prisma.SortOrder
+  sectionLabel?: Prisma.SortOrder
+  generatedName?: Prisma.SortOrder
+  generatedShortCode?: Prisma.SortOrder
   sectionName?: Prisma.SortOrder
   shortCode?: Prisma.SortOrder
   homeroomTeacherId?: Prisma.SortOrder
@@ -540,6 +637,10 @@ export type ClassSectionMaxOrderByAggregateInput = {
   schoolId?: Prisma.SortOrder
   termId?: Prisma.SortOrder
   grade?: Prisma.SortOrder
+  gradeLevelId?: Prisma.SortOrder
+  sectionLabel?: Prisma.SortOrder
+  generatedName?: Prisma.SortOrder
+  generatedShortCode?: Prisma.SortOrder
   sectionName?: Prisma.SortOrder
   shortCode?: Prisma.SortOrder
   homeroomTeacherId?: Prisma.SortOrder
@@ -556,6 +657,10 @@ export type ClassSectionMinOrderByAggregateInput = {
   schoolId?: Prisma.SortOrder
   termId?: Prisma.SortOrder
   grade?: Prisma.SortOrder
+  gradeLevelId?: Prisma.SortOrder
+  sectionLabel?: Prisma.SortOrder
+  generatedName?: Prisma.SortOrder
+  generatedShortCode?: Prisma.SortOrder
   sectionName?: Prisma.SortOrder
   shortCode?: Prisma.SortOrder
   homeroomTeacherId?: Prisma.SortOrder
@@ -744,6 +849,62 @@ export type ClassSectionUncheckedUpdateManyWithoutFixedRoomNestedInput = {
   deleteMany?: Prisma.ClassSectionScalarWhereInput | Prisma.ClassSectionScalarWhereInput[]
 }
 
+export type ClassSectionCreateNestedManyWithoutGradeLevelInput = {
+  create?: Prisma.XOR<Prisma.ClassSectionCreateWithoutGradeLevelInput, Prisma.ClassSectionUncheckedCreateWithoutGradeLevelInput> | Prisma.ClassSectionCreateWithoutGradeLevelInput[] | Prisma.ClassSectionUncheckedCreateWithoutGradeLevelInput[]
+  connectOrCreate?: Prisma.ClassSectionCreateOrConnectWithoutGradeLevelInput | Prisma.ClassSectionCreateOrConnectWithoutGradeLevelInput[]
+  createMany?: Prisma.ClassSectionCreateManyGradeLevelInputEnvelope
+  connect?: Prisma.ClassSectionWhereUniqueInput | Prisma.ClassSectionWhereUniqueInput[]
+}
+
+export type ClassSectionUncheckedCreateNestedManyWithoutGradeLevelInput = {
+  create?: Prisma.XOR<Prisma.ClassSectionCreateWithoutGradeLevelInput, Prisma.ClassSectionUncheckedCreateWithoutGradeLevelInput> | Prisma.ClassSectionCreateWithoutGradeLevelInput[] | Prisma.ClassSectionUncheckedCreateWithoutGradeLevelInput[]
+  connectOrCreate?: Prisma.ClassSectionCreateOrConnectWithoutGradeLevelInput | Prisma.ClassSectionCreateOrConnectWithoutGradeLevelInput[]
+  createMany?: Prisma.ClassSectionCreateManyGradeLevelInputEnvelope
+  connect?: Prisma.ClassSectionWhereUniqueInput | Prisma.ClassSectionWhereUniqueInput[]
+}
+
+export type ClassSectionUpdateManyWithoutGradeLevelNestedInput = {
+  create?: Prisma.XOR<Prisma.ClassSectionCreateWithoutGradeLevelInput, Prisma.ClassSectionUncheckedCreateWithoutGradeLevelInput> | Prisma.ClassSectionCreateWithoutGradeLevelInput[] | Prisma.ClassSectionUncheckedCreateWithoutGradeLevelInput[]
+  connectOrCreate?: Prisma.ClassSectionCreateOrConnectWithoutGradeLevelInput | Prisma.ClassSectionCreateOrConnectWithoutGradeLevelInput[]
+  upsert?: Prisma.ClassSectionUpsertWithWhereUniqueWithoutGradeLevelInput | Prisma.ClassSectionUpsertWithWhereUniqueWithoutGradeLevelInput[]
+  createMany?: Prisma.ClassSectionCreateManyGradeLevelInputEnvelope
+  set?: Prisma.ClassSectionWhereUniqueInput | Prisma.ClassSectionWhereUniqueInput[]
+  disconnect?: Prisma.ClassSectionWhereUniqueInput | Prisma.ClassSectionWhereUniqueInput[]
+  delete?: Prisma.ClassSectionWhereUniqueInput | Prisma.ClassSectionWhereUniqueInput[]
+  connect?: Prisma.ClassSectionWhereUniqueInput | Prisma.ClassSectionWhereUniqueInput[]
+  update?: Prisma.ClassSectionUpdateWithWhereUniqueWithoutGradeLevelInput | Prisma.ClassSectionUpdateWithWhereUniqueWithoutGradeLevelInput[]
+  updateMany?: Prisma.ClassSectionUpdateManyWithWhereWithoutGradeLevelInput | Prisma.ClassSectionUpdateManyWithWhereWithoutGradeLevelInput[]
+  deleteMany?: Prisma.ClassSectionScalarWhereInput | Prisma.ClassSectionScalarWhereInput[]
+}
+
+export type ClassSectionUncheckedUpdateManyWithoutGradeLevelNestedInput = {
+  create?: Prisma.XOR<Prisma.ClassSectionCreateWithoutGradeLevelInput, Prisma.ClassSectionUncheckedCreateWithoutGradeLevelInput> | Prisma.ClassSectionCreateWithoutGradeLevelInput[] | Prisma.ClassSectionUncheckedCreateWithoutGradeLevelInput[]
+  connectOrCreate?: Prisma.ClassSectionCreateOrConnectWithoutGradeLevelInput | Prisma.ClassSectionCreateOrConnectWithoutGradeLevelInput[]
+  upsert?: Prisma.ClassSectionUpsertWithWhereUniqueWithoutGradeLevelInput | Prisma.ClassSectionUpsertWithWhereUniqueWithoutGradeLevelInput[]
+  createMany?: Prisma.ClassSectionCreateManyGradeLevelInputEnvelope
+  set?: Prisma.ClassSectionWhereUniqueInput | Prisma.ClassSectionWhereUniqueInput[]
+  disconnect?: Prisma.ClassSectionWhereUniqueInput | Prisma.ClassSectionWhereUniqueInput[]
+  delete?: Prisma.ClassSectionWhereUniqueInput | Prisma.ClassSectionWhereUniqueInput[]
+  connect?: Prisma.ClassSectionWhereUniqueInput | Prisma.ClassSectionWhereUniqueInput[]
+  update?: Prisma.ClassSectionUpdateWithWhereUniqueWithoutGradeLevelInput | Prisma.ClassSectionUpdateWithWhereUniqueWithoutGradeLevelInput[]
+  updateMany?: Prisma.ClassSectionUpdateManyWithWhereWithoutGradeLevelInput | Prisma.ClassSectionUpdateManyWithWhereWithoutGradeLevelInput[]
+  deleteMany?: Prisma.ClassSectionScalarWhereInput | Prisma.ClassSectionScalarWhereInput[]
+}
+
+export type ClassSectionCreateNestedOneWithoutClassCurriculaInput = {
+  create?: Prisma.XOR<Prisma.ClassSectionCreateWithoutClassCurriculaInput, Prisma.ClassSectionUncheckedCreateWithoutClassCurriculaInput>
+  connectOrCreate?: Prisma.ClassSectionCreateOrConnectWithoutClassCurriculaInput
+  connect?: Prisma.ClassSectionWhereUniqueInput
+}
+
+export type ClassSectionUpdateOneRequiredWithoutClassCurriculaNestedInput = {
+  create?: Prisma.XOR<Prisma.ClassSectionCreateWithoutClassCurriculaInput, Prisma.ClassSectionUncheckedCreateWithoutClassCurriculaInput>
+  connectOrCreate?: Prisma.ClassSectionCreateOrConnectWithoutClassCurriculaInput
+  upsert?: Prisma.ClassSectionUpsertWithoutClassCurriculaInput
+  connect?: Prisma.ClassSectionWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ClassSectionUpdateToOneWithWhereWithoutClassCurriculaInput, Prisma.ClassSectionUpdateWithoutClassCurriculaInput>, Prisma.ClassSectionUncheckedUpdateWithoutClassCurriculaInput>
+}
+
 export type ClassSectionCreateNestedOneWithoutRequirementsInput = {
   create?: Prisma.XOR<Prisma.ClassSectionCreateWithoutRequirementsInput, Prisma.ClassSectionUncheckedCreateWithoutRequirementsInput>
   connectOrCreate?: Prisma.ClassSectionCreateOrConnectWithoutRequirementsInput
@@ -775,6 +936,9 @@ export type ClassSectionUpdateOneRequiredWithoutAssignmentsNestedInput = {
 export type ClassSectionCreateWithoutSchoolInput = {
   id?: string
   grade: string
+  sectionLabel?: string | null
+  generatedName?: string | null
+  generatedShortCode?: string | null
   sectionName: string
   shortCode: string
   maxLessonsPerDay?: number | null
@@ -785,6 +949,8 @@ export type ClassSectionCreateWithoutSchoolInput = {
   term: Prisma.AcademicTermCreateNestedOneWithoutClassSectionsInput
   homeroomTeacher?: Prisma.TeacherCreateNestedOneWithoutHomeroomSectionsInput
   fixedRoom?: Prisma.RoomCreateNestedOneWithoutHomeroomSectionsInput
+  gradeLevel?: Prisma.GradeLevelCreateNestedOneWithoutClassSectionsInput
+  classCurricula?: Prisma.ClassCurriculumCreateNestedManyWithoutClassSectionInput
   requirements?: Prisma.TeachingRequirementCreateNestedManyWithoutClassSectionInput
   assignments?: Prisma.ScheduleAssignmentCreateNestedManyWithoutClassSectionInput
 }
@@ -793,6 +959,10 @@ export type ClassSectionUncheckedCreateWithoutSchoolInput = {
   id?: string
   termId: string
   grade: string
+  gradeLevelId?: string | null
+  sectionLabel?: string | null
+  generatedName?: string | null
+  generatedShortCode?: string | null
   sectionName: string
   shortCode: string
   homeroomTeacherId?: string | null
@@ -802,6 +972,7 @@ export type ClassSectionUncheckedCreateWithoutSchoolInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  classCurricula?: Prisma.ClassCurriculumUncheckedCreateNestedManyWithoutClassSectionInput
   requirements?: Prisma.TeachingRequirementUncheckedCreateNestedManyWithoutClassSectionInput
   assignments?: Prisma.ScheduleAssignmentUncheckedCreateNestedManyWithoutClassSectionInput
 }
@@ -840,6 +1011,10 @@ export type ClassSectionScalarWhereInput = {
   schoolId?: Prisma.UuidFilter<"ClassSection"> | string
   termId?: Prisma.UuidFilter<"ClassSection"> | string
   grade?: Prisma.StringFilter<"ClassSection"> | string
+  gradeLevelId?: Prisma.UuidNullableFilter<"ClassSection"> | string | null
+  sectionLabel?: Prisma.StringNullableFilter<"ClassSection"> | string | null
+  generatedName?: Prisma.StringNullableFilter<"ClassSection"> | string | null
+  generatedShortCode?: Prisma.StringNullableFilter<"ClassSection"> | string | null
   sectionName?: Prisma.StringFilter<"ClassSection"> | string
   shortCode?: Prisma.StringFilter<"ClassSection"> | string
   homeroomTeacherId?: Prisma.UuidNullableFilter<"ClassSection"> | string | null
@@ -854,6 +1029,9 @@ export type ClassSectionScalarWhereInput = {
 export type ClassSectionCreateWithoutTermInput = {
   id?: string
   grade: string
+  sectionLabel?: string | null
+  generatedName?: string | null
+  generatedShortCode?: string | null
   sectionName: string
   shortCode: string
   maxLessonsPerDay?: number | null
@@ -864,6 +1042,8 @@ export type ClassSectionCreateWithoutTermInput = {
   school: Prisma.SchoolCreateNestedOneWithoutClassSectionsInput
   homeroomTeacher?: Prisma.TeacherCreateNestedOneWithoutHomeroomSectionsInput
   fixedRoom?: Prisma.RoomCreateNestedOneWithoutHomeroomSectionsInput
+  gradeLevel?: Prisma.GradeLevelCreateNestedOneWithoutClassSectionsInput
+  classCurricula?: Prisma.ClassCurriculumCreateNestedManyWithoutClassSectionInput
   requirements?: Prisma.TeachingRequirementCreateNestedManyWithoutClassSectionInput
   assignments?: Prisma.ScheduleAssignmentCreateNestedManyWithoutClassSectionInput
 }
@@ -871,6 +1051,10 @@ export type ClassSectionCreateWithoutTermInput = {
 export type ClassSectionUncheckedCreateWithoutTermInput = {
   id?: string
   grade: string
+  gradeLevelId?: string | null
+  sectionLabel?: string | null
+  generatedName?: string | null
+  generatedShortCode?: string | null
   sectionName: string
   shortCode: string
   homeroomTeacherId?: string | null
@@ -880,6 +1064,7 @@ export type ClassSectionUncheckedCreateWithoutTermInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  classCurricula?: Prisma.ClassCurriculumUncheckedCreateNestedManyWithoutClassSectionInput
   requirements?: Prisma.TeachingRequirementUncheckedCreateNestedManyWithoutClassSectionInput
   assignments?: Prisma.ScheduleAssignmentUncheckedCreateNestedManyWithoutClassSectionInput
 }
@@ -913,6 +1098,9 @@ export type ClassSectionUpdateManyWithWhereWithoutTermInput = {
 export type ClassSectionCreateWithoutHomeroomTeacherInput = {
   id?: string
   grade: string
+  sectionLabel?: string | null
+  generatedName?: string | null
+  generatedShortCode?: string | null
   sectionName: string
   shortCode: string
   maxLessonsPerDay?: number | null
@@ -923,6 +1111,8 @@ export type ClassSectionCreateWithoutHomeroomTeacherInput = {
   school: Prisma.SchoolCreateNestedOneWithoutClassSectionsInput
   term: Prisma.AcademicTermCreateNestedOneWithoutClassSectionsInput
   fixedRoom?: Prisma.RoomCreateNestedOneWithoutHomeroomSectionsInput
+  gradeLevel?: Prisma.GradeLevelCreateNestedOneWithoutClassSectionsInput
+  classCurricula?: Prisma.ClassCurriculumCreateNestedManyWithoutClassSectionInput
   requirements?: Prisma.TeachingRequirementCreateNestedManyWithoutClassSectionInput
   assignments?: Prisma.ScheduleAssignmentCreateNestedManyWithoutClassSectionInput
 }
@@ -931,6 +1121,10 @@ export type ClassSectionUncheckedCreateWithoutHomeroomTeacherInput = {
   id?: string
   termId: string
   grade: string
+  gradeLevelId?: string | null
+  sectionLabel?: string | null
+  generatedName?: string | null
+  generatedShortCode?: string | null
   sectionName: string
   shortCode: string
   fixedRoomId?: string | null
@@ -939,6 +1133,7 @@ export type ClassSectionUncheckedCreateWithoutHomeroomTeacherInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  classCurricula?: Prisma.ClassCurriculumUncheckedCreateNestedManyWithoutClassSectionInput
   requirements?: Prisma.TeachingRequirementUncheckedCreateNestedManyWithoutClassSectionInput
   assignments?: Prisma.ScheduleAssignmentUncheckedCreateNestedManyWithoutClassSectionInput
 }
@@ -972,6 +1167,9 @@ export type ClassSectionUpdateManyWithWhereWithoutHomeroomTeacherInput = {
 export type ClassSectionCreateWithoutFixedRoomInput = {
   id?: string
   grade: string
+  sectionLabel?: string | null
+  generatedName?: string | null
+  generatedShortCode?: string | null
   sectionName: string
   shortCode: string
   maxLessonsPerDay?: number | null
@@ -982,6 +1180,8 @@ export type ClassSectionCreateWithoutFixedRoomInput = {
   school: Prisma.SchoolCreateNestedOneWithoutClassSectionsInput
   term: Prisma.AcademicTermCreateNestedOneWithoutClassSectionsInput
   homeroomTeacher?: Prisma.TeacherCreateNestedOneWithoutHomeroomSectionsInput
+  gradeLevel?: Prisma.GradeLevelCreateNestedOneWithoutClassSectionsInput
+  classCurricula?: Prisma.ClassCurriculumCreateNestedManyWithoutClassSectionInput
   requirements?: Prisma.TeachingRequirementCreateNestedManyWithoutClassSectionInput
   assignments?: Prisma.ScheduleAssignmentCreateNestedManyWithoutClassSectionInput
 }
@@ -990,6 +1190,10 @@ export type ClassSectionUncheckedCreateWithoutFixedRoomInput = {
   id?: string
   termId: string
   grade: string
+  gradeLevelId?: string | null
+  sectionLabel?: string | null
+  generatedName?: string | null
+  generatedShortCode?: string | null
   sectionName: string
   shortCode: string
   homeroomTeacherId?: string | null
@@ -998,6 +1202,7 @@ export type ClassSectionUncheckedCreateWithoutFixedRoomInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  classCurricula?: Prisma.ClassCurriculumUncheckedCreateNestedManyWithoutClassSectionInput
   requirements?: Prisma.TeachingRequirementUncheckedCreateNestedManyWithoutClassSectionInput
   assignments?: Prisma.ScheduleAssignmentUncheckedCreateNestedManyWithoutClassSectionInput
 }
@@ -1028,9 +1233,12 @@ export type ClassSectionUpdateManyWithWhereWithoutFixedRoomInput = {
   data: Prisma.XOR<Prisma.ClassSectionUpdateManyMutationInput, Prisma.ClassSectionUncheckedUpdateManyWithoutFixedRoomInput>
 }
 
-export type ClassSectionCreateWithoutRequirementsInput = {
+export type ClassSectionCreateWithoutGradeLevelInput = {
   id?: string
   grade: string
+  sectionLabel?: string | null
+  generatedName?: string | null
+  generatedShortCode?: string | null
   sectionName: string
   shortCode: string
   maxLessonsPerDay?: number | null
@@ -1042,14 +1250,18 @@ export type ClassSectionCreateWithoutRequirementsInput = {
   term: Prisma.AcademicTermCreateNestedOneWithoutClassSectionsInput
   homeroomTeacher?: Prisma.TeacherCreateNestedOneWithoutHomeroomSectionsInput
   fixedRoom?: Prisma.RoomCreateNestedOneWithoutHomeroomSectionsInput
+  classCurricula?: Prisma.ClassCurriculumCreateNestedManyWithoutClassSectionInput
+  requirements?: Prisma.TeachingRequirementCreateNestedManyWithoutClassSectionInput
   assignments?: Prisma.ScheduleAssignmentCreateNestedManyWithoutClassSectionInput
 }
 
-export type ClassSectionUncheckedCreateWithoutRequirementsInput = {
+export type ClassSectionUncheckedCreateWithoutGradeLevelInput = {
   id?: string
-  schoolId: string
   termId: string
   grade: string
+  sectionLabel?: string | null
+  generatedName?: string | null
+  generatedShortCode?: string | null
   sectionName: string
   shortCode: string
   homeroomTeacherId?: string | null
@@ -1059,6 +1271,182 @@ export type ClassSectionUncheckedCreateWithoutRequirementsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  classCurricula?: Prisma.ClassCurriculumUncheckedCreateNestedManyWithoutClassSectionInput
+  requirements?: Prisma.TeachingRequirementUncheckedCreateNestedManyWithoutClassSectionInput
+  assignments?: Prisma.ScheduleAssignmentUncheckedCreateNestedManyWithoutClassSectionInput
+}
+
+export type ClassSectionCreateOrConnectWithoutGradeLevelInput = {
+  where: Prisma.ClassSectionWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClassSectionCreateWithoutGradeLevelInput, Prisma.ClassSectionUncheckedCreateWithoutGradeLevelInput>
+}
+
+export type ClassSectionCreateManyGradeLevelInputEnvelope = {
+  data: Prisma.ClassSectionCreateManyGradeLevelInput | Prisma.ClassSectionCreateManyGradeLevelInput[]
+  skipDuplicates?: boolean
+}
+
+export type ClassSectionUpsertWithWhereUniqueWithoutGradeLevelInput = {
+  where: Prisma.ClassSectionWhereUniqueInput
+  update: Prisma.XOR<Prisma.ClassSectionUpdateWithoutGradeLevelInput, Prisma.ClassSectionUncheckedUpdateWithoutGradeLevelInput>
+  create: Prisma.XOR<Prisma.ClassSectionCreateWithoutGradeLevelInput, Prisma.ClassSectionUncheckedCreateWithoutGradeLevelInput>
+}
+
+export type ClassSectionUpdateWithWhereUniqueWithoutGradeLevelInput = {
+  where: Prisma.ClassSectionWhereUniqueInput
+  data: Prisma.XOR<Prisma.ClassSectionUpdateWithoutGradeLevelInput, Prisma.ClassSectionUncheckedUpdateWithoutGradeLevelInput>
+}
+
+export type ClassSectionUpdateManyWithWhereWithoutGradeLevelInput = {
+  where: Prisma.ClassSectionScalarWhereInput
+  data: Prisma.XOR<Prisma.ClassSectionUpdateManyMutationInput, Prisma.ClassSectionUncheckedUpdateManyWithoutGradeLevelInput>
+}
+
+export type ClassSectionCreateWithoutClassCurriculaInput = {
+  id?: string
+  grade: string
+  sectionLabel?: string | null
+  generatedName?: string | null
+  generatedShortCode?: string | null
+  sectionName: string
+  shortCode: string
+  maxLessonsPerDay?: number | null
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  school: Prisma.SchoolCreateNestedOneWithoutClassSectionsInput
+  term: Prisma.AcademicTermCreateNestedOneWithoutClassSectionsInput
+  homeroomTeacher?: Prisma.TeacherCreateNestedOneWithoutHomeroomSectionsInput
+  fixedRoom?: Prisma.RoomCreateNestedOneWithoutHomeroomSectionsInput
+  gradeLevel?: Prisma.GradeLevelCreateNestedOneWithoutClassSectionsInput
+  requirements?: Prisma.TeachingRequirementCreateNestedManyWithoutClassSectionInput
+  assignments?: Prisma.ScheduleAssignmentCreateNestedManyWithoutClassSectionInput
+}
+
+export type ClassSectionUncheckedCreateWithoutClassCurriculaInput = {
+  id?: string
+  schoolId: string
+  termId: string
+  grade: string
+  gradeLevelId?: string | null
+  sectionLabel?: string | null
+  generatedName?: string | null
+  generatedShortCode?: string | null
+  sectionName: string
+  shortCode: string
+  homeroomTeacherId?: string | null
+  fixedRoomId?: string | null
+  maxLessonsPerDay?: number | null
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  requirements?: Prisma.TeachingRequirementUncheckedCreateNestedManyWithoutClassSectionInput
+  assignments?: Prisma.ScheduleAssignmentUncheckedCreateNestedManyWithoutClassSectionInput
+}
+
+export type ClassSectionCreateOrConnectWithoutClassCurriculaInput = {
+  where: Prisma.ClassSectionWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClassSectionCreateWithoutClassCurriculaInput, Prisma.ClassSectionUncheckedCreateWithoutClassCurriculaInput>
+}
+
+export type ClassSectionUpsertWithoutClassCurriculaInput = {
+  update: Prisma.XOR<Prisma.ClassSectionUpdateWithoutClassCurriculaInput, Prisma.ClassSectionUncheckedUpdateWithoutClassCurriculaInput>
+  create: Prisma.XOR<Prisma.ClassSectionCreateWithoutClassCurriculaInput, Prisma.ClassSectionUncheckedCreateWithoutClassCurriculaInput>
+  where?: Prisma.ClassSectionWhereInput
+}
+
+export type ClassSectionUpdateToOneWithWhereWithoutClassCurriculaInput = {
+  where?: Prisma.ClassSectionWhereInput
+  data: Prisma.XOR<Prisma.ClassSectionUpdateWithoutClassCurriculaInput, Prisma.ClassSectionUncheckedUpdateWithoutClassCurriculaInput>
+}
+
+export type ClassSectionUpdateWithoutClassCurriculaInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  grade?: Prisma.StringFieldUpdateOperationsInput | string
+  sectionLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedShortCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sectionName?: Prisma.StringFieldUpdateOperationsInput | string
+  shortCode?: Prisma.StringFieldUpdateOperationsInput | string
+  maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  school?: Prisma.SchoolUpdateOneRequiredWithoutClassSectionsNestedInput
+  term?: Prisma.AcademicTermUpdateOneRequiredWithoutClassSectionsNestedInput
+  homeroomTeacher?: Prisma.TeacherUpdateOneWithoutHomeroomSectionsNestedInput
+  fixedRoom?: Prisma.RoomUpdateOneWithoutHomeroomSectionsNestedInput
+  gradeLevel?: Prisma.GradeLevelUpdateOneWithoutClassSectionsNestedInput
+  requirements?: Prisma.TeachingRequirementUpdateManyWithoutClassSectionNestedInput
+  assignments?: Prisma.ScheduleAssignmentUpdateManyWithoutClassSectionNestedInput
+}
+
+export type ClassSectionUncheckedUpdateWithoutClassCurriculaInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  schoolId?: Prisma.StringFieldUpdateOperationsInput | string
+  termId?: Prisma.StringFieldUpdateOperationsInput | string
+  grade?: Prisma.StringFieldUpdateOperationsInput | string
+  gradeLevelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sectionLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedShortCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sectionName?: Prisma.StringFieldUpdateOperationsInput | string
+  shortCode?: Prisma.StringFieldUpdateOperationsInput | string
+  homeroomTeacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fixedRoomId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  requirements?: Prisma.TeachingRequirementUncheckedUpdateManyWithoutClassSectionNestedInput
+  assignments?: Prisma.ScheduleAssignmentUncheckedUpdateManyWithoutClassSectionNestedInput
+}
+
+export type ClassSectionCreateWithoutRequirementsInput = {
+  id?: string
+  grade: string
+  sectionLabel?: string | null
+  generatedName?: string | null
+  generatedShortCode?: string | null
+  sectionName: string
+  shortCode: string
+  maxLessonsPerDay?: number | null
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  school: Prisma.SchoolCreateNestedOneWithoutClassSectionsInput
+  term: Prisma.AcademicTermCreateNestedOneWithoutClassSectionsInput
+  homeroomTeacher?: Prisma.TeacherCreateNestedOneWithoutHomeroomSectionsInput
+  fixedRoom?: Prisma.RoomCreateNestedOneWithoutHomeroomSectionsInput
+  gradeLevel?: Prisma.GradeLevelCreateNestedOneWithoutClassSectionsInput
+  classCurricula?: Prisma.ClassCurriculumCreateNestedManyWithoutClassSectionInput
+  assignments?: Prisma.ScheduleAssignmentCreateNestedManyWithoutClassSectionInput
+}
+
+export type ClassSectionUncheckedCreateWithoutRequirementsInput = {
+  id?: string
+  schoolId: string
+  termId: string
+  grade: string
+  gradeLevelId?: string | null
+  sectionLabel?: string | null
+  generatedName?: string | null
+  generatedShortCode?: string | null
+  sectionName: string
+  shortCode: string
+  homeroomTeacherId?: string | null
+  fixedRoomId?: string | null
+  maxLessonsPerDay?: number | null
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  classCurricula?: Prisma.ClassCurriculumUncheckedCreateNestedManyWithoutClassSectionInput
   assignments?: Prisma.ScheduleAssignmentUncheckedCreateNestedManyWithoutClassSectionInput
 }
 
@@ -1081,6 +1469,9 @@ export type ClassSectionUpdateToOneWithWhereWithoutRequirementsInput = {
 export type ClassSectionUpdateWithoutRequirementsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   grade?: Prisma.StringFieldUpdateOperationsInput | string
+  sectionLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedShortCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sectionName?: Prisma.StringFieldUpdateOperationsInput | string
   shortCode?: Prisma.StringFieldUpdateOperationsInput | string
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1092,6 +1483,8 @@ export type ClassSectionUpdateWithoutRequirementsInput = {
   term?: Prisma.AcademicTermUpdateOneRequiredWithoutClassSectionsNestedInput
   homeroomTeacher?: Prisma.TeacherUpdateOneWithoutHomeroomSectionsNestedInput
   fixedRoom?: Prisma.RoomUpdateOneWithoutHomeroomSectionsNestedInput
+  gradeLevel?: Prisma.GradeLevelUpdateOneWithoutClassSectionsNestedInput
+  classCurricula?: Prisma.ClassCurriculumUpdateManyWithoutClassSectionNestedInput
   assignments?: Prisma.ScheduleAssignmentUpdateManyWithoutClassSectionNestedInput
 }
 
@@ -1100,6 +1493,10 @@ export type ClassSectionUncheckedUpdateWithoutRequirementsInput = {
   schoolId?: Prisma.StringFieldUpdateOperationsInput | string
   termId?: Prisma.StringFieldUpdateOperationsInput | string
   grade?: Prisma.StringFieldUpdateOperationsInput | string
+  gradeLevelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sectionLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedShortCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sectionName?: Prisma.StringFieldUpdateOperationsInput | string
   shortCode?: Prisma.StringFieldUpdateOperationsInput | string
   homeroomTeacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1109,12 +1506,16 @@ export type ClassSectionUncheckedUpdateWithoutRequirementsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  classCurricula?: Prisma.ClassCurriculumUncheckedUpdateManyWithoutClassSectionNestedInput
   assignments?: Prisma.ScheduleAssignmentUncheckedUpdateManyWithoutClassSectionNestedInput
 }
 
 export type ClassSectionCreateWithoutAssignmentsInput = {
   id?: string
   grade: string
+  sectionLabel?: string | null
+  generatedName?: string | null
+  generatedShortCode?: string | null
   sectionName: string
   shortCode: string
   maxLessonsPerDay?: number | null
@@ -1126,6 +1527,8 @@ export type ClassSectionCreateWithoutAssignmentsInput = {
   term: Prisma.AcademicTermCreateNestedOneWithoutClassSectionsInput
   homeroomTeacher?: Prisma.TeacherCreateNestedOneWithoutHomeroomSectionsInput
   fixedRoom?: Prisma.RoomCreateNestedOneWithoutHomeroomSectionsInput
+  gradeLevel?: Prisma.GradeLevelCreateNestedOneWithoutClassSectionsInput
+  classCurricula?: Prisma.ClassCurriculumCreateNestedManyWithoutClassSectionInput
   requirements?: Prisma.TeachingRequirementCreateNestedManyWithoutClassSectionInput
 }
 
@@ -1134,6 +1537,10 @@ export type ClassSectionUncheckedCreateWithoutAssignmentsInput = {
   schoolId: string
   termId: string
   grade: string
+  gradeLevelId?: string | null
+  sectionLabel?: string | null
+  generatedName?: string | null
+  generatedShortCode?: string | null
   sectionName: string
   shortCode: string
   homeroomTeacherId?: string | null
@@ -1143,6 +1550,7 @@ export type ClassSectionUncheckedCreateWithoutAssignmentsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  classCurricula?: Prisma.ClassCurriculumUncheckedCreateNestedManyWithoutClassSectionInput
   requirements?: Prisma.TeachingRequirementUncheckedCreateNestedManyWithoutClassSectionInput
 }
 
@@ -1165,6 +1573,9 @@ export type ClassSectionUpdateToOneWithWhereWithoutAssignmentsInput = {
 export type ClassSectionUpdateWithoutAssignmentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   grade?: Prisma.StringFieldUpdateOperationsInput | string
+  sectionLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedShortCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sectionName?: Prisma.StringFieldUpdateOperationsInput | string
   shortCode?: Prisma.StringFieldUpdateOperationsInput | string
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1176,6 +1587,8 @@ export type ClassSectionUpdateWithoutAssignmentsInput = {
   term?: Prisma.AcademicTermUpdateOneRequiredWithoutClassSectionsNestedInput
   homeroomTeacher?: Prisma.TeacherUpdateOneWithoutHomeroomSectionsNestedInput
   fixedRoom?: Prisma.RoomUpdateOneWithoutHomeroomSectionsNestedInput
+  gradeLevel?: Prisma.GradeLevelUpdateOneWithoutClassSectionsNestedInput
+  classCurricula?: Prisma.ClassCurriculumUpdateManyWithoutClassSectionNestedInput
   requirements?: Prisma.TeachingRequirementUpdateManyWithoutClassSectionNestedInput
 }
 
@@ -1184,6 +1597,10 @@ export type ClassSectionUncheckedUpdateWithoutAssignmentsInput = {
   schoolId?: Prisma.StringFieldUpdateOperationsInput | string
   termId?: Prisma.StringFieldUpdateOperationsInput | string
   grade?: Prisma.StringFieldUpdateOperationsInput | string
+  gradeLevelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sectionLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedShortCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sectionName?: Prisma.StringFieldUpdateOperationsInput | string
   shortCode?: Prisma.StringFieldUpdateOperationsInput | string
   homeroomTeacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1193,6 +1610,7 @@ export type ClassSectionUncheckedUpdateWithoutAssignmentsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  classCurricula?: Prisma.ClassCurriculumUncheckedUpdateManyWithoutClassSectionNestedInput
   requirements?: Prisma.TeachingRequirementUncheckedUpdateManyWithoutClassSectionNestedInput
 }
 
@@ -1200,6 +1618,10 @@ export type ClassSectionCreateManySchoolInput = {
   id?: string
   termId: string
   grade: string
+  gradeLevelId?: string | null
+  sectionLabel?: string | null
+  generatedName?: string | null
+  generatedShortCode?: string | null
   sectionName: string
   shortCode: string
   homeroomTeacherId?: string | null
@@ -1214,6 +1636,9 @@ export type ClassSectionCreateManySchoolInput = {
 export type ClassSectionUpdateWithoutSchoolInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   grade?: Prisma.StringFieldUpdateOperationsInput | string
+  sectionLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedShortCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sectionName?: Prisma.StringFieldUpdateOperationsInput | string
   shortCode?: Prisma.StringFieldUpdateOperationsInput | string
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1224,6 +1649,8 @@ export type ClassSectionUpdateWithoutSchoolInput = {
   term?: Prisma.AcademicTermUpdateOneRequiredWithoutClassSectionsNestedInput
   homeroomTeacher?: Prisma.TeacherUpdateOneWithoutHomeroomSectionsNestedInput
   fixedRoom?: Prisma.RoomUpdateOneWithoutHomeroomSectionsNestedInput
+  gradeLevel?: Prisma.GradeLevelUpdateOneWithoutClassSectionsNestedInput
+  classCurricula?: Prisma.ClassCurriculumUpdateManyWithoutClassSectionNestedInput
   requirements?: Prisma.TeachingRequirementUpdateManyWithoutClassSectionNestedInput
   assignments?: Prisma.ScheduleAssignmentUpdateManyWithoutClassSectionNestedInput
 }
@@ -1232,6 +1659,10 @@ export type ClassSectionUncheckedUpdateWithoutSchoolInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   termId?: Prisma.StringFieldUpdateOperationsInput | string
   grade?: Prisma.StringFieldUpdateOperationsInput | string
+  gradeLevelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sectionLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedShortCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sectionName?: Prisma.StringFieldUpdateOperationsInput | string
   shortCode?: Prisma.StringFieldUpdateOperationsInput | string
   homeroomTeacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1241,6 +1672,7 @@ export type ClassSectionUncheckedUpdateWithoutSchoolInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  classCurricula?: Prisma.ClassCurriculumUncheckedUpdateManyWithoutClassSectionNestedInput
   requirements?: Prisma.TeachingRequirementUncheckedUpdateManyWithoutClassSectionNestedInput
   assignments?: Prisma.ScheduleAssignmentUncheckedUpdateManyWithoutClassSectionNestedInput
 }
@@ -1249,6 +1681,10 @@ export type ClassSectionUncheckedUpdateManyWithoutSchoolInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   termId?: Prisma.StringFieldUpdateOperationsInput | string
   grade?: Prisma.StringFieldUpdateOperationsInput | string
+  gradeLevelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sectionLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedShortCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sectionName?: Prisma.StringFieldUpdateOperationsInput | string
   shortCode?: Prisma.StringFieldUpdateOperationsInput | string
   homeroomTeacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1263,6 +1699,10 @@ export type ClassSectionUncheckedUpdateManyWithoutSchoolInput = {
 export type ClassSectionCreateManyTermInput = {
   id?: string
   grade: string
+  gradeLevelId?: string | null
+  sectionLabel?: string | null
+  generatedName?: string | null
+  generatedShortCode?: string | null
   sectionName: string
   shortCode: string
   homeroomTeacherId?: string | null
@@ -1277,6 +1717,9 @@ export type ClassSectionCreateManyTermInput = {
 export type ClassSectionUpdateWithoutTermInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   grade?: Prisma.StringFieldUpdateOperationsInput | string
+  sectionLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedShortCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sectionName?: Prisma.StringFieldUpdateOperationsInput | string
   shortCode?: Prisma.StringFieldUpdateOperationsInput | string
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1287,6 +1730,8 @@ export type ClassSectionUpdateWithoutTermInput = {
   school?: Prisma.SchoolUpdateOneRequiredWithoutClassSectionsNestedInput
   homeroomTeacher?: Prisma.TeacherUpdateOneWithoutHomeroomSectionsNestedInput
   fixedRoom?: Prisma.RoomUpdateOneWithoutHomeroomSectionsNestedInput
+  gradeLevel?: Prisma.GradeLevelUpdateOneWithoutClassSectionsNestedInput
+  classCurricula?: Prisma.ClassCurriculumUpdateManyWithoutClassSectionNestedInput
   requirements?: Prisma.TeachingRequirementUpdateManyWithoutClassSectionNestedInput
   assignments?: Prisma.ScheduleAssignmentUpdateManyWithoutClassSectionNestedInput
 }
@@ -1294,6 +1739,10 @@ export type ClassSectionUpdateWithoutTermInput = {
 export type ClassSectionUncheckedUpdateWithoutTermInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   grade?: Prisma.StringFieldUpdateOperationsInput | string
+  gradeLevelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sectionLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedShortCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sectionName?: Prisma.StringFieldUpdateOperationsInput | string
   shortCode?: Prisma.StringFieldUpdateOperationsInput | string
   homeroomTeacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1303,6 +1752,7 @@ export type ClassSectionUncheckedUpdateWithoutTermInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  classCurricula?: Prisma.ClassCurriculumUncheckedUpdateManyWithoutClassSectionNestedInput
   requirements?: Prisma.TeachingRequirementUncheckedUpdateManyWithoutClassSectionNestedInput
   assignments?: Prisma.ScheduleAssignmentUncheckedUpdateManyWithoutClassSectionNestedInput
 }
@@ -1310,6 +1760,10 @@ export type ClassSectionUncheckedUpdateWithoutTermInput = {
 export type ClassSectionUncheckedUpdateManyWithoutTermInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   grade?: Prisma.StringFieldUpdateOperationsInput | string
+  gradeLevelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sectionLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedShortCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sectionName?: Prisma.StringFieldUpdateOperationsInput | string
   shortCode?: Prisma.StringFieldUpdateOperationsInput | string
   homeroomTeacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1325,6 +1779,10 @@ export type ClassSectionCreateManyHomeroomTeacherInput = {
   id?: string
   termId: string
   grade: string
+  gradeLevelId?: string | null
+  sectionLabel?: string | null
+  generatedName?: string | null
+  generatedShortCode?: string | null
   sectionName: string
   shortCode: string
   fixedRoomId?: string | null
@@ -1338,6 +1796,9 @@ export type ClassSectionCreateManyHomeroomTeacherInput = {
 export type ClassSectionUpdateWithoutHomeroomTeacherInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   grade?: Prisma.StringFieldUpdateOperationsInput | string
+  sectionLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedShortCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sectionName?: Prisma.StringFieldUpdateOperationsInput | string
   shortCode?: Prisma.StringFieldUpdateOperationsInput | string
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1348,6 +1809,8 @@ export type ClassSectionUpdateWithoutHomeroomTeacherInput = {
   school?: Prisma.SchoolUpdateOneRequiredWithoutClassSectionsNestedInput
   term?: Prisma.AcademicTermUpdateOneRequiredWithoutClassSectionsNestedInput
   fixedRoom?: Prisma.RoomUpdateOneWithoutHomeroomSectionsNestedInput
+  gradeLevel?: Prisma.GradeLevelUpdateOneWithoutClassSectionsNestedInput
+  classCurricula?: Prisma.ClassCurriculumUpdateManyWithoutClassSectionNestedInput
   requirements?: Prisma.TeachingRequirementUpdateManyWithoutClassSectionNestedInput
   assignments?: Prisma.ScheduleAssignmentUpdateManyWithoutClassSectionNestedInput
 }
@@ -1356,6 +1819,10 @@ export type ClassSectionUncheckedUpdateWithoutHomeroomTeacherInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   termId?: Prisma.StringFieldUpdateOperationsInput | string
   grade?: Prisma.StringFieldUpdateOperationsInput | string
+  gradeLevelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sectionLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedShortCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sectionName?: Prisma.StringFieldUpdateOperationsInput | string
   shortCode?: Prisma.StringFieldUpdateOperationsInput | string
   fixedRoomId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1364,6 +1831,7 @@ export type ClassSectionUncheckedUpdateWithoutHomeroomTeacherInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  classCurricula?: Prisma.ClassCurriculumUncheckedUpdateManyWithoutClassSectionNestedInput
   requirements?: Prisma.TeachingRequirementUncheckedUpdateManyWithoutClassSectionNestedInput
   assignments?: Prisma.ScheduleAssignmentUncheckedUpdateManyWithoutClassSectionNestedInput
 }
@@ -1372,6 +1840,10 @@ export type ClassSectionUncheckedUpdateManyWithoutHomeroomTeacherInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   termId?: Prisma.StringFieldUpdateOperationsInput | string
   grade?: Prisma.StringFieldUpdateOperationsInput | string
+  gradeLevelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sectionLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedShortCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sectionName?: Prisma.StringFieldUpdateOperationsInput | string
   shortCode?: Prisma.StringFieldUpdateOperationsInput | string
   fixedRoomId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1386,6 +1858,10 @@ export type ClassSectionCreateManyFixedRoomInput = {
   id?: string
   termId: string
   grade: string
+  gradeLevelId?: string | null
+  sectionLabel?: string | null
+  generatedName?: string | null
+  generatedShortCode?: string | null
   sectionName: string
   shortCode: string
   homeroomTeacherId?: string | null
@@ -1399,6 +1875,9 @@ export type ClassSectionCreateManyFixedRoomInput = {
 export type ClassSectionUpdateWithoutFixedRoomInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   grade?: Prisma.StringFieldUpdateOperationsInput | string
+  sectionLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedShortCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sectionName?: Prisma.StringFieldUpdateOperationsInput | string
   shortCode?: Prisma.StringFieldUpdateOperationsInput | string
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1409,6 +1888,8 @@ export type ClassSectionUpdateWithoutFixedRoomInput = {
   school?: Prisma.SchoolUpdateOneRequiredWithoutClassSectionsNestedInput
   term?: Prisma.AcademicTermUpdateOneRequiredWithoutClassSectionsNestedInput
   homeroomTeacher?: Prisma.TeacherUpdateOneWithoutHomeroomSectionsNestedInput
+  gradeLevel?: Prisma.GradeLevelUpdateOneWithoutClassSectionsNestedInput
+  classCurricula?: Prisma.ClassCurriculumUpdateManyWithoutClassSectionNestedInput
   requirements?: Prisma.TeachingRequirementUpdateManyWithoutClassSectionNestedInput
   assignments?: Prisma.ScheduleAssignmentUpdateManyWithoutClassSectionNestedInput
 }
@@ -1417,6 +1898,10 @@ export type ClassSectionUncheckedUpdateWithoutFixedRoomInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   termId?: Prisma.StringFieldUpdateOperationsInput | string
   grade?: Prisma.StringFieldUpdateOperationsInput | string
+  gradeLevelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sectionLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedShortCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sectionName?: Prisma.StringFieldUpdateOperationsInput | string
   shortCode?: Prisma.StringFieldUpdateOperationsInput | string
   homeroomTeacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1425,6 +1910,7 @@ export type ClassSectionUncheckedUpdateWithoutFixedRoomInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  classCurricula?: Prisma.ClassCurriculumUncheckedUpdateManyWithoutClassSectionNestedInput
   requirements?: Prisma.TeachingRequirementUncheckedUpdateManyWithoutClassSectionNestedInput
   assignments?: Prisma.ScheduleAssignmentUncheckedUpdateManyWithoutClassSectionNestedInput
 }
@@ -1433,9 +1919,92 @@ export type ClassSectionUncheckedUpdateManyWithoutFixedRoomInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   termId?: Prisma.StringFieldUpdateOperationsInput | string
   grade?: Prisma.StringFieldUpdateOperationsInput | string
+  gradeLevelId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sectionLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedShortCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   sectionName?: Prisma.StringFieldUpdateOperationsInput | string
   shortCode?: Prisma.StringFieldUpdateOperationsInput | string
   homeroomTeacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+}
+
+export type ClassSectionCreateManyGradeLevelInput = {
+  id?: string
+  termId: string
+  grade: string
+  sectionLabel?: string | null
+  generatedName?: string | null
+  generatedShortCode?: string | null
+  sectionName: string
+  shortCode: string
+  homeroomTeacherId?: string | null
+  fixedRoomId?: string | null
+  maxLessonsPerDay?: number | null
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+}
+
+export type ClassSectionUpdateWithoutGradeLevelInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  grade?: Prisma.StringFieldUpdateOperationsInput | string
+  sectionLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedShortCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sectionName?: Prisma.StringFieldUpdateOperationsInput | string
+  shortCode?: Prisma.StringFieldUpdateOperationsInput | string
+  maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  school?: Prisma.SchoolUpdateOneRequiredWithoutClassSectionsNestedInput
+  term?: Prisma.AcademicTermUpdateOneRequiredWithoutClassSectionsNestedInput
+  homeroomTeacher?: Prisma.TeacherUpdateOneWithoutHomeroomSectionsNestedInput
+  fixedRoom?: Prisma.RoomUpdateOneWithoutHomeroomSectionsNestedInput
+  classCurricula?: Prisma.ClassCurriculumUpdateManyWithoutClassSectionNestedInput
+  requirements?: Prisma.TeachingRequirementUpdateManyWithoutClassSectionNestedInput
+  assignments?: Prisma.ScheduleAssignmentUpdateManyWithoutClassSectionNestedInput
+}
+
+export type ClassSectionUncheckedUpdateWithoutGradeLevelInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  termId?: Prisma.StringFieldUpdateOperationsInput | string
+  grade?: Prisma.StringFieldUpdateOperationsInput | string
+  sectionLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedShortCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sectionName?: Prisma.StringFieldUpdateOperationsInput | string
+  shortCode?: Prisma.StringFieldUpdateOperationsInput | string
+  homeroomTeacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fixedRoomId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  classCurricula?: Prisma.ClassCurriculumUncheckedUpdateManyWithoutClassSectionNestedInput
+  requirements?: Prisma.TeachingRequirementUncheckedUpdateManyWithoutClassSectionNestedInput
+  assignments?: Prisma.ScheduleAssignmentUncheckedUpdateManyWithoutClassSectionNestedInput
+}
+
+export type ClassSectionUncheckedUpdateManyWithoutGradeLevelInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  termId?: Prisma.StringFieldUpdateOperationsInput | string
+  grade?: Prisma.StringFieldUpdateOperationsInput | string
+  sectionLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  generatedShortCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sectionName?: Prisma.StringFieldUpdateOperationsInput | string
+  shortCode?: Prisma.StringFieldUpdateOperationsInput | string
+  homeroomTeacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fixedRoomId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1449,11 +2018,13 @@ export type ClassSectionUncheckedUpdateManyWithoutFixedRoomInput = {
  */
 
 export type ClassSectionCountOutputType = {
+  classCurricula: number
   requirements: number
   assignments: number
 }
 
 export type ClassSectionCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  classCurricula?: boolean | ClassSectionCountOutputTypeCountClassCurriculaArgs
   requirements?: boolean | ClassSectionCountOutputTypeCountRequirementsArgs
   assignments?: boolean | ClassSectionCountOutputTypeCountAssignmentsArgs
 }
@@ -1466,6 +2037,13 @@ export type ClassSectionCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types
    * Select specific fields to fetch from the ClassSectionCountOutputType
    */
   select?: Prisma.ClassSectionCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * ClassSectionCountOutputType without action
+ */
+export type ClassSectionCountOutputTypeCountClassCurriculaArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ClassCurriculumWhereInput
 }
 
 /**
@@ -1488,6 +2066,10 @@ export type ClassSectionSelect<ExtArgs extends runtime.Types.Extensions.Internal
   schoolId?: boolean
   termId?: boolean
   grade?: boolean
+  gradeLevelId?: boolean
+  sectionLabel?: boolean
+  generatedName?: boolean
+  generatedShortCode?: boolean
   sectionName?: boolean
   shortCode?: boolean
   homeroomTeacherId?: boolean
@@ -1501,6 +2083,8 @@ export type ClassSectionSelect<ExtArgs extends runtime.Types.Extensions.Internal
   term?: boolean | Prisma.AcademicTermDefaultArgs<ExtArgs>
   homeroomTeacher?: boolean | Prisma.ClassSection$homeroomTeacherArgs<ExtArgs>
   fixedRoom?: boolean | Prisma.ClassSection$fixedRoomArgs<ExtArgs>
+  gradeLevel?: boolean | Prisma.ClassSection$gradeLevelArgs<ExtArgs>
+  classCurricula?: boolean | Prisma.ClassSection$classCurriculaArgs<ExtArgs>
   requirements?: boolean | Prisma.ClassSection$requirementsArgs<ExtArgs>
   assignments?: boolean | Prisma.ClassSection$assignmentsArgs<ExtArgs>
   _count?: boolean | Prisma.ClassSectionCountOutputTypeDefaultArgs<ExtArgs>
@@ -1511,6 +2095,10 @@ export type ClassSectionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   schoolId?: boolean
   termId?: boolean
   grade?: boolean
+  gradeLevelId?: boolean
+  sectionLabel?: boolean
+  generatedName?: boolean
+  generatedShortCode?: boolean
   sectionName?: boolean
   shortCode?: boolean
   homeroomTeacherId?: boolean
@@ -1524,6 +2112,7 @@ export type ClassSectionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   term?: boolean | Prisma.AcademicTermDefaultArgs<ExtArgs>
   homeroomTeacher?: boolean | Prisma.ClassSection$homeroomTeacherArgs<ExtArgs>
   fixedRoom?: boolean | Prisma.ClassSection$fixedRoomArgs<ExtArgs>
+  gradeLevel?: boolean | Prisma.ClassSection$gradeLevelArgs<ExtArgs>
 }, ExtArgs["result"]["classSection"]>
 
 export type ClassSectionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1531,6 +2120,10 @@ export type ClassSectionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   schoolId?: boolean
   termId?: boolean
   grade?: boolean
+  gradeLevelId?: boolean
+  sectionLabel?: boolean
+  generatedName?: boolean
+  generatedShortCode?: boolean
   sectionName?: boolean
   shortCode?: boolean
   homeroomTeacherId?: boolean
@@ -1544,6 +2137,7 @@ export type ClassSectionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   term?: boolean | Prisma.AcademicTermDefaultArgs<ExtArgs>
   homeroomTeacher?: boolean | Prisma.ClassSection$homeroomTeacherArgs<ExtArgs>
   fixedRoom?: boolean | Prisma.ClassSection$fixedRoomArgs<ExtArgs>
+  gradeLevel?: boolean | Prisma.ClassSection$gradeLevelArgs<ExtArgs>
 }, ExtArgs["result"]["classSection"]>
 
 export type ClassSectionSelectScalar = {
@@ -1551,6 +2145,10 @@ export type ClassSectionSelectScalar = {
   schoolId?: boolean
   termId?: boolean
   grade?: boolean
+  gradeLevelId?: boolean
+  sectionLabel?: boolean
+  generatedName?: boolean
+  generatedShortCode?: boolean
   sectionName?: boolean
   shortCode?: boolean
   homeroomTeacherId?: boolean
@@ -1562,12 +2160,14 @@ export type ClassSectionSelectScalar = {
   deletedAt?: boolean
 }
 
-export type ClassSectionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "termId" | "grade" | "sectionName" | "shortCode" | "homeroomTeacherId" | "fixedRoomId" | "maxLessonsPerDay" | "isActive" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["classSection"]>
+export type ClassSectionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "termId" | "grade" | "gradeLevelId" | "sectionLabel" | "generatedName" | "generatedShortCode" | "sectionName" | "shortCode" | "homeroomTeacherId" | "fixedRoomId" | "maxLessonsPerDay" | "isActive" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["classSection"]>
 export type ClassSectionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
   term?: boolean | Prisma.AcademicTermDefaultArgs<ExtArgs>
   homeroomTeacher?: boolean | Prisma.ClassSection$homeroomTeacherArgs<ExtArgs>
   fixedRoom?: boolean | Prisma.ClassSection$fixedRoomArgs<ExtArgs>
+  gradeLevel?: boolean | Prisma.ClassSection$gradeLevelArgs<ExtArgs>
+  classCurricula?: boolean | Prisma.ClassSection$classCurriculaArgs<ExtArgs>
   requirements?: boolean | Prisma.ClassSection$requirementsArgs<ExtArgs>
   assignments?: boolean | Prisma.ClassSection$assignmentsArgs<ExtArgs>
   _count?: boolean | Prisma.ClassSectionCountOutputTypeDefaultArgs<ExtArgs>
@@ -1577,12 +2177,14 @@ export type ClassSectionIncludeCreateManyAndReturn<ExtArgs extends runtime.Types
   term?: boolean | Prisma.AcademicTermDefaultArgs<ExtArgs>
   homeroomTeacher?: boolean | Prisma.ClassSection$homeroomTeacherArgs<ExtArgs>
   fixedRoom?: boolean | Prisma.ClassSection$fixedRoomArgs<ExtArgs>
+  gradeLevel?: boolean | Prisma.ClassSection$gradeLevelArgs<ExtArgs>
 }
 export type ClassSectionIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
   term?: boolean | Prisma.AcademicTermDefaultArgs<ExtArgs>
   homeroomTeacher?: boolean | Prisma.ClassSection$homeroomTeacherArgs<ExtArgs>
   fixedRoom?: boolean | Prisma.ClassSection$fixedRoomArgs<ExtArgs>
+  gradeLevel?: boolean | Prisma.ClassSection$gradeLevelArgs<ExtArgs>
 }
 
 export type $ClassSectionPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1592,6 +2194,8 @@ export type $ClassSectionPayload<ExtArgs extends runtime.Types.Extensions.Intern
     term: Prisma.$AcademicTermPayload<ExtArgs>
     homeroomTeacher: Prisma.$TeacherPayload<ExtArgs> | null
     fixedRoom: Prisma.$RoomPayload<ExtArgs> | null
+    gradeLevel: Prisma.$GradeLevelPayload<ExtArgs> | null
+    classCurricula: Prisma.$ClassCurriculumPayload<ExtArgs>[]
     requirements: Prisma.$TeachingRequirementPayload<ExtArgs>[]
     assignments: Prisma.$ScheduleAssignmentPayload<ExtArgs>[]
   }
@@ -1600,6 +2204,10 @@ export type $ClassSectionPayload<ExtArgs extends runtime.Types.Extensions.Intern
     schoolId: string
     termId: string
     grade: string
+    gradeLevelId: string | null
+    sectionLabel: string | null
+    generatedName: string | null
+    generatedShortCode: string | null
     sectionName: string
     shortCode: string
     homeroomTeacherId: string | null
@@ -2007,6 +2615,8 @@ export interface Prisma__ClassSectionClient<T, Null = never, ExtArgs extends run
   term<T extends Prisma.AcademicTermDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AcademicTermDefaultArgs<ExtArgs>>): Prisma.Prisma__AcademicTermClient<runtime.Types.Result.GetResult<Prisma.$AcademicTermPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   homeroomTeacher<T extends Prisma.ClassSection$homeroomTeacherArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClassSection$homeroomTeacherArgs<ExtArgs>>): Prisma.Prisma__TeacherClient<runtime.Types.Result.GetResult<Prisma.$TeacherPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   fixedRoom<T extends Prisma.ClassSection$fixedRoomArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClassSection$fixedRoomArgs<ExtArgs>>): Prisma.Prisma__RoomClient<runtime.Types.Result.GetResult<Prisma.$RoomPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  gradeLevel<T extends Prisma.ClassSection$gradeLevelArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClassSection$gradeLevelArgs<ExtArgs>>): Prisma.Prisma__GradeLevelClient<runtime.Types.Result.GetResult<Prisma.$GradeLevelPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  classCurricula<T extends Prisma.ClassSection$classCurriculaArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClassSection$classCurriculaArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClassCurriculumPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   requirements<T extends Prisma.ClassSection$requirementsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClassSection$requirementsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TeachingRequirementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   assignments<T extends Prisma.ClassSection$assignmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClassSection$assignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ScheduleAssignmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
@@ -2042,6 +2652,10 @@ export interface ClassSectionFieldRefs {
   readonly schoolId: Prisma.FieldRef<"ClassSection", 'String'>
   readonly termId: Prisma.FieldRef<"ClassSection", 'String'>
   readonly grade: Prisma.FieldRef<"ClassSection", 'String'>
+  readonly gradeLevelId: Prisma.FieldRef<"ClassSection", 'String'>
+  readonly sectionLabel: Prisma.FieldRef<"ClassSection", 'String'>
+  readonly generatedName: Prisma.FieldRef<"ClassSection", 'String'>
+  readonly generatedShortCode: Prisma.FieldRef<"ClassSection", 'String'>
   readonly sectionName: Prisma.FieldRef<"ClassSection", 'String'>
   readonly shortCode: Prisma.FieldRef<"ClassSection", 'String'>
   readonly homeroomTeacherId: Prisma.FieldRef<"ClassSection", 'String'>
@@ -2487,6 +3101,49 @@ export type ClassSection$fixedRoomArgs<ExtArgs extends runtime.Types.Extensions.
    */
   include?: Prisma.RoomInclude<ExtArgs> | null
   where?: Prisma.RoomWhereInput
+}
+
+/**
+ * ClassSection.gradeLevel
+ */
+export type ClassSection$gradeLevelArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the GradeLevel
+   */
+  select?: Prisma.GradeLevelSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the GradeLevel
+   */
+  omit?: Prisma.GradeLevelOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.GradeLevelInclude<ExtArgs> | null
+  where?: Prisma.GradeLevelWhereInput
+}
+
+/**
+ * ClassSection.classCurricula
+ */
+export type ClassSection$classCurriculaArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ClassCurriculum
+   */
+  select?: Prisma.ClassCurriculumSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ClassCurriculum
+   */
+  omit?: Prisma.ClassCurriculumOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClassCurriculumInclude<ExtArgs> | null
+  where?: Prisma.ClassCurriculumWhereInput
+  orderBy?: Prisma.ClassCurriculumOrderByWithRelationInput | Prisma.ClassCurriculumOrderByWithRelationInput[]
+  cursor?: Prisma.ClassCurriculumWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ClassCurriculumScalarFieldEnum | Prisma.ClassCurriculumScalarFieldEnum[]
 }
 
 /**

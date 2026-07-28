@@ -33,5 +33,6 @@ export * from "./domain/calendar";
 export * from "./domain/schedule-versioning";
 export * from "./domain/readiness";
 export * from "./domain/solver-snapshot";
+export * from "./domain/supervisor-setup";
 export * from "./domain/teaching-requirement";
 export * from "./school-scope";

@@ -31,6 +31,7 @@ export type TeacherAvgAggregateOutputType = {
   maxLessonsPerDay: number | null
   maxConsecutiveLessons: number | null
   maxWeeklyWorkload: number | null
+  weeklyTeachingSessions: number | null
   preferredFreeDayIndex: number | null
 }
 
@@ -39,6 +40,7 @@ export type TeacherSumAggregateOutputType = {
   maxLessonsPerDay: number | null
   maxConsecutiveLessons: number | null
   maxWeeklyWorkload: number | null
+  weeklyTeachingSessions: number | null
   preferredFreeDayIndex: number | null
 }
 
@@ -53,6 +55,7 @@ export type TeacherMinAggregateOutputType = {
   maxLessonsPerDay: number | null
   maxConsecutiveLessons: number | null
   maxWeeklyWorkload: number | null
+  weeklyTeachingSessions: number | null
   preferredFreeDayIndex: number | null
   notes: string | null
   createdAt: Date | null
@@ -71,6 +74,7 @@ export type TeacherMaxAggregateOutputType = {
   maxLessonsPerDay: number | null
   maxConsecutiveLessons: number | null
   maxWeeklyWorkload: number | null
+  weeklyTeachingSessions: number | null
   preferredFreeDayIndex: number | null
   notes: string | null
   createdAt: Date | null
@@ -89,6 +93,7 @@ export type TeacherCountAggregateOutputType = {
   maxLessonsPerDay: number
   maxConsecutiveLessons: number
   maxWeeklyWorkload: number
+  weeklyTeachingSessions: number
   preferredFreeDayIndex: number
   notes: number
   createdAt: number
@@ -103,6 +108,7 @@ export type TeacherAvgAggregateInputType = {
   maxLessonsPerDay?: true
   maxConsecutiveLessons?: true
   maxWeeklyWorkload?: true
+  weeklyTeachingSessions?: true
   preferredFreeDayIndex?: true
 }
 
@@ -111,6 +117,7 @@ export type TeacherSumAggregateInputType = {
   maxLessonsPerDay?: true
   maxConsecutiveLessons?: true
   maxWeeklyWorkload?: true
+  weeklyTeachingSessions?: true
   preferredFreeDayIndex?: true
 }
 
@@ -125,6 +132,7 @@ export type TeacherMinAggregateInputType = {
   maxLessonsPerDay?: true
   maxConsecutiveLessons?: true
   maxWeeklyWorkload?: true
+  weeklyTeachingSessions?: true
   preferredFreeDayIndex?: true
   notes?: true
   createdAt?: true
@@ -143,6 +151,7 @@ export type TeacherMaxAggregateInputType = {
   maxLessonsPerDay?: true
   maxConsecutiveLessons?: true
   maxWeeklyWorkload?: true
+  weeklyTeachingSessions?: true
   preferredFreeDayIndex?: true
   notes?: true
   createdAt?: true
@@ -161,6 +170,7 @@ export type TeacherCountAggregateInputType = {
   maxLessonsPerDay?: true
   maxConsecutiveLessons?: true
   maxWeeklyWorkload?: true
+  weeklyTeachingSessions?: true
   preferredFreeDayIndex?: true
   notes?: true
   createdAt?: true
@@ -266,6 +276,7 @@ export type TeacherGroupByOutputType = {
   maxLessonsPerDay: number | null
   maxConsecutiveLessons: number | null
   maxWeeklyWorkload: number | null
+  weeklyTeachingSessions: number
   preferredFreeDayIndex: number | null
   notes: string | null
   createdAt: Date
@@ -307,6 +318,7 @@ export type TeacherWhereInput = {
   maxLessonsPerDay?: Prisma.IntNullableFilter<"Teacher"> | number | null
   maxConsecutiveLessons?: Prisma.IntNullableFilter<"Teacher"> | number | null
   maxWeeklyWorkload?: Prisma.IntNullableFilter<"Teacher"> | number | null
+  weeklyTeachingSessions?: Prisma.IntFilter<"Teacher"> | number
   preferredFreeDayIndex?: Prisma.IntNullableFilter<"Teacher"> | number | null
   notes?: Prisma.StringNullableFilter<"Teacher"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Teacher"> | Date | string
@@ -315,6 +327,7 @@ export type TeacherWhereInput = {
   school?: Prisma.XOR<Prisma.SchoolScalarRelationFilter, Prisma.SchoolWhereInput>
   homeroomSections?: Prisma.ClassSectionListRelationFilter
   requirements?: Prisma.TeachingRequirementListRelationFilter
+  classCurricula?: Prisma.ClassCurriculumListRelationFilter
   assignments?: Prisma.ScheduleAssignmentListRelationFilter
 }
 
@@ -329,6 +342,7 @@ export type TeacherOrderByWithRelationInput = {
   maxLessonsPerDay?: Prisma.SortOrderInput | Prisma.SortOrder
   maxConsecutiveLessons?: Prisma.SortOrderInput | Prisma.SortOrder
   maxWeeklyWorkload?: Prisma.SortOrderInput | Prisma.SortOrder
+  weeklyTeachingSessions?: Prisma.SortOrder
   preferredFreeDayIndex?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -337,6 +351,7 @@ export type TeacherOrderByWithRelationInput = {
   school?: Prisma.SchoolOrderByWithRelationInput
   homeroomSections?: Prisma.ClassSectionOrderByRelationAggregateInput
   requirements?: Prisma.TeachingRequirementOrderByRelationAggregateInput
+  classCurricula?: Prisma.ClassCurriculumOrderByRelationAggregateInput
   assignments?: Prisma.ScheduleAssignmentOrderByRelationAggregateInput
 }
 
@@ -356,6 +371,7 @@ export type TeacherWhereUniqueInput = Prisma.AtLeast<{
   maxLessonsPerDay?: Prisma.IntNullableFilter<"Teacher"> | number | null
   maxConsecutiveLessons?: Prisma.IntNullableFilter<"Teacher"> | number | null
   maxWeeklyWorkload?: Prisma.IntNullableFilter<"Teacher"> | number | null
+  weeklyTeachingSessions?: Prisma.IntFilter<"Teacher"> | number
   preferredFreeDayIndex?: Prisma.IntNullableFilter<"Teacher"> | number | null
   notes?: Prisma.StringNullableFilter<"Teacher"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Teacher"> | Date | string
@@ -364,6 +380,7 @@ export type TeacherWhereUniqueInput = Prisma.AtLeast<{
   school?: Prisma.XOR<Prisma.SchoolScalarRelationFilter, Prisma.SchoolWhereInput>
   homeroomSections?: Prisma.ClassSectionListRelationFilter
   requirements?: Prisma.TeachingRequirementListRelationFilter
+  classCurricula?: Prisma.ClassCurriculumListRelationFilter
   assignments?: Prisma.ScheduleAssignmentListRelationFilter
 }, "id" | "schoolId_shortCode" | "id_schoolId">
 
@@ -378,6 +395,7 @@ export type TeacherOrderByWithAggregationInput = {
   maxLessonsPerDay?: Prisma.SortOrderInput | Prisma.SortOrder
   maxConsecutiveLessons?: Prisma.SortOrderInput | Prisma.SortOrder
   maxWeeklyWorkload?: Prisma.SortOrderInput | Prisma.SortOrder
+  weeklyTeachingSessions?: Prisma.SortOrder
   preferredFreeDayIndex?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -404,6 +422,7 @@ export type TeacherScalarWhereWithAggregatesInput = {
   maxLessonsPerDay?: Prisma.IntNullableWithAggregatesFilter<"Teacher"> | number | null
   maxConsecutiveLessons?: Prisma.IntNullableWithAggregatesFilter<"Teacher"> | number | null
   maxWeeklyWorkload?: Prisma.IntNullableWithAggregatesFilter<"Teacher"> | number | null
+  weeklyTeachingSessions?: Prisma.IntWithAggregatesFilter<"Teacher"> | number
   preferredFreeDayIndex?: Prisma.IntNullableWithAggregatesFilter<"Teacher"> | number | null
   notes?: Prisma.StringNullableWithAggregatesFilter<"Teacher"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Teacher"> | Date | string
@@ -421,6 +440,7 @@ export type TeacherCreateInput = {
   maxLessonsPerDay?: number | null
   maxConsecutiveLessons?: number | null
   maxWeeklyWorkload?: number | null
+  weeklyTeachingSessions?: number
   preferredFreeDayIndex?: number | null
   notes?: string | null
   createdAt?: Date | string
@@ -429,6 +449,7 @@ export type TeacherCreateInput = {
   school: Prisma.SchoolCreateNestedOneWithoutTeachersInput
   homeroomSections?: Prisma.ClassSectionCreateNestedManyWithoutHomeroomTeacherInput
   requirements?: Prisma.TeachingRequirementCreateNestedManyWithoutTeacherInput
+  classCurricula?: Prisma.ClassCurriculumCreateNestedManyWithoutTeacherInput
   assignments?: Prisma.ScheduleAssignmentCreateNestedManyWithoutTeacherInput
 }
 
@@ -443,6 +464,7 @@ export type TeacherUncheckedCreateInput = {
   maxLessonsPerDay?: number | null
   maxConsecutiveLessons?: number | null
   maxWeeklyWorkload?: number | null
+  weeklyTeachingSessions?: number
   preferredFreeDayIndex?: number | null
   notes?: string | null
   createdAt?: Date | string
@@ -450,6 +472,7 @@ export type TeacherUncheckedCreateInput = {
   deletedAt?: Date | string | null
   homeroomSections?: Prisma.ClassSectionUncheckedCreateNestedManyWithoutHomeroomTeacherInput
   requirements?: Prisma.TeachingRequirementUncheckedCreateNestedManyWithoutTeacherInput
+  classCurricula?: Prisma.ClassCurriculumUncheckedCreateNestedManyWithoutTeacherInput
   assignments?: Prisma.ScheduleAssignmentUncheckedCreateNestedManyWithoutTeacherInput
 }
 
@@ -463,6 +486,7 @@ export type TeacherUpdateInput = {
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   maxConsecutiveLessons?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   maxWeeklyWorkload?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  weeklyTeachingSessions?: Prisma.IntFieldUpdateOperationsInput | number
   preferredFreeDayIndex?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -471,6 +495,7 @@ export type TeacherUpdateInput = {
   school?: Prisma.SchoolUpdateOneRequiredWithoutTeachersNestedInput
   homeroomSections?: Prisma.ClassSectionUpdateManyWithoutHomeroomTeacherNestedInput
   requirements?: Prisma.TeachingRequirementUpdateManyWithoutTeacherNestedInput
+  classCurricula?: Prisma.ClassCurriculumUpdateManyWithoutTeacherNestedInput
   assignments?: Prisma.ScheduleAssignmentUpdateManyWithoutTeacherNestedInput
 }
 
@@ -485,6 +510,7 @@ export type TeacherUncheckedUpdateInput = {
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   maxConsecutiveLessons?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   maxWeeklyWorkload?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  weeklyTeachingSessions?: Prisma.IntFieldUpdateOperationsInput | number
   preferredFreeDayIndex?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -492,6 +518,7 @@ export type TeacherUncheckedUpdateInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   homeroomSections?: Prisma.ClassSectionUncheckedUpdateManyWithoutHomeroomTeacherNestedInput
   requirements?: Prisma.TeachingRequirementUncheckedUpdateManyWithoutTeacherNestedInput
+  classCurricula?: Prisma.ClassCurriculumUncheckedUpdateManyWithoutTeacherNestedInput
   assignments?: Prisma.ScheduleAssignmentUncheckedUpdateManyWithoutTeacherNestedInput
 }
 
@@ -506,6 +533,7 @@ export type TeacherCreateManyInput = {
   maxLessonsPerDay?: number | null
   maxConsecutiveLessons?: number | null
   maxWeeklyWorkload?: number | null
+  weeklyTeachingSessions?: number
   preferredFreeDayIndex?: number | null
   notes?: string | null
   createdAt?: Date | string
@@ -523,6 +551,7 @@ export type TeacherUpdateManyMutationInput = {
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   maxConsecutiveLessons?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   maxWeeklyWorkload?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  weeklyTeachingSessions?: Prisma.IntFieldUpdateOperationsInput | number
   preferredFreeDayIndex?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -541,6 +570,7 @@ export type TeacherUncheckedUpdateManyInput = {
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   maxConsecutiveLessons?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   maxWeeklyWorkload?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  weeklyTeachingSessions?: Prisma.IntFieldUpdateOperationsInput | number
   preferredFreeDayIndex?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -579,6 +609,7 @@ export type TeacherCountOrderByAggregateInput = {
   maxLessonsPerDay?: Prisma.SortOrder
   maxConsecutiveLessons?: Prisma.SortOrder
   maxWeeklyWorkload?: Prisma.SortOrder
+  weeklyTeachingSessions?: Prisma.SortOrder
   preferredFreeDayIndex?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -591,6 +622,7 @@ export type TeacherAvgOrderByAggregateInput = {
   maxLessonsPerDay?: Prisma.SortOrder
   maxConsecutiveLessons?: Prisma.SortOrder
   maxWeeklyWorkload?: Prisma.SortOrder
+  weeklyTeachingSessions?: Prisma.SortOrder
   preferredFreeDayIndex?: Prisma.SortOrder
 }
 
@@ -605,6 +637,7 @@ export type TeacherMaxOrderByAggregateInput = {
   maxLessonsPerDay?: Prisma.SortOrder
   maxConsecutiveLessons?: Prisma.SortOrder
   maxWeeklyWorkload?: Prisma.SortOrder
+  weeklyTeachingSessions?: Prisma.SortOrder
   preferredFreeDayIndex?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -623,6 +656,7 @@ export type TeacherMinOrderByAggregateInput = {
   maxLessonsPerDay?: Prisma.SortOrder
   maxConsecutiveLessons?: Prisma.SortOrder
   maxWeeklyWorkload?: Prisma.SortOrder
+  weeklyTeachingSessions?: Prisma.SortOrder
   preferredFreeDayIndex?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -635,6 +669,7 @@ export type TeacherSumOrderByAggregateInput = {
   maxLessonsPerDay?: Prisma.SortOrder
   maxConsecutiveLessons?: Prisma.SortOrder
   maxWeeklyWorkload?: Prisma.SortOrder
+  weeklyTeachingSessions?: Prisma.SortOrder
   preferredFreeDayIndex?: Prisma.SortOrder
 }
 
@@ -722,6 +757,22 @@ export type TeacherUpdateOneWithoutHomeroomSectionsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.TeacherUpdateToOneWithWhereWithoutHomeroomSectionsInput, Prisma.TeacherUpdateWithoutHomeroomSectionsInput>, Prisma.TeacherUncheckedUpdateWithoutHomeroomSectionsInput>
 }
 
+export type TeacherCreateNestedOneWithoutClassCurriculaInput = {
+  create?: Prisma.XOR<Prisma.TeacherCreateWithoutClassCurriculaInput, Prisma.TeacherUncheckedCreateWithoutClassCurriculaInput>
+  connectOrCreate?: Prisma.TeacherCreateOrConnectWithoutClassCurriculaInput
+  connect?: Prisma.TeacherWhereUniqueInput
+}
+
+export type TeacherUpdateOneWithoutClassCurriculaNestedInput = {
+  create?: Prisma.XOR<Prisma.TeacherCreateWithoutClassCurriculaInput, Prisma.TeacherUncheckedCreateWithoutClassCurriculaInput>
+  connectOrCreate?: Prisma.TeacherCreateOrConnectWithoutClassCurriculaInput
+  upsert?: Prisma.TeacherUpsertWithoutClassCurriculaInput
+  disconnect?: Prisma.TeacherWhereInput | boolean
+  delete?: Prisma.TeacherWhereInput | boolean
+  connect?: Prisma.TeacherWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TeacherUpdateToOneWithWhereWithoutClassCurriculaInput, Prisma.TeacherUpdateWithoutClassCurriculaInput>, Prisma.TeacherUncheckedUpdateWithoutClassCurriculaInput>
+}
+
 export type TeacherCreateNestedOneWithoutRequirementsInput = {
   create?: Prisma.XOR<Prisma.TeacherCreateWithoutRequirementsInput, Prisma.TeacherUncheckedCreateWithoutRequirementsInput>
   connectOrCreate?: Prisma.TeacherCreateOrConnectWithoutRequirementsInput
@@ -760,6 +811,7 @@ export type TeacherCreateWithoutSchoolInput = {
   maxLessonsPerDay?: number | null
   maxConsecutiveLessons?: number | null
   maxWeeklyWorkload?: number | null
+  weeklyTeachingSessions?: number
   preferredFreeDayIndex?: number | null
   notes?: string | null
   createdAt?: Date | string
@@ -767,6 +819,7 @@ export type TeacherCreateWithoutSchoolInput = {
   deletedAt?: Date | string | null
   homeroomSections?: Prisma.ClassSectionCreateNestedManyWithoutHomeroomTeacherInput
   requirements?: Prisma.TeachingRequirementCreateNestedManyWithoutTeacherInput
+  classCurricula?: Prisma.ClassCurriculumCreateNestedManyWithoutTeacherInput
   assignments?: Prisma.ScheduleAssignmentCreateNestedManyWithoutTeacherInput
 }
 
@@ -780,6 +833,7 @@ export type TeacherUncheckedCreateWithoutSchoolInput = {
   maxLessonsPerDay?: number | null
   maxConsecutiveLessons?: number | null
   maxWeeklyWorkload?: number | null
+  weeklyTeachingSessions?: number
   preferredFreeDayIndex?: number | null
   notes?: string | null
   createdAt?: Date | string
@@ -787,6 +841,7 @@ export type TeacherUncheckedCreateWithoutSchoolInput = {
   deletedAt?: Date | string | null
   homeroomSections?: Prisma.ClassSectionUncheckedCreateNestedManyWithoutHomeroomTeacherInput
   requirements?: Prisma.TeachingRequirementUncheckedCreateNestedManyWithoutTeacherInput
+  classCurricula?: Prisma.ClassCurriculumUncheckedCreateNestedManyWithoutTeacherInput
   assignments?: Prisma.ScheduleAssignmentUncheckedCreateNestedManyWithoutTeacherInput
 }
 
@@ -830,6 +885,7 @@ export type TeacherScalarWhereInput = {
   maxLessonsPerDay?: Prisma.IntNullableFilter<"Teacher"> | number | null
   maxConsecutiveLessons?: Prisma.IntNullableFilter<"Teacher"> | number | null
   maxWeeklyWorkload?: Prisma.IntNullableFilter<"Teacher"> | number | null
+  weeklyTeachingSessions?: Prisma.IntFilter<"Teacher"> | number
   preferredFreeDayIndex?: Prisma.IntNullableFilter<"Teacher"> | number | null
   notes?: Prisma.StringNullableFilter<"Teacher"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Teacher"> | Date | string
@@ -847,6 +903,7 @@ export type TeacherCreateWithoutHomeroomSectionsInput = {
   maxLessonsPerDay?: number | null
   maxConsecutiveLessons?: number | null
   maxWeeklyWorkload?: number | null
+  weeklyTeachingSessions?: number
   preferredFreeDayIndex?: number | null
   notes?: string | null
   createdAt?: Date | string
@@ -854,6 +911,7 @@ export type TeacherCreateWithoutHomeroomSectionsInput = {
   deletedAt?: Date | string | null
   school: Prisma.SchoolCreateNestedOneWithoutTeachersInput
   requirements?: Prisma.TeachingRequirementCreateNestedManyWithoutTeacherInput
+  classCurricula?: Prisma.ClassCurriculumCreateNestedManyWithoutTeacherInput
   assignments?: Prisma.ScheduleAssignmentCreateNestedManyWithoutTeacherInput
 }
 
@@ -868,12 +926,14 @@ export type TeacherUncheckedCreateWithoutHomeroomSectionsInput = {
   maxLessonsPerDay?: number | null
   maxConsecutiveLessons?: number | null
   maxWeeklyWorkload?: number | null
+  weeklyTeachingSessions?: number
   preferredFreeDayIndex?: number | null
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   requirements?: Prisma.TeachingRequirementUncheckedCreateNestedManyWithoutTeacherInput
+  classCurricula?: Prisma.ClassCurriculumUncheckedCreateNestedManyWithoutTeacherInput
   assignments?: Prisma.ScheduleAssignmentUncheckedCreateNestedManyWithoutTeacherInput
 }
 
@@ -903,6 +963,7 @@ export type TeacherUpdateWithoutHomeroomSectionsInput = {
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   maxConsecutiveLessons?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   maxWeeklyWorkload?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  weeklyTeachingSessions?: Prisma.IntFieldUpdateOperationsInput | number
   preferredFreeDayIndex?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -910,6 +971,7 @@ export type TeacherUpdateWithoutHomeroomSectionsInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   school?: Prisma.SchoolUpdateOneRequiredWithoutTeachersNestedInput
   requirements?: Prisma.TeachingRequirementUpdateManyWithoutTeacherNestedInput
+  classCurricula?: Prisma.ClassCurriculumUpdateManyWithoutTeacherNestedInput
   assignments?: Prisma.ScheduleAssignmentUpdateManyWithoutTeacherNestedInput
 }
 
@@ -924,11 +986,117 @@ export type TeacherUncheckedUpdateWithoutHomeroomSectionsInput = {
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   maxConsecutiveLessons?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   maxWeeklyWorkload?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  weeklyTeachingSessions?: Prisma.IntFieldUpdateOperationsInput | number
   preferredFreeDayIndex?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  requirements?: Prisma.TeachingRequirementUncheckedUpdateManyWithoutTeacherNestedInput
+  classCurricula?: Prisma.ClassCurriculumUncheckedUpdateManyWithoutTeacherNestedInput
+  assignments?: Prisma.ScheduleAssignmentUncheckedUpdateManyWithoutTeacherNestedInput
+}
+
+export type TeacherCreateWithoutClassCurriculaInput = {
+  id?: string
+  name: string
+  shortCode: string
+  employmentType?: $Enums.EmploymentType
+  isActive?: boolean
+  minLessonsPerDay?: number | null
+  maxLessonsPerDay?: number | null
+  maxConsecutiveLessons?: number | null
+  maxWeeklyWorkload?: number | null
+  weeklyTeachingSessions?: number
+  preferredFreeDayIndex?: number | null
+  notes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  school: Prisma.SchoolCreateNestedOneWithoutTeachersInput
+  homeroomSections?: Prisma.ClassSectionCreateNestedManyWithoutHomeroomTeacherInput
+  requirements?: Prisma.TeachingRequirementCreateNestedManyWithoutTeacherInput
+  assignments?: Prisma.ScheduleAssignmentCreateNestedManyWithoutTeacherInput
+}
+
+export type TeacherUncheckedCreateWithoutClassCurriculaInput = {
+  id?: string
+  schoolId: string
+  name: string
+  shortCode: string
+  employmentType?: $Enums.EmploymentType
+  isActive?: boolean
+  minLessonsPerDay?: number | null
+  maxLessonsPerDay?: number | null
+  maxConsecutiveLessons?: number | null
+  maxWeeklyWorkload?: number | null
+  weeklyTeachingSessions?: number
+  preferredFreeDayIndex?: number | null
+  notes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  homeroomSections?: Prisma.ClassSectionUncheckedCreateNestedManyWithoutHomeroomTeacherInput
+  requirements?: Prisma.TeachingRequirementUncheckedCreateNestedManyWithoutTeacherInput
+  assignments?: Prisma.ScheduleAssignmentUncheckedCreateNestedManyWithoutTeacherInput
+}
+
+export type TeacherCreateOrConnectWithoutClassCurriculaInput = {
+  where: Prisma.TeacherWhereUniqueInput
+  create: Prisma.XOR<Prisma.TeacherCreateWithoutClassCurriculaInput, Prisma.TeacherUncheckedCreateWithoutClassCurriculaInput>
+}
+
+export type TeacherUpsertWithoutClassCurriculaInput = {
+  update: Prisma.XOR<Prisma.TeacherUpdateWithoutClassCurriculaInput, Prisma.TeacherUncheckedUpdateWithoutClassCurriculaInput>
+  create: Prisma.XOR<Prisma.TeacherCreateWithoutClassCurriculaInput, Prisma.TeacherUncheckedCreateWithoutClassCurriculaInput>
+  where?: Prisma.TeacherWhereInput
+}
+
+export type TeacherUpdateToOneWithWhereWithoutClassCurriculaInput = {
+  where?: Prisma.TeacherWhereInput
+  data: Prisma.XOR<Prisma.TeacherUpdateWithoutClassCurriculaInput, Prisma.TeacherUncheckedUpdateWithoutClassCurriculaInput>
+}
+
+export type TeacherUpdateWithoutClassCurriculaInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  shortCode?: Prisma.StringFieldUpdateOperationsInput | string
+  employmentType?: Prisma.EnumEmploymentTypeFieldUpdateOperationsInput | $Enums.EmploymentType
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  minLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  maxConsecutiveLessons?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  maxWeeklyWorkload?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  weeklyTeachingSessions?: Prisma.IntFieldUpdateOperationsInput | number
+  preferredFreeDayIndex?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  school?: Prisma.SchoolUpdateOneRequiredWithoutTeachersNestedInput
+  homeroomSections?: Prisma.ClassSectionUpdateManyWithoutHomeroomTeacherNestedInput
+  requirements?: Prisma.TeachingRequirementUpdateManyWithoutTeacherNestedInput
+  assignments?: Prisma.ScheduleAssignmentUpdateManyWithoutTeacherNestedInput
+}
+
+export type TeacherUncheckedUpdateWithoutClassCurriculaInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  schoolId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  shortCode?: Prisma.StringFieldUpdateOperationsInput | string
+  employmentType?: Prisma.EnumEmploymentTypeFieldUpdateOperationsInput | $Enums.EmploymentType
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  minLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  maxConsecutiveLessons?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  maxWeeklyWorkload?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  weeklyTeachingSessions?: Prisma.IntFieldUpdateOperationsInput | number
+  preferredFreeDayIndex?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  homeroomSections?: Prisma.ClassSectionUncheckedUpdateManyWithoutHomeroomTeacherNestedInput
   requirements?: Prisma.TeachingRequirementUncheckedUpdateManyWithoutTeacherNestedInput
   assignments?: Prisma.ScheduleAssignmentUncheckedUpdateManyWithoutTeacherNestedInput
 }
@@ -943,6 +1111,7 @@ export type TeacherCreateWithoutRequirementsInput = {
   maxLessonsPerDay?: number | null
   maxConsecutiveLessons?: number | null
   maxWeeklyWorkload?: number | null
+  weeklyTeachingSessions?: number
   preferredFreeDayIndex?: number | null
   notes?: string | null
   createdAt?: Date | string
@@ -950,6 +1119,7 @@ export type TeacherCreateWithoutRequirementsInput = {
   deletedAt?: Date | string | null
   school: Prisma.SchoolCreateNestedOneWithoutTeachersInput
   homeroomSections?: Prisma.ClassSectionCreateNestedManyWithoutHomeroomTeacherInput
+  classCurricula?: Prisma.ClassCurriculumCreateNestedManyWithoutTeacherInput
   assignments?: Prisma.ScheduleAssignmentCreateNestedManyWithoutTeacherInput
 }
 
@@ -964,12 +1134,14 @@ export type TeacherUncheckedCreateWithoutRequirementsInput = {
   maxLessonsPerDay?: number | null
   maxConsecutiveLessons?: number | null
   maxWeeklyWorkload?: number | null
+  weeklyTeachingSessions?: number
   preferredFreeDayIndex?: number | null
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   homeroomSections?: Prisma.ClassSectionUncheckedCreateNestedManyWithoutHomeroomTeacherInput
+  classCurricula?: Prisma.ClassCurriculumUncheckedCreateNestedManyWithoutTeacherInput
   assignments?: Prisma.ScheduleAssignmentUncheckedCreateNestedManyWithoutTeacherInput
 }
 
@@ -999,6 +1171,7 @@ export type TeacherUpdateWithoutRequirementsInput = {
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   maxConsecutiveLessons?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   maxWeeklyWorkload?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  weeklyTeachingSessions?: Prisma.IntFieldUpdateOperationsInput | number
   preferredFreeDayIndex?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1006,6 +1179,7 @@ export type TeacherUpdateWithoutRequirementsInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   school?: Prisma.SchoolUpdateOneRequiredWithoutTeachersNestedInput
   homeroomSections?: Prisma.ClassSectionUpdateManyWithoutHomeroomTeacherNestedInput
+  classCurricula?: Prisma.ClassCurriculumUpdateManyWithoutTeacherNestedInput
   assignments?: Prisma.ScheduleAssignmentUpdateManyWithoutTeacherNestedInput
 }
 
@@ -1020,12 +1194,14 @@ export type TeacherUncheckedUpdateWithoutRequirementsInput = {
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   maxConsecutiveLessons?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   maxWeeklyWorkload?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  weeklyTeachingSessions?: Prisma.IntFieldUpdateOperationsInput | number
   preferredFreeDayIndex?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   homeroomSections?: Prisma.ClassSectionUncheckedUpdateManyWithoutHomeroomTeacherNestedInput
+  classCurricula?: Prisma.ClassCurriculumUncheckedUpdateManyWithoutTeacherNestedInput
   assignments?: Prisma.ScheduleAssignmentUncheckedUpdateManyWithoutTeacherNestedInput
 }
 
@@ -1039,6 +1215,7 @@ export type TeacherCreateWithoutAssignmentsInput = {
   maxLessonsPerDay?: number | null
   maxConsecutiveLessons?: number | null
   maxWeeklyWorkload?: number | null
+  weeklyTeachingSessions?: number
   preferredFreeDayIndex?: number | null
   notes?: string | null
   createdAt?: Date | string
@@ -1047,6 +1224,7 @@ export type TeacherCreateWithoutAssignmentsInput = {
   school: Prisma.SchoolCreateNestedOneWithoutTeachersInput
   homeroomSections?: Prisma.ClassSectionCreateNestedManyWithoutHomeroomTeacherInput
   requirements?: Prisma.TeachingRequirementCreateNestedManyWithoutTeacherInput
+  classCurricula?: Prisma.ClassCurriculumCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherUncheckedCreateWithoutAssignmentsInput = {
@@ -1060,6 +1238,7 @@ export type TeacherUncheckedCreateWithoutAssignmentsInput = {
   maxLessonsPerDay?: number | null
   maxConsecutiveLessons?: number | null
   maxWeeklyWorkload?: number | null
+  weeklyTeachingSessions?: number
   preferredFreeDayIndex?: number | null
   notes?: string | null
   createdAt?: Date | string
@@ -1067,6 +1246,7 @@ export type TeacherUncheckedCreateWithoutAssignmentsInput = {
   deletedAt?: Date | string | null
   homeroomSections?: Prisma.ClassSectionUncheckedCreateNestedManyWithoutHomeroomTeacherInput
   requirements?: Prisma.TeachingRequirementUncheckedCreateNestedManyWithoutTeacherInput
+  classCurricula?: Prisma.ClassCurriculumUncheckedCreateNestedManyWithoutTeacherInput
 }
 
 export type TeacherCreateOrConnectWithoutAssignmentsInput = {
@@ -1095,6 +1275,7 @@ export type TeacherUpdateWithoutAssignmentsInput = {
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   maxConsecutiveLessons?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   maxWeeklyWorkload?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  weeklyTeachingSessions?: Prisma.IntFieldUpdateOperationsInput | number
   preferredFreeDayIndex?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1103,6 +1284,7 @@ export type TeacherUpdateWithoutAssignmentsInput = {
   school?: Prisma.SchoolUpdateOneRequiredWithoutTeachersNestedInput
   homeroomSections?: Prisma.ClassSectionUpdateManyWithoutHomeroomTeacherNestedInput
   requirements?: Prisma.TeachingRequirementUpdateManyWithoutTeacherNestedInput
+  classCurricula?: Prisma.ClassCurriculumUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherUncheckedUpdateWithoutAssignmentsInput = {
@@ -1116,6 +1298,7 @@ export type TeacherUncheckedUpdateWithoutAssignmentsInput = {
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   maxConsecutiveLessons?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   maxWeeklyWorkload?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  weeklyTeachingSessions?: Prisma.IntFieldUpdateOperationsInput | number
   preferredFreeDayIndex?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1123,6 +1306,7 @@ export type TeacherUncheckedUpdateWithoutAssignmentsInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   homeroomSections?: Prisma.ClassSectionUncheckedUpdateManyWithoutHomeroomTeacherNestedInput
   requirements?: Prisma.TeachingRequirementUncheckedUpdateManyWithoutTeacherNestedInput
+  classCurricula?: Prisma.ClassCurriculumUncheckedUpdateManyWithoutTeacherNestedInput
 }
 
 export type TeacherCreateManySchoolInput = {
@@ -1135,6 +1319,7 @@ export type TeacherCreateManySchoolInput = {
   maxLessonsPerDay?: number | null
   maxConsecutiveLessons?: number | null
   maxWeeklyWorkload?: number | null
+  weeklyTeachingSessions?: number
   preferredFreeDayIndex?: number | null
   notes?: string | null
   createdAt?: Date | string
@@ -1152,6 +1337,7 @@ export type TeacherUpdateWithoutSchoolInput = {
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   maxConsecutiveLessons?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   maxWeeklyWorkload?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  weeklyTeachingSessions?: Prisma.IntFieldUpdateOperationsInput | number
   preferredFreeDayIndex?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1159,6 +1345,7 @@ export type TeacherUpdateWithoutSchoolInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   homeroomSections?: Prisma.ClassSectionUpdateManyWithoutHomeroomTeacherNestedInput
   requirements?: Prisma.TeachingRequirementUpdateManyWithoutTeacherNestedInput
+  classCurricula?: Prisma.ClassCurriculumUpdateManyWithoutTeacherNestedInput
   assignments?: Prisma.ScheduleAssignmentUpdateManyWithoutTeacherNestedInput
 }
 
@@ -1172,6 +1359,7 @@ export type TeacherUncheckedUpdateWithoutSchoolInput = {
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   maxConsecutiveLessons?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   maxWeeklyWorkload?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  weeklyTeachingSessions?: Prisma.IntFieldUpdateOperationsInput | number
   preferredFreeDayIndex?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1179,6 +1367,7 @@ export type TeacherUncheckedUpdateWithoutSchoolInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   homeroomSections?: Prisma.ClassSectionUncheckedUpdateManyWithoutHomeroomTeacherNestedInput
   requirements?: Prisma.TeachingRequirementUncheckedUpdateManyWithoutTeacherNestedInput
+  classCurricula?: Prisma.ClassCurriculumUncheckedUpdateManyWithoutTeacherNestedInput
   assignments?: Prisma.ScheduleAssignmentUncheckedUpdateManyWithoutTeacherNestedInput
 }
 
@@ -1192,6 +1381,7 @@ export type TeacherUncheckedUpdateManyWithoutSchoolInput = {
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   maxConsecutiveLessons?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   maxWeeklyWorkload?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  weeklyTeachingSessions?: Prisma.IntFieldUpdateOperationsInput | number
   preferredFreeDayIndex?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1207,12 +1397,14 @@ export type TeacherUncheckedUpdateManyWithoutSchoolInput = {
 export type TeacherCountOutputType = {
   homeroomSections: number
   requirements: number
+  classCurricula: number
   assignments: number
 }
 
 export type TeacherCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   homeroomSections?: boolean | TeacherCountOutputTypeCountHomeroomSectionsArgs
   requirements?: boolean | TeacherCountOutputTypeCountRequirementsArgs
+  classCurricula?: boolean | TeacherCountOutputTypeCountClassCurriculaArgs
   assignments?: boolean | TeacherCountOutputTypeCountAssignmentsArgs
 }
 
@@ -1243,6 +1435,13 @@ export type TeacherCountOutputTypeCountRequirementsArgs<ExtArgs extends runtime.
 /**
  * TeacherCountOutputType without action
  */
+export type TeacherCountOutputTypeCountClassCurriculaArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ClassCurriculumWhereInput
+}
+
+/**
+ * TeacherCountOutputType without action
+ */
 export type TeacherCountOutputTypeCountAssignmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.ScheduleAssignmentWhereInput
 }
@@ -1259,6 +1458,7 @@ export type TeacherSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   maxLessonsPerDay?: boolean
   maxConsecutiveLessons?: boolean
   maxWeeklyWorkload?: boolean
+  weeklyTeachingSessions?: boolean
   preferredFreeDayIndex?: boolean
   notes?: boolean
   createdAt?: boolean
@@ -1267,6 +1467,7 @@ export type TeacherSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
   homeroomSections?: boolean | Prisma.Teacher$homeroomSectionsArgs<ExtArgs>
   requirements?: boolean | Prisma.Teacher$requirementsArgs<ExtArgs>
+  classCurricula?: boolean | Prisma.Teacher$classCurriculaArgs<ExtArgs>
   assignments?: boolean | Prisma.Teacher$assignmentsArgs<ExtArgs>
   _count?: boolean | Prisma.TeacherCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["teacher"]>
@@ -1282,6 +1483,7 @@ export type TeacherSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   maxLessonsPerDay?: boolean
   maxConsecutiveLessons?: boolean
   maxWeeklyWorkload?: boolean
+  weeklyTeachingSessions?: boolean
   preferredFreeDayIndex?: boolean
   notes?: boolean
   createdAt?: boolean
@@ -1301,6 +1503,7 @@ export type TeacherSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   maxLessonsPerDay?: boolean
   maxConsecutiveLessons?: boolean
   maxWeeklyWorkload?: boolean
+  weeklyTeachingSessions?: boolean
   preferredFreeDayIndex?: boolean
   notes?: boolean
   createdAt?: boolean
@@ -1320,6 +1523,7 @@ export type TeacherSelectScalar = {
   maxLessonsPerDay?: boolean
   maxConsecutiveLessons?: boolean
   maxWeeklyWorkload?: boolean
+  weeklyTeachingSessions?: boolean
   preferredFreeDayIndex?: boolean
   notes?: boolean
   createdAt?: boolean
@@ -1327,11 +1531,12 @@ export type TeacherSelectScalar = {
   deletedAt?: boolean
 }
 
-export type TeacherOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "name" | "shortCode" | "employmentType" | "isActive" | "minLessonsPerDay" | "maxLessonsPerDay" | "maxConsecutiveLessons" | "maxWeeklyWorkload" | "preferredFreeDayIndex" | "notes" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["teacher"]>
+export type TeacherOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "name" | "shortCode" | "employmentType" | "isActive" | "minLessonsPerDay" | "maxLessonsPerDay" | "maxConsecutiveLessons" | "maxWeeklyWorkload" | "weeklyTeachingSessions" | "preferredFreeDayIndex" | "notes" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["teacher"]>
 export type TeacherInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
   homeroomSections?: boolean | Prisma.Teacher$homeroomSectionsArgs<ExtArgs>
   requirements?: boolean | Prisma.Teacher$requirementsArgs<ExtArgs>
+  classCurricula?: boolean | Prisma.Teacher$classCurriculaArgs<ExtArgs>
   assignments?: boolean | Prisma.Teacher$assignmentsArgs<ExtArgs>
   _count?: boolean | Prisma.TeacherCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -1348,6 +1553,7 @@ export type $TeacherPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     school: Prisma.$SchoolPayload<ExtArgs>
     homeroomSections: Prisma.$ClassSectionPayload<ExtArgs>[]
     requirements: Prisma.$TeachingRequirementPayload<ExtArgs>[]
+    classCurricula: Prisma.$ClassCurriculumPayload<ExtArgs>[]
     assignments: Prisma.$ScheduleAssignmentPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1361,6 +1567,7 @@ export type $TeacherPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     maxLessonsPerDay: number | null
     maxConsecutiveLessons: number | null
     maxWeeklyWorkload: number | null
+    weeklyTeachingSessions: number
     preferredFreeDayIndex: number | null
     notes: string | null
     createdAt: Date
@@ -1763,6 +1970,7 @@ export interface Prisma__TeacherClient<T, Null = never, ExtArgs extends runtime.
   school<T extends Prisma.SchoolDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SchoolDefaultArgs<ExtArgs>>): Prisma.Prisma__SchoolClient<runtime.Types.Result.GetResult<Prisma.$SchoolPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   homeroomSections<T extends Prisma.Teacher$homeroomSectionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Teacher$homeroomSectionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClassSectionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   requirements<T extends Prisma.Teacher$requirementsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Teacher$requirementsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TeachingRequirementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  classCurricula<T extends Prisma.Teacher$classCurriculaArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Teacher$classCurriculaArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClassCurriculumPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   assignments<T extends Prisma.Teacher$assignmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Teacher$assignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ScheduleAssignmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1803,6 +2011,7 @@ export interface TeacherFieldRefs {
   readonly maxLessonsPerDay: Prisma.FieldRef<"Teacher", 'Int'>
   readonly maxConsecutiveLessons: Prisma.FieldRef<"Teacher", 'Int'>
   readonly maxWeeklyWorkload: Prisma.FieldRef<"Teacher", 'Int'>
+  readonly weeklyTeachingSessions: Prisma.FieldRef<"Teacher", 'Int'>
   readonly preferredFreeDayIndex: Prisma.FieldRef<"Teacher", 'Int'>
   readonly notes: Prisma.FieldRef<"Teacher", 'String'>
   readonly createdAt: Prisma.FieldRef<"Teacher", 'DateTime'>
@@ -2254,6 +2463,30 @@ export type Teacher$requirementsArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.TeachingRequirementScalarFieldEnum | Prisma.TeachingRequirementScalarFieldEnum[]
+}
+
+/**
+ * Teacher.classCurricula
+ */
+export type Teacher$classCurriculaArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ClassCurriculum
+   */
+  select?: Prisma.ClassCurriculumSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ClassCurriculum
+   */
+  omit?: Prisma.ClassCurriculumOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClassCurriculumInclude<ExtArgs> | null
+  where?: Prisma.ClassCurriculumWhereInput
+  orderBy?: Prisma.ClassCurriculumOrderByWithRelationInput | Prisma.ClassCurriculumOrderByWithRelationInput[]
+  cursor?: Prisma.ClassCurriculumWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ClassCurriculumScalarFieldEnum | Prisma.ClassCurriculumScalarFieldEnum[]
 }
 
 /**

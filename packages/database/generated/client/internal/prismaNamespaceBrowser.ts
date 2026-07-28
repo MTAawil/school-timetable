@@ -61,6 +61,10 @@ export const ModelName = {
   Subject: 'Subject',
   Room: 'Room',
   ClassSection: 'ClassSection',
+  GradeLevel: 'GradeLevel',
+  SchoolWeekConfiguration: 'SchoolWeekConfiguration',
+  GradeCurriculum: 'GradeCurriculum',
+  ClassCurriculum: 'ClassCurriculum',
   AvailabilityRule: 'AvailabilityRule',
   TeachingRequirement: 'TeachingRequirement',
   RequirementFixedSlot: 'RequirementFixedSlot',
@@ -191,6 +195,7 @@ export const TeacherScalarFieldEnum = {
   maxLessonsPerDay: 'maxLessonsPerDay',
   maxConsecutiveLessons: 'maxConsecutiveLessons',
   maxWeeklyWorkload: 'maxWeeklyWorkload',
+  weeklyTeachingSessions: 'weeklyTeachingSessions',
   preferredFreeDayIndex: 'preferredFreeDayIndex',
   notes: 'notes',
   createdAt: 'createdAt',
@@ -242,6 +247,10 @@ export const ClassSectionScalarFieldEnum = {
   schoolId: 'schoolId',
   termId: 'termId',
   grade: 'grade',
+  gradeLevelId: 'gradeLevelId',
+  sectionLabel: 'sectionLabel',
+  generatedName: 'generatedName',
+  generatedShortCode: 'generatedShortCode',
   sectionName: 'sectionName',
   shortCode: 'shortCode',
   homeroomTeacherId: 'homeroomTeacherId',
@@ -254,6 +263,74 @@ export const ClassSectionScalarFieldEnum = {
 } as const
 
 export type ClassSectionScalarFieldEnum = (typeof ClassSectionScalarFieldEnum)[keyof typeof ClassSectionScalarFieldEnum]
+
+
+export const GradeLevelScalarFieldEnum = {
+  id: 'id',
+  schoolId: 'schoolId',
+  code: 'code',
+  name: 'name',
+  displayOrder: 'displayOrder',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type GradeLevelScalarFieldEnum = (typeof GradeLevelScalarFieldEnum)[keyof typeof GradeLevelScalarFieldEnum]
+
+
+export const SchoolWeekConfigurationScalarFieldEnum = {
+  id: 'id',
+  schoolId: 'schoolId',
+  termId: 'termId',
+  workingDayCount: 'workingDayCount',
+  sessionsPerDay: 'sessionsPerDay',
+  sessionDurationMinutes: 'sessionDurationMinutes',
+  firstSessionStartMinutes: 'firstSessionStartMinutes',
+  breakAfterSession: 'breakAfterSession',
+  breakDurationMinutes: 'breakDurationMinutes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SchoolWeekConfigurationScalarFieldEnum = (typeof SchoolWeekConfigurationScalarFieldEnum)[keyof typeof SchoolWeekConfigurationScalarFieldEnum]
+
+
+export const GradeCurriculumScalarFieldEnum = {
+  id: 'id',
+  schoolId: 'schoolId',
+  termId: 'termId',
+  gradeLevelId: 'gradeLevelId',
+  subjectId: 'subjectId',
+  weeklySessions: 'weeklySessions',
+  isMainSubject: 'isMainSubject',
+  allowDoubleSession: 'allowDoubleSession',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type GradeCurriculumScalarFieldEnum = (typeof GradeCurriculumScalarFieldEnum)[keyof typeof GradeCurriculumScalarFieldEnum]
+
+
+export const ClassCurriculumScalarFieldEnum = {
+  id: 'id',
+  schoolId: 'schoolId',
+  termId: 'termId',
+  classSectionId: 'classSectionId',
+  gradeCurriculumId: 'gradeCurriculumId',
+  subjectId: 'subjectId',
+  teacherId: 'teacherId',
+  weeklySessions: 'weeklySessions',
+  isMainSubject: 'isMainSubject',
+  allowDoubleSession: 'allowDoubleSession',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ClassCurriculumScalarFieldEnum = (typeof ClassCurriculumScalarFieldEnum)[keyof typeof ClassCurriculumScalarFieldEnum]
 
 
 export const AvailabilityRuleScalarFieldEnum = {

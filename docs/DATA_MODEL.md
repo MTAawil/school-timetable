@@ -203,7 +203,11 @@ referenced historical schedules.
 
 Retain existing fields and add:
 
-- weeklyTeachingSessions, required positive integer
+- weeklyTeachingSessions, non-negative integer during setup
+
+New teachers must declare a positive value before generation. The stored value
+defaults to zero only so historical teachers and incomplete setup drafts remain
+representable; readiness treats zero as incomplete.
 
 The allocated load is derived:
 
@@ -286,3 +290,18 @@ The redesigned snapshot must include:
 
 Every snapshot remains immutable, canonicalized, fingerprinted, and independent
 from database access by the Python solver.
+
+### Historical migration strategy
+
+Migration `20260728120000_supervisor_domain` is additive. It retains
+`TeachingRequirement` and every historical schedule relation unchanged while
+introducing the redesign entities. Existing teachers receive a zero
+`weeklyTeachingSessions` draft value and existing sections retain nullable
+redesign identity fields.
+
+R2-R4 create redesign data directly. R8 will provide an explicit, reviewed
+conversion workflow for supported legacy setup data. Conversion must derive
+grade templates, section identities, grade curricula, class curricula, and
+declared teacher workloads transactionally. Ambiguous legacy curricula must be
+reported for supervisor correction rather than guessed, and referenced
+historical records must never be deleted.

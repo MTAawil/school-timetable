@@ -2,8 +2,8 @@
 
 ## Current phase
 
-Stable single-school MVP complete on `main`. Supervisor workflow redesign R0 is
-active on `feature/supervisor-workflow-redesign`.
+Stable single-school MVP complete on `main`. Supervisor workflow redesign R1 is
+complete on `feature/supervisor-workflow-redesign`; R2 is the next task.
 
 ## Decisions
 
@@ -42,15 +42,14 @@ active on `feature/supervisor-workflow-redesign`.
 
 ## Active redesign execution plan
 
-Current task: R0 supervisor review. The product contract, target data model,
-solver contract, readiness codes, and ten readable acceptance fixtures are
-complete. R1 remains blocked until the supervisor approves R0.
+Current task: R2 - School Setup Workflow.
 
-1. Complete and review R0 documentation and fixtures.
-2. Create the isolated redesign database before R1.
-3. Implement R1 through R8 in the README order.
-4. Update README task statuses and this section after every completed task.
-5. Do not merge to `main` before full verification and supervisor approval.
+1. R0 documentation and fixtures are complete and approved.
+2. The isolated redesign database and additive R1 migration are complete.
+3. Implement R2 - School Setup Workflow.
+4. Continue with R2 through R8 in the README order.
+5. Update README task statuses and this section after every completed task.
+6. Do not merge to `main` before full verification and supervisor approval.
 
 ## Redesign change log
 
@@ -63,6 +62,31 @@ complete. R1 remains blocked until the supervisor approves R0.
   full-time balance, and part-time compactness solver behavior.
 - Added stable readiness codes and ten readable redesign acceptance fixtures.
 - Left the supervisor-review checklist item open and kept R1 not started.
+
+### 2026-07-28 - R0 approved and R1 started
+
+- The supervisor approved the documented R0 workflow by asking implementation
+  to continue.
+- Started R1 with the isolated redesign database requirement; no redesign
+  migration may be applied to the stable `timetable` database.
+
+### 2026-07-28 - R1 isolated domain migration
+
+- Created local `timetable_redesign` and changed this branch's local and example
+  database connection to use it.
+- Added normalized `GradeLevel`, `SchoolWeekConfiguration`,
+  `GradeCurriculum`, and `ClassCurriculum` entities.
+- Added exact teacher weekly sessions, scoped class-subject ownership, and
+  grade-specific main-subject and optional-double fields.
+- Added PostgreSQL checks for workloads, school-week values, positive
+  curriculum sessions, double eligibility, and section identity completeness.
+- Preserved all historical `TeachingRequirement` and schedule structures.
+- Confirmed the redesign migration and tables exist only in
+  `timetable_redesign`; the stable `timetable` database remains unchanged.
+- Verified formatting on changed source files, Prisma formatting, workspace
+  lint, strict TypeScript checks, and 35 unit/domain/migration tests.
+- Root `pnpm format` remains unable to scan the solver's generated
+  `.pytest_cache` under the managed Windows sandbox; targeted formatting passed.
 
 ## Phase 0 execution plan
 

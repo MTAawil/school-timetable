@@ -67,7 +67,7 @@ supervisor needs it.
 
 #### R0 - Product Contract and Acceptance Tests
 
-Status: **Awaiting supervisor review**
+Status: **Complete**
 
 - [x] Document the complete supervisor workflow in plain language.
 - [x] Define grade-template and section naming behavior.
@@ -79,22 +79,22 @@ Status: **Awaiting supervisor review**
 - [x] Add acceptance fixtures for the redesigned rules.
 - [x] Update `docs/DATA_MODEL.md`, `docs/SOLVER_CONTRACT.md`, and
       `docs/ACCEPTANCE_TESTS.md`.
-- [ ] Review the contract with the supervisor before schema or UI changes.
+- [x] Review the contract with the supervisor before schema or UI changes.
 
 Completion rule: every confirmed rule has an example and an acceptance test;
 there are no unresolved scheduling meanings hidden in implementation code.
 
 #### R1 - Isolated Database and Domain Migration
 
-Status: **Not started**
+Status: **Complete**
 
-- [ ] Create and use a separate local `timetable_redesign` database.
-- [ ] Add normalized grade, curriculum, and teacher-allocation structures.
-- [ ] Add exact weekly workload fields and database checks.
-- [ ] Enforce one teacher per class-subject.
-- [ ] Represent grade-specific main-subject and optional-double eligibility.
-- [ ] Create a new Prisma migration; never edit an applied migration.
-- [ ] Add domain and migration tests.
+- [x] Create and use a separate local `timetable_redesign` database.
+- [x] Add normalized grade, curriculum, and teacher-allocation structures.
+- [x] Add exact weekly workload fields and database checks.
+- [x] Enforce one teacher per class-subject.
+- [x] Represent grade-specific main-subject and optional-double eligibility.
+- [x] Create a new Prisma migration; never edit an applied migration.
+- [x] Add domain and migration tests.
 
 Completion rule: the new domain can represent the confirmed workflow without
 JSON substitutes for core entities, and the stable MVP database remains
@@ -211,8 +211,8 @@ and the supervisor approves the workflow.
 ### Working Status
 
 - Current branch: `feature/supervisor-workflow-redesign`
-- Current task: **R0 supervisor review**
-- Next implementation task: **R1**, only after R0 review and approval
+- Current task: **R2 - School Setup Workflow**
+- Last completed task: **R1 - Isolated Database and Domain Migration**
 - Stable MVP branch: `main`
 
 ## Architecture
@@ -264,7 +264,7 @@ pnpm prisma db seed
 The current local development connection is:
 
 ```text
-postgresql://timetable:timetable@localhost:5432/timetable
+postgresql://timetable:timetable@localhost:5432/timetable_redesign
 ```
 
 These credentials are for local development only.

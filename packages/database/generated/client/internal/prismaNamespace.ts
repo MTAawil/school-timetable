@@ -407,6 +407,10 @@ export const ModelName = {
   Subject: 'Subject',
   Room: 'Room',
   ClassSection: 'ClassSection',
+  GradeLevel: 'GradeLevel',
+  SchoolWeekConfiguration: 'SchoolWeekConfiguration',
+  GradeCurriculum: 'GradeCurriculum',
+  ClassCurriculum: 'ClassCurriculum',
   AvailabilityRule: 'AvailabilityRule',
   TeachingRequirement: 'TeachingRequirement',
   RequirementFixedSlot: 'RequirementFixedSlot',
@@ -434,7 +438,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "school" | "user" | "academicTerm" | "dayDefinition" | "periodDefinition" | "slot" | "teacher" | "subject" | "room" | "classSection" | "availabilityRule" | "teachingRequirement" | "requirementFixedSlot" | "requirementForbiddenSlot" | "constraintProfile" | "constraintWeight" | "generationJob" | "generationAlternative" | "generationDiagnostic" | "schedule" | "scheduleAssignment" | "auditLog"
+    modelProps: "school" | "user" | "academicTerm" | "dayDefinition" | "periodDefinition" | "slot" | "teacher" | "subject" | "room" | "classSection" | "gradeLevel" | "schoolWeekConfiguration" | "gradeCurriculum" | "classCurriculum" | "availabilityRule" | "teachingRequirement" | "requirementFixedSlot" | "requirementForbiddenSlot" | "constraintProfile" | "constraintWeight" | "generationJob" | "generationAlternative" | "generationDiagnostic" | "schedule" | "scheduleAssignment" | "auditLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1175,6 +1179,302 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ClassSectionCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ClassSectionCountAggregateOutputType> | number
+        }
+      }
+    }
+    GradeLevel: {
+      payload: Prisma.$GradeLevelPayload<ExtArgs>
+      fields: Prisma.GradeLevelFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.GradeLevelFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradeLevelPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.GradeLevelFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradeLevelPayload>
+        }
+        findFirst: {
+          args: Prisma.GradeLevelFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradeLevelPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.GradeLevelFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradeLevelPayload>
+        }
+        findMany: {
+          args: Prisma.GradeLevelFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradeLevelPayload>[]
+        }
+        create: {
+          args: Prisma.GradeLevelCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradeLevelPayload>
+        }
+        createMany: {
+          args: Prisma.GradeLevelCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.GradeLevelCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradeLevelPayload>[]
+        }
+        delete: {
+          args: Prisma.GradeLevelDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradeLevelPayload>
+        }
+        update: {
+          args: Prisma.GradeLevelUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradeLevelPayload>
+        }
+        deleteMany: {
+          args: Prisma.GradeLevelDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.GradeLevelUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.GradeLevelUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradeLevelPayload>[]
+        }
+        upsert: {
+          args: Prisma.GradeLevelUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradeLevelPayload>
+        }
+        aggregate: {
+          args: Prisma.GradeLevelAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateGradeLevel>
+        }
+        groupBy: {
+          args: Prisma.GradeLevelGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GradeLevelGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.GradeLevelCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GradeLevelCountAggregateOutputType> | number
+        }
+      }
+    }
+    SchoolWeekConfiguration: {
+      payload: Prisma.$SchoolWeekConfigurationPayload<ExtArgs>
+      fields: Prisma.SchoolWeekConfigurationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SchoolWeekConfigurationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SchoolWeekConfigurationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SchoolWeekConfigurationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SchoolWeekConfigurationPayload>
+        }
+        findFirst: {
+          args: Prisma.SchoolWeekConfigurationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SchoolWeekConfigurationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SchoolWeekConfigurationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SchoolWeekConfigurationPayload>
+        }
+        findMany: {
+          args: Prisma.SchoolWeekConfigurationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SchoolWeekConfigurationPayload>[]
+        }
+        create: {
+          args: Prisma.SchoolWeekConfigurationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SchoolWeekConfigurationPayload>
+        }
+        createMany: {
+          args: Prisma.SchoolWeekConfigurationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SchoolWeekConfigurationCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SchoolWeekConfigurationPayload>[]
+        }
+        delete: {
+          args: Prisma.SchoolWeekConfigurationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SchoolWeekConfigurationPayload>
+        }
+        update: {
+          args: Prisma.SchoolWeekConfigurationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SchoolWeekConfigurationPayload>
+        }
+        deleteMany: {
+          args: Prisma.SchoolWeekConfigurationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SchoolWeekConfigurationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SchoolWeekConfigurationUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SchoolWeekConfigurationPayload>[]
+        }
+        upsert: {
+          args: Prisma.SchoolWeekConfigurationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SchoolWeekConfigurationPayload>
+        }
+        aggregate: {
+          args: Prisma.SchoolWeekConfigurationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSchoolWeekConfiguration>
+        }
+        groupBy: {
+          args: Prisma.SchoolWeekConfigurationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SchoolWeekConfigurationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SchoolWeekConfigurationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SchoolWeekConfigurationCountAggregateOutputType> | number
+        }
+      }
+    }
+    GradeCurriculum: {
+      payload: Prisma.$GradeCurriculumPayload<ExtArgs>
+      fields: Prisma.GradeCurriculumFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.GradeCurriculumFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradeCurriculumPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.GradeCurriculumFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradeCurriculumPayload>
+        }
+        findFirst: {
+          args: Prisma.GradeCurriculumFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradeCurriculumPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.GradeCurriculumFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradeCurriculumPayload>
+        }
+        findMany: {
+          args: Prisma.GradeCurriculumFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradeCurriculumPayload>[]
+        }
+        create: {
+          args: Prisma.GradeCurriculumCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradeCurriculumPayload>
+        }
+        createMany: {
+          args: Prisma.GradeCurriculumCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.GradeCurriculumCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradeCurriculumPayload>[]
+        }
+        delete: {
+          args: Prisma.GradeCurriculumDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradeCurriculumPayload>
+        }
+        update: {
+          args: Prisma.GradeCurriculumUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradeCurriculumPayload>
+        }
+        deleteMany: {
+          args: Prisma.GradeCurriculumDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.GradeCurriculumUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.GradeCurriculumUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradeCurriculumPayload>[]
+        }
+        upsert: {
+          args: Prisma.GradeCurriculumUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GradeCurriculumPayload>
+        }
+        aggregate: {
+          args: Prisma.GradeCurriculumAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateGradeCurriculum>
+        }
+        groupBy: {
+          args: Prisma.GradeCurriculumGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GradeCurriculumGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.GradeCurriculumCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GradeCurriculumCountAggregateOutputType> | number
+        }
+      }
+    }
+    ClassCurriculum: {
+      payload: Prisma.$ClassCurriculumPayload<ExtArgs>
+      fields: Prisma.ClassCurriculumFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ClassCurriculumFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassCurriculumPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ClassCurriculumFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassCurriculumPayload>
+        }
+        findFirst: {
+          args: Prisma.ClassCurriculumFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassCurriculumPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ClassCurriculumFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassCurriculumPayload>
+        }
+        findMany: {
+          args: Prisma.ClassCurriculumFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassCurriculumPayload>[]
+        }
+        create: {
+          args: Prisma.ClassCurriculumCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassCurriculumPayload>
+        }
+        createMany: {
+          args: Prisma.ClassCurriculumCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ClassCurriculumCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassCurriculumPayload>[]
+        }
+        delete: {
+          args: Prisma.ClassCurriculumDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassCurriculumPayload>
+        }
+        update: {
+          args: Prisma.ClassCurriculumUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassCurriculumPayload>
+        }
+        deleteMany: {
+          args: Prisma.ClassCurriculumDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ClassCurriculumUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ClassCurriculumUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassCurriculumPayload>[]
+        }
+        upsert: {
+          args: Prisma.ClassCurriculumUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClassCurriculumPayload>
+        }
+        aggregate: {
+          args: Prisma.ClassCurriculumAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateClassCurriculum>
+        }
+        groupBy: {
+          args: Prisma.ClassCurriculumGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ClassCurriculumGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ClassCurriculumCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ClassCurriculumCountAggregateOutputType> | number
         }
       }
     }
@@ -2205,6 +2505,7 @@ export const TeacherScalarFieldEnum = {
   maxLessonsPerDay: 'maxLessonsPerDay',
   maxConsecutiveLessons: 'maxConsecutiveLessons',
   maxWeeklyWorkload: 'maxWeeklyWorkload',
+  weeklyTeachingSessions: 'weeklyTeachingSessions',
   preferredFreeDayIndex: 'preferredFreeDayIndex',
   notes: 'notes',
   createdAt: 'createdAt',
@@ -2256,6 +2557,10 @@ export const ClassSectionScalarFieldEnum = {
   schoolId: 'schoolId',
   termId: 'termId',
   grade: 'grade',
+  gradeLevelId: 'gradeLevelId',
+  sectionLabel: 'sectionLabel',
+  generatedName: 'generatedName',
+  generatedShortCode: 'generatedShortCode',
   sectionName: 'sectionName',
   shortCode: 'shortCode',
   homeroomTeacherId: 'homeroomTeacherId',
@@ -2268,6 +2573,74 @@ export const ClassSectionScalarFieldEnum = {
 } as const
 
 export type ClassSectionScalarFieldEnum = (typeof ClassSectionScalarFieldEnum)[keyof typeof ClassSectionScalarFieldEnum]
+
+
+export const GradeLevelScalarFieldEnum = {
+  id: 'id',
+  schoolId: 'schoolId',
+  code: 'code',
+  name: 'name',
+  displayOrder: 'displayOrder',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type GradeLevelScalarFieldEnum = (typeof GradeLevelScalarFieldEnum)[keyof typeof GradeLevelScalarFieldEnum]
+
+
+export const SchoolWeekConfigurationScalarFieldEnum = {
+  id: 'id',
+  schoolId: 'schoolId',
+  termId: 'termId',
+  workingDayCount: 'workingDayCount',
+  sessionsPerDay: 'sessionsPerDay',
+  sessionDurationMinutes: 'sessionDurationMinutes',
+  firstSessionStartMinutes: 'firstSessionStartMinutes',
+  breakAfterSession: 'breakAfterSession',
+  breakDurationMinutes: 'breakDurationMinutes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SchoolWeekConfigurationScalarFieldEnum = (typeof SchoolWeekConfigurationScalarFieldEnum)[keyof typeof SchoolWeekConfigurationScalarFieldEnum]
+
+
+export const GradeCurriculumScalarFieldEnum = {
+  id: 'id',
+  schoolId: 'schoolId',
+  termId: 'termId',
+  gradeLevelId: 'gradeLevelId',
+  subjectId: 'subjectId',
+  weeklySessions: 'weeklySessions',
+  isMainSubject: 'isMainSubject',
+  allowDoubleSession: 'allowDoubleSession',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type GradeCurriculumScalarFieldEnum = (typeof GradeCurriculumScalarFieldEnum)[keyof typeof GradeCurriculumScalarFieldEnum]
+
+
+export const ClassCurriculumScalarFieldEnum = {
+  id: 'id',
+  schoolId: 'schoolId',
+  termId: 'termId',
+  classSectionId: 'classSectionId',
+  gradeCurriculumId: 'gradeCurriculumId',
+  subjectId: 'subjectId',
+  teacherId: 'teacherId',
+  weeklySessions: 'weeklySessions',
+  isMainSubject: 'isMainSubject',
+  allowDoubleSession: 'allowDoubleSession',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ClassCurriculumScalarFieldEnum = (typeof ClassCurriculumScalarFieldEnum)[keyof typeof ClassCurriculumScalarFieldEnum]
 
 
 export const AvailabilityRuleScalarFieldEnum = {
@@ -2905,6 +3278,10 @@ export type GlobalOmitConfig = {
   subject?: Prisma.SubjectOmit
   room?: Prisma.RoomOmit
   classSection?: Prisma.ClassSectionOmit
+  gradeLevel?: Prisma.GradeLevelOmit
+  schoolWeekConfiguration?: Prisma.SchoolWeekConfigurationOmit
+  gradeCurriculum?: Prisma.GradeCurriculumOmit
+  classCurriculum?: Prisma.ClassCurriculumOmit
   availabilityRule?: Prisma.AvailabilityRuleOmit
   teachingRequirement?: Prisma.TeachingRequirementOmit
   requirementFixedSlot?: Prisma.RequirementFixedSlotOmit

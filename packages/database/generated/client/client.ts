@@ -24,7 +24,7 @@ export * as $Enums from './enums'
 export * from "./enums"
 /**
  * ## Prisma Client
- * 
+ *
  * Type-safe database client for TypeScript
  * @example
  * ```
@@ -34,7 +34,7 @@ export * from "./enums"
  * // Fetch zero or more Schools
  * const schools = await prisma.school.findMany()
  * ```
- * 
+ *
  * Read more in our [docs](https://pris.ly/d/client).
  */
 export const PrismaClient = $Class.getPrismaClientClass()
@@ -43,17 +43,17 @@ export { Prisma }
 
 /**
  * Model School
- * 
+ *
  */
 export type School = Prisma.SchoolModel
 /**
  * Model User
- * 
+ *
  */
 export type User = Prisma.UserModel
 /**
  * Model AcademicTerm
- * 
+ *
  */
 export type AcademicTerm = Prisma.AcademicTermModel
 /**
@@ -91,6 +91,26 @@ export type Room = Prisma.RoomModel
  * 
  */
 export type ClassSection = Prisma.ClassSectionModel
+/**
+ * Model GradeLevel
+ *
+ */
+export type GradeLevel = Prisma.GradeLevelModel
+/**
+ * Model SchoolWeekConfiguration
+ *
+ */
+export type SchoolWeekConfiguration = Prisma.SchoolWeekConfigurationModel
+/**
+ * Model GradeCurriculum
+ *
+ */
+export type GradeCurriculum = Prisma.GradeCurriculumModel
+/**
+ * Model ClassCurriculum
+ *
+ */
+export type ClassCurriculum = Prisma.ClassCurriculumModel
 /**
  * Model AvailabilityRule
  * 

@@ -71,16 +71,20 @@ enum AssignmentSource {
 }
 
 model School {
-  id                     String                  @id @default(uuid()) @db.Uuid
+  id                     String                    @id @default(uuid()) @db.Uuid
   name                   String
-  timezone               String                  @default("Asia/Beirut")
-  createdAt              DateTime                @default(now())
-  updatedAt              DateTime                @updatedAt
+  timezone               String                    @default("Asia/Beirut")
+  createdAt              DateTime                  @default(now())
+  updatedAt              DateTime                  @updatedAt
   deletedAt              DateTime?
   users                  User[]
   terms                  AcademicTerm[]
   teachers               Teacher[]
   subjects               Subject[]
+  gradeLevels            GradeLevel[]
+  gradeCurricula         GradeCurriculum[]
+  classCurricula         ClassCurriculum[]
+  weekConfigurations     SchoolWeekConfiguration[]
   rooms                  Room[]
   classSections          ClassSection[]
   requirements           TeachingRequirement[]
@@ -114,22 +118,25 @@ model User {
 }
 
 model AcademicTerm {
-  id                 String                @id @default(uuid()) @db.Uuid
-  schoolId           String                @db.Uuid
+  id                 String                   @id @default(uuid()) @db.Uuid
+  schoolId           String                   @db.Uuid
   name               String
-  startsOn           DateTime              @db.Date
-  endsOn             DateTime              @db.Date
-  isActive           Boolean               @default(false)
-  roomsEnabled       Boolean               @default(false)
-  createdAt          DateTime              @default(now())
-  updatedAt          DateTime              @updatedAt
+  startsOn           DateTime                 @db.Date
+  endsOn             DateTime                 @db.Date
+  isActive           Boolean                  @default(false)
+  roomsEnabled       Boolean                  @default(false)
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
   deletedAt          DateTime?
-  school             School                @relation(fields: [schoolId], references: [id], onDelete: Restrict)
+  school             School                   @relation(fields: [schoolId], references: [id], onDelete: Restrict)
   days               DayDefinition[]
   periods            PeriodDefinition[]
   slots              Slot[]
   classSections      ClassSection[]
   requirements       TeachingRequirement[]
+  weekConfiguration  SchoolWeekConfiguration?
+  gradeCurricula     GradeCurriculum[]
+  classCurricula     ClassCurriculum[]
   availabilityRules  AvailabilityRule[]
   constraintProfiles ConstraintProfile[]
   schedules          Schedule[]
@@ -201,25 +208,27 @@ model Slot {
 }
 
 model Teacher {
-  id                    String                @id @default(uuid()) @db.Uuid
-  schoolId              String                @db.Uuid
-  name                  String
-  shortCode             String
-  employmentType        EmploymentType        @default(FULL_TIME)
-  isActive              Boolean               @default(true)
-  minLessonsPerDay      Int?
-  maxLessonsPerDay      Int?
-  maxConsecutiveLessons Int?
-  maxWeeklyWorkload     Int?
-  preferredFreeDayIndex Int?
-  notes                 String?
-  createdAt             DateTime              @default(now())
-  updatedAt             DateTime              @updatedAt
-  deletedAt             DateTime?
-  school                School                @relation(fields: [schoolId], references: [id], onDelete: Restrict)
-  homeroomSections      ClassSection[]        @relation("HomeroomTeacher")
-  requirements          TeachingRequirement[]
-  assignments           ScheduleAssignment[]
+  id                     String                @id @default(uuid()) @db.Uuid
+  schoolId               String                @db.Uuid
+  name                   String
+  shortCode              String
+  employmentType         EmploymentType        @default(FULL_TIME)
+  isActive               Boolean               @default(true)
+  minLessonsPerDay       Int?
+  maxLessonsPerDay       Int?
+  maxConsecutiveLessons  Int?
+  maxWeeklyWorkload      Int?
+  weeklyTeachingSessions Int                   @default(0)
+  preferredFreeDayIndex  Int?
+  notes                  String?
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
+  deletedAt              DateTime?
+  school                 School                @relation(fields: [schoolId], references: [id], onDelete: Restrict)
+  homeroomSections       ClassSection[]        @relation("HomeroomTeacher")
+  requirements           TeachingRequirement[]
+  classCurricula         ClassCurriculum[]
+  assignments            ScheduleAssignment[]
 
   @@unique([schoolId, shortCode])
   @@unique([id, schoolId])
@@ -243,6 +252,8 @@ model Subject {
   deletedAt                   DateTime?
   school                      School                @relation(fields: [schoolId], references: [id], onDelete: Restrict)
   requirements                TeachingRequirement[]
+  gradeCurricula              GradeCurriculum[]
+  classCurricula              ClassCurriculum[]
 
   @@unique([schoolId, shortCode])
   @@unique([id, schoolId])
@@ -271,28 +282,125 @@ model Room {
 }
 
 model ClassSection {
-  id                String                @id @default(uuid()) @db.Uuid
-  schoolId          String                @db.Uuid
-  termId            String                @db.Uuid
-  grade             String
-  sectionName       String
-  shortCode         String
-  homeroomTeacherId String?               @db.Uuid
-  fixedRoomId       String?               @db.Uuid
-  maxLessonsPerDay  Int?
-  isActive          Boolean               @default(true)
-  createdAt         DateTime              @default(now())
-  updatedAt         DateTime              @updatedAt
-  deletedAt         DateTime?
-  school            School                @relation(fields: [schoolId], references: [id], onDelete: Restrict)
-  term              AcademicTerm          @relation(fields: [termId, schoolId], references: [id, schoolId], onDelete: Restrict)
-  homeroomTeacher   Teacher?              @relation("HomeroomTeacher", fields: [homeroomTeacherId, schoolId], references: [id, schoolId], onDelete: Restrict)
-  fixedRoom         Room?                 @relation("FixedHomeroomRoom", fields: [fixedRoomId, schoolId], references: [id, schoolId], onDelete: Restrict)
-  requirements      TeachingRequirement[]
-  assignments       ScheduleAssignment[]
+  id                 String                @id @default(uuid()) @db.Uuid
+  schoolId           String                @db.Uuid
+  termId             String                @db.Uuid
+  grade              String
+  gradeLevelId       String?               @db.Uuid
+  sectionLabel       String?
+  generatedName      String?
+  generatedShortCode String?
+  sectionName        String
+  shortCode          String
+  homeroomTeacherId  String?               @db.Uuid
+  fixedRoomId        String?               @db.Uuid
+  maxLessonsPerDay   Int?
+  isActive           Boolean               @default(true)
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+  deletedAt          DateTime?
+  school             School                @relation(fields: [schoolId], references: [id], onDelete: Restrict)
+  term               AcademicTerm          @relation(fields: [termId, schoolId], references: [id, schoolId], onDelete: Restrict)
+  homeroomTeacher    Teacher?              @relation("HomeroomTeacher", fields: [homeroomTeacherId, schoolId], references: [id, schoolId], onDelete: Restrict)
+  fixedRoom          Room?                 @relation("FixedHomeroomRoom", fields: [fixedRoomId, schoolId], references: [id, schoolId], onDelete: Restrict)
+  gradeLevel         GradeLevel?           @relation(fields: [gradeLevelId, schoolId], references: [id, schoolId], onDelete: Restrict)
+  classCurricula     ClassCurriculum[]
+  requirements       TeachingRequirement[]
+  assignments        ScheduleAssignment[]
 
   @@unique([schoolId, termId, shortCode])
+  @@unique([schoolId, termId, gradeLevelId, sectionLabel])
   @@unique([id, termId, schoolId])
+  @@index([schoolId, termId, isActive])
+}
+
+model GradeLevel {
+  id             String            @id @default(uuid()) @db.Uuid
+  schoolId       String            @db.Uuid
+  code           String
+  name           String
+  displayOrder   Int
+  isActive       Boolean           @default(true)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  deletedAt      DateTime?
+  school         School            @relation(fields: [schoolId], references: [id], onDelete: Restrict)
+  classSections  ClassSection[]
+  gradeCurricula GradeCurriculum[]
+
+  @@unique([schoolId, code])
+  @@unique([id, schoolId])
+  @@index([schoolId, displayOrder])
+  @@index([schoolId, isActive])
+}
+
+model SchoolWeekConfiguration {
+  id                       String       @id @default(uuid()) @db.Uuid
+  schoolId                 String       @db.Uuid
+  termId                   String       @db.Uuid
+  workingDayCount          Int
+  sessionsPerDay           Int
+  sessionDurationMinutes   Int
+  firstSessionStartMinutes Int
+  breakAfterSession        Int
+  breakDurationMinutes     Int
+  createdAt                DateTime     @default(now())
+  updatedAt                DateTime     @updatedAt
+  school                   School       @relation(fields: [schoolId], references: [id], onDelete: Restrict)
+  term                     AcademicTerm @relation(fields: [termId, schoolId], references: [id, schoolId], onDelete: Cascade)
+
+  @@unique([id, schoolId, termId])
+  @@unique([termId, schoolId])
+  @@index([schoolId, termId])
+}
+
+model GradeCurriculum {
+  id                 String            @id @default(uuid()) @db.Uuid
+  schoolId           String            @db.Uuid
+  termId             String            @db.Uuid
+  gradeLevelId       String            @db.Uuid
+  subjectId          String            @db.Uuid
+  weeklySessions     Int
+  isMainSubject      Boolean           @default(false)
+  allowDoubleSession Boolean           @default(false)
+  isActive           Boolean           @default(true)
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  school             School            @relation(fields: [schoolId], references: [id], onDelete: Restrict)
+  term               AcademicTerm      @relation(fields: [termId, schoolId], references: [id, schoolId], onDelete: Cascade)
+  gradeLevel         GradeLevel        @relation(fields: [gradeLevelId, schoolId], references: [id, schoolId], onDelete: Restrict)
+  subject            Subject           @relation(fields: [subjectId, schoolId], references: [id, schoolId], onDelete: Restrict)
+  classCurricula     ClassCurriculum[]
+
+  @@unique([schoolId, termId, gradeLevelId, subjectId])
+  @@unique([id, schoolId, termId, subjectId])
+  @@index([schoolId, termId, isActive])
+}
+
+model ClassCurriculum {
+  id                 String          @id @default(uuid()) @db.Uuid
+  schoolId           String          @db.Uuid
+  termId             String          @db.Uuid
+  classSectionId     String          @db.Uuid
+  gradeCurriculumId  String          @db.Uuid
+  subjectId          String          @db.Uuid
+  teacherId          String?         @db.Uuid
+  weeklySessions     Int
+  isMainSubject      Boolean         @default(false)
+  allowDoubleSession Boolean         @default(false)
+  isActive           Boolean         @default(true)
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  school             School          @relation(fields: [schoolId], references: [id], onDelete: Restrict)
+  term               AcademicTerm    @relation(fields: [termId, schoolId], references: [id, schoolId], onDelete: Cascade)
+  classSection       ClassSection    @relation(fields: [classSectionId, termId, schoolId], references: [id, termId, schoolId], onDelete: Restrict)
+  gradeCurriculum    GradeCurriculum @relation(fields: [gradeCurriculumId, schoolId, termId, subjectId], references: [id, schoolId, termId, subjectId], onDelete: Restrict)
+  subject            Subject         @relation(fields: [subjectId, schoolId], references: [id, schoolId], onDelete: Restrict)
+  teacher            Teacher?        @relation(fields: [teacherId, schoolId], references: [id, schoolId], onDelete: Restrict)
+
+  @@unique([schoolId, termId, classSectionId, subjectId])
+  @@unique([id, schoolId, termId])
+  @@index([schoolId, termId, teacherId])
   @@index([schoolId, termId, isActive])
 }
 
