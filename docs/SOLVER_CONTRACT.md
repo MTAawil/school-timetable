@@ -94,3 +94,99 @@ Diagnostics run in this order:
 Diagnostic relaxation is never a valid production schedule. Diagnostic results
 contain no selectable alternatives and are persisted separately from feasible
 generation alternatives.
+
+## Supervisor redesign solver semantics
+
+This section replaces fixed-duration curriculum semantics for redesign
+snapshots. Historical schema-version-1 snapshots remain reproducible.
+
+### Demand unit
+
+`weeklySessions` is the number of physical teaching sessions required for one
+class-subject. Every selected solver variable consumes one physical session.
+
+An optional double is not a duration-two requirement. It is two physical
+sessions of the same class-subject selected on the same day in adjacent
+teaching periods.
+
+This distinction allows five weekly Mathematics sessions to become:
+
+- five singles
+- one double and three singles
+- two doubles and one single
+
+without changing curriculum demand.
+
+### Hard constraints
+
+The redesigned solver must enforce:
+
+1. Exact physical `weeklySessions` for every complete class-subject.
+2. No teacher collision.
+3. No class collision.
+4. Teacher `UNAVAILABLE` periods.
+5. Existing fixed and locked positions.
+6. Optional teacher maximum sessions per day.
+7. Optional teacher maximum consecutive sessions.
+8. A non-main class-subject has at most one session per day.
+9. A main class-subject has at most two sessions per day.
+10. When a main class-subject has two sessions in one day, the sessions are
+    consecutive teaching periods and do not cross the break.
+11. Two sessions in one day are forbidden when `allowDoubleSession` is false.
+12. Every class-subject has exactly one teacher before the request is accepted.
+13. Every teacher's allocated curriculum sessions equal their declared weekly
+    teaching sessions before the request is accepted.
+
+Rooms are omitted from new redesign snapshots. Existing schema-version-1 room
+behavior remains unchanged for historical reproducibility.
+
+### Optional-double modeling
+
+The CP-SAT model may use one Boolean variable for every compatible
+class-subject, session occurrence, day, and teaching period.
+
+For a main subject on a given day:
+
+- sum of selected sessions is at most two
+- if the sum is two, exactly one valid adjacent pair indicator is true
+
+Valid adjacency is defined by teaching-session order, not raw clock minutes.
+The break separates adjacency even when period indices are numerically
+consecutive.
+
+The solver must not force an allowed double to occur.
+
+### Full-time workload balance
+
+For each full-time teacher and day:
+
+```text
+absolute(daily sessions * working day count - weekly teaching sessions)
+```
+
+The named soft penalty `FULL_TIME_DAILY_BALANCE` is the sum of these integer
+deviations. A hard daily maximum, when configured, remains separate and can
+never be traded for a lower balance penalty.
+
+### Part-time compactness
+
+Part-time teachers retain named soft penalties for:
+
+- internal gaps
+- unnecessary separate teaching blocks
+- teaching on more days when an equally feasible compact pattern exists
+
+Explicit availability always overrides compactness.
+
+### Post-solve validation
+
+The independent validator must additionally prove:
+
+- exact physical curriculum session totals
+- non-main daily uniqueness
+- main daily maximum of two
+- adjacency of every same-day main pair
+- no pair when double sessions are disabled
+- declared and allocated teacher totals in the input contract
+
+A violation returns `FAILED`; it is never repaired or ignored after solving.

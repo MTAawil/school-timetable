@@ -1,0 +1,48 @@
+{
+  "id": "R01",
+  "name": "Complete supervisor setup",
+  "schoolWeek": {
+    "workingDays": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+    "sessionsPerDay": 8,
+    "sessionDurationMinutes": 50,
+    "firstSessionStart": "08:00",
+    "breakAfterSession": 4,
+    "breakDurationMinutes": 20
+  },
+  "grades": [{ "code": "G7", "sectionLabels": ["A", "B"] }],
+  "curriculum": [
+    {
+      "gradeCode": "G7",
+      "subjectCode": "MATH",
+      "weeklySessions": 5,
+      "isMainSubject": true,
+      "allowDoubleSession": true
+    },
+    {
+      "gradeCode": "G7",
+      "subjectCode": "HISTORY",
+      "weeklySessions": 2,
+      "isMainSubject": false,
+      "allowDoubleSession": false
+    }
+  ],
+  "teachers": [
+    {
+      "code": "RAWAN",
+      "employmentType": "FULL_TIME",
+      "declaredWeeklySessions": 10
+    },
+    {
+      "code": "SAMIR",
+      "employmentType": "PART_TIME",
+      "declaredWeeklySessions": 4
+    }
+  ],
+  "allocations": [
+    { "classCode": "G7-A", "subjectCode": "MATH", "teacherCode": "RAWAN" },
+    { "classCode": "G7-B", "subjectCode": "MATH", "teacherCode": "RAWAN" },
+    { "classCode": "G7-A", "subjectCode": "HISTORY", "teacherCode": "SAMIR" },
+    { "classCode": "G7-B", "subjectCode": "HISTORY", "teacherCode": "SAMIR" }
+  ],
+  "expected": { "ready": true }
+}

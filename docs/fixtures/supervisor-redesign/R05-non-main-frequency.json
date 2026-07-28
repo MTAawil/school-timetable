@@ -1,0 +1,16 @@
+{
+  "id": "R05",
+  "name": "Impossible non-main frequency",
+  "workingDayCount": 5,
+  "classCode": "G7-A",
+  "subjectCode": "HISTORY",
+  "weeklySessions": 6,
+  "isMainSubject": false,
+  "allowDoubleSession": false,
+  "expected": {
+    "ready": false,
+    "code": "NON_MAIN_DAILY_CAPACITY_SHORTAGE",
+    "required": 6,
+    "available": 5
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": "R03",
+  "name": "Uncovered class-subject",
+  "classCode": "G7-A",
+  "subjectCode": "HISTORY",
+  "weeklySessions": 2,
+  "teacherCode": null,
+  "expected": {
+    "ready": false,
+    "code": "CLASS_SUBJECT_UNASSIGNED"
+  }
+}

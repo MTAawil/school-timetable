@@ -1,0 +1,16 @@
+{
+  "id": "R08",
+  "name": "Main-subject daily capacity impossible",
+  "workingDayCount": 5,
+  "classCode": "G7-A",
+  "subjectCode": "MATH",
+  "weeklySessions": 11,
+  "isMainSubject": true,
+  "allowDoubleSession": true,
+  "expected": {
+    "ready": false,
+    "code": "MAIN_DAILY_CAPACITY_SHORTAGE",
+    "required": 11,
+    "available": 10
+  }
+}

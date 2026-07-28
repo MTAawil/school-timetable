@@ -1,0 +1,15 @@
+{
+  "id": "R09",
+  "name": "Full-time weekly balance scoring",
+  "workingDayCount": 5,
+  "declaredWeeklySessions": 25,
+  "candidates": [
+    { "id": "A", "dailySessions": [5, 5, 5, 5, 5] },
+    { "id": "B", "dailySessions": [6, 5, 5, 5, 4] },
+    { "id": "C", "dailySessions": [7, 7, 5, 3, 3] }
+  ],
+  "expected": {
+    "penaltyOrder": ["A", "B", "C"],
+    "candidateAFullTimeDailyBalance": 0
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "id": "R04",
+  "name": "Duplicate class-subject ownership",
+  "classCode": "G7-A",
+  "subjectCode": "MATH",
+  "teacherCodes": ["RAWAN", "NOUR"],
+  "expected": {
+    "ready": false,
+    "code": "CLASS_SUBJECT_MULTIPLE_TEACHERS"
+  }
+}

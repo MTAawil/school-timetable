@@ -19,6 +19,9 @@ the plan is explicitly revised and documented here.
 The stable original MVP remains on `main`. The redesign branch is merged only
 after the complete workflow passes automated tests and supervisor review.
 
+The detailed plain-language contract is in
+[`docs/SUPERVISOR_WORKFLOW.md`](docs/SUPERVISOR_WORKFLOW.md).
+
 ### Confirmed Product Rules
 
 - Every school day uses the same session structure.
@@ -64,17 +67,17 @@ supervisor needs it.
 
 #### R0 - Product Contract and Acceptance Tests
 
-Status: **In progress**
+Status: **Awaiting supervisor review**
 
-- [ ] Document the complete supervisor workflow in plain language.
-- [ ] Define grade-template and section naming behavior.
-- [ ] Define the default editable subject catalogue.
-- [ ] Define the curriculum matrix and main-subject behavior.
-- [ ] Define exact teacher workload and allocation rules.
-- [ ] Define hard restrictions and soft preferences.
-- [ ] Define readiness errors and stable codes.
-- [ ] Add acceptance fixtures for the redesigned rules.
-- [ ] Update `docs/DATA_MODEL.md`, `docs/SOLVER_CONTRACT.md`, and
+- [x] Document the complete supervisor workflow in plain language.
+- [x] Define grade-template and section naming behavior.
+- [x] Define the default editable subject catalogue.
+- [x] Define the curriculum matrix and main-subject behavior.
+- [x] Define exact teacher workload and allocation rules.
+- [x] Define hard restrictions and soft preferences.
+- [x] Define readiness errors and stable codes.
+- [x] Add acceptance fixtures for the redesigned rules.
+- [x] Update `docs/DATA_MODEL.md`, `docs/SOLVER_CONTRACT.md`, and
       `docs/ACCEPTANCE_TESTS.md`.
 - [ ] Review the contract with the supervisor before schema or UI changes.
 
@@ -208,7 +211,7 @@ and the supervisor approves the workflow.
 ### Working Status
 
 - Current branch: `feature/supervisor-workflow-redesign`
-- Current task: **R0 - Product Contract and Acceptance Tests**
+- Current task: **R0 supervisor review**
 - Next implementation task: **R1**, only after R0 review and approval
 - Stable MVP branch: `main`
 

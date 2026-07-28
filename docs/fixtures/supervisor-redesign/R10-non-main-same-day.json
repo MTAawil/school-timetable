@@ -1,0 +1,15 @@
+{
+  "id": "R10",
+  "name": "Non-main post-solve rejection",
+  "classCode": "G7-A",
+  "subjectCode": "HISTORY",
+  "isMainSubject": false,
+  "candidateAssignments": [
+    { "dayIndex": 0, "sessionIndex": 1 },
+    { "dayIndex": 0, "sessionIndex": 5 }
+  ],
+  "expected": {
+    "valid": false,
+    "code": "SUBJECT_DAILY_REPEAT:G7-A:HISTORY"
+  }
+}

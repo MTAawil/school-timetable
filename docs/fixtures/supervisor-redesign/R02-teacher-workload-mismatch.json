@@ -1,0 +1,16 @@
+{
+  "id": "R02",
+  "name": "Exact teacher workload mismatch",
+  "workingDayCount": 5,
+  "teacher": {
+    "code": "RAWAN",
+    "declaredWeeklySessions": 9,
+    "allocatedWeeklySessions": 10
+  },
+  "expected": {
+    "ready": false,
+    "code": "TEACHER_WORKLOAD_MISMATCH",
+    "declared": 9,
+    "allocated": 10
+  }
+}

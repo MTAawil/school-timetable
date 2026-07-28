@@ -1,0 +1,16 @@
+{
+  "id": "R07",
+  "name": "Required same-day pair is disabled",
+  "workingDayCount": 5,
+  "classCode": "G7-A",
+  "subjectCode": "MATH",
+  "weeklySessions": 6,
+  "isMainSubject": true,
+  "allowDoubleSession": false,
+  "expected": {
+    "ready": false,
+    "code": "DOUBLE_REQUIRED_BUT_DISABLED",
+    "required": 6,
+    "available": 5
+  }
+}

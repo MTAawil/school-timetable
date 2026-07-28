@@ -108,3 +108,100 @@ A part-time teacher teaches three lessons in one day.
 Expected:
 
 - Compact placement has lower penalty than placements containing internal gaps.
+
+## Supervisor redesign fixtures
+
+The readable JSON sources live under `docs/fixtures/supervisor-redesign/`. R0
+defines their contract; R1-R6 move applicable fixtures into executable domain,
+integration, and solver tests without changing their meanings.
+
+### Stable redesign readiness codes
+
+| Code | Meaning |
+| --- | --- |
+| `SCHOOL_WEEK_INCOMPLETE` | Working days, sessions, duration, or break configuration is missing. |
+| `BREAK_CONFIGURATION_INVALID` | The break is not between teaching sessions or has invalid duration. |
+| `CURRICULUM_EMPTY` | No active grade has required subject sessions. |
+| `CURRICULUM_EXCEEDS_CLASS_CAPACITY` | A class curriculum exceeds its physical weekly capacity. |
+| `CLASS_SUBJECT_UNASSIGNED` | A class-subject has no teacher. |
+| `CLASS_SUBJECT_MULTIPLE_TEACHERS` | Multiple teachers claim one class-subject. |
+| `TEACHER_WORKLOAD_MISMATCH` | Allocated sessions do not exactly equal declared workload. |
+| `NON_MAIN_DAILY_CAPACITY_SHORTAGE` | A non-main subject requires more sessions than working days. |
+| `DOUBLE_REQUIRED_BUT_DISABLED` | A main subject needs a same-day pair, but doubles are disabled. |
+| `MAIN_DAILY_CAPACITY_SHORTAGE` | Main-subject demand exceeds two sessions per working day. |
+| `TEACHER_CAPACITY_SHORTAGE` | Hard availability or limits provide insufficient teacher capacity. |
+
+Every blocking issue includes related IDs, required and actual or available
+values, a plain-language summary, and a correction link.
+
+### R01 - complete supervisor setup
+
+- Five days, eight sessions per day, and one break after session four.
+- Two G7 sections.
+- Mathematics is main, requires five sessions, and allows doubles.
+- History is non-main and requires two sessions.
+- Every class-subject has one teacher.
+- Teacher declared and allocated workloads match.
+
+Expected: readiness succeeds and every section receives exact curriculum
+sessions in a hard-valid schedule.
+
+### R02 - exact teacher workload mismatch
+
+Rawan declares nine sessions while allocations total ten.
+
+Expected: `TEACHER_WORKLOAD_MISMATCH`, declared 9, allocated 10, and no solver
+job.
+
+### R03 - uncovered class-subject
+
+G7-A requires History, but no teacher owns it.
+
+Expected: `CLASS_SUBJECT_UNASSIGNED` identifying G7-A and History.
+
+### R04 - duplicate class-subject ownership
+
+Two teachers claim G7-A Mathematics.
+
+Expected: `CLASS_SUBJECT_MULTIPLE_TEACHERS`; persistence and generation are
+rejected.
+
+### R05 - impossible non-main frequency
+
+A non-main subject requires six sessions over five days.
+
+Expected: `NON_MAIN_DAILY_CAPACITY_SHORTAGE`, required 6, available 5.
+
+### R06 - optional main-subject double
+
+Main Mathematics requires six sessions over five days and allows doubles.
+
+Expected: feasible; at least one adjacent pair, no day above two sessions, and
+no pair crosses the break.
+
+### R07 - required pair disabled
+
+Main Mathematics requires six sessions over five days, but doubles are disabled.
+
+Expected: `DOUBLE_REQUIRED_BUT_DISABLED`.
+
+### R08 - main-subject daily capacity impossible
+
+Main Mathematics requires eleven sessions over five days.
+
+Expected: `MAIN_DAILY_CAPACITY_SHORTAGE`, required 11, available 10.
+
+### R09 - full-time balance scoring
+
+A full-time teacher has 25 weekly sessions. Compare `5,5,5,5,5`,
+`6,5,5,5,4`, and `7,7,5,3,3`.
+
+Expected: penalties increase in that order and the perfectly balanced candidate
+has zero `FULL_TIME_DAILY_BALANCE` penalty.
+
+### R10 - non-main post-solve rejection
+
+A candidate places two non-main History sessions for G7-A on Monday.
+
+Expected: independent validation rejects it with
+`SUBJECT_DAILY_REPEAT:G7-A:HISTORY`.

@@ -42,13 +42,27 @@ active on `feature/supervisor-workflow-redesign`.
 
 ## Active redesign execution plan
 
-Current task: R0 - Product Contract and Acceptance Tests.
+Current task: R0 supervisor review. The product contract, target data model,
+solver contract, readiness codes, and ten readable acceptance fixtures are
+complete. R1 remains blocked until the supervisor approves R0.
 
 1. Complete and review R0 documentation and fixtures.
 2. Create the isolated redesign database before R1.
 3. Implement R1 through R8 in the README order.
 4. Update README task statuses and this section after every completed task.
 5. Do not merge to `main` before full verification and supervisor approval.
+
+## Redesign change log
+
+### 2026-07-28 - R0 product contract prepared for review
+
+- Documented the complete supervisor workflow in
+  `docs/SUPERVISOR_WORKFLOW.md`.
+- Defined the target normalized data model without applying a migration.
+- Defined exact workload, daily subject frequency, optional double-session,
+  full-time balance, and part-time compactness solver behavior.
+- Added stable readiness codes and ten readable redesign acceptance fixtures.
+- Left the supervisor-review checklist item open and kept R1 not started.
 
 ## Phase 0 execution plan
 

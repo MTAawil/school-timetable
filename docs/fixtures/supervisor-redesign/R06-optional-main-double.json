@@ -1,0 +1,15 @@
+{
+  "id": "R06",
+  "name": "Optional main-subject double",
+  "workingDayCount": 5,
+  "classCode": "G7-A",
+  "subjectCode": "MATH",
+  "weeklySessions": 6,
+  "isMainSubject": true,
+  "allowDoubleSession": true,
+  "expected": {
+    "feasible": true,
+    "minimumAdjacentPairs": 1,
+    "maximumSessionsPerDay": 2
+  }
+}
