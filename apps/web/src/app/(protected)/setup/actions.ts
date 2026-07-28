@@ -374,42 +374,6 @@ export async function saveSectionNames(formData: FormData): Promise<void> {
   redirect("/setup?saved=names");
 }
 
-const teacherSchema = z.object({
-  name: z.string().trim().min(2).max(100),
-  shortCode: z.string().trim().min(1).max(12).toUpperCase(),
-  employmentType: z.enum(["FULL_TIME", "PART_TIME"]),
-  maxLessonsPerDay: z.number().int().positive().nullable(),
-  maxConsecutiveLessons: z.number().int().positive().nullable(),
-});
-
-export async function saveTeacher(formData: FormData): Promise<void> {
-  const user = await verifySession();
-  const input = teacherSchema.parse({
-    name: formData.get("name"),
-    shortCode: formData.get("shortCode"),
-    employmentType: formData.get("employmentType"),
-    maxLessonsPerDay: optionalInteger(formData.get("maxLessonsPerDay")),
-    maxConsecutiveLessons: optionalInteger(
-      formData.get("maxConsecutiveLessons"),
-    ),
-  });
-  const id = optionalText(formData.get("id"));
-  const db = getDatabase();
-  if (id) {
-    await db.teacher.updateMany({
-      where: {
-        id: idSchema.parse(id),
-        schoolId: user.schoolId,
-        deletedAt: null,
-      },
-      data: input,
-    });
-  } else {
-    await db.teacher.create({ data: { schoolId: user.schoolId, ...input } });
-  }
-  revalidatePath("/teachers");
-}
-
 const subjectSchema = z.object({
   name: z.string().trim().min(2).max(100),
   shortCode: z.string().trim().min(1).max(12).toUpperCase(),

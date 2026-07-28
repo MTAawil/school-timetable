@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./curriculum": "./src/curriculum.ts"
+    "./curriculum": "./src/curriculum.ts",
+    "./teacher-allocation": "./src/teacher-allocation.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",

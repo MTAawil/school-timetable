@@ -2,8 +2,8 @@
 
 ## Current phase
 
-Stable single-school MVP complete on `main`. Supervisor workflow redesign R3 is
-complete on `feature/supervisor-workflow-redesign`; R4 is the next task.
+Stable single-school MVP complete on `main`. Supervisor workflow redesign R4 is
+complete on `feature/supervisor-workflow-redesign`; R5 is the next task.
 
 ## Decisions
 
@@ -42,15 +42,16 @@ complete on `feature/supervisor-workflow-redesign`; R4 is the next task.
 
 ## Active redesign execution plan
 
-Current task: R4 - Teacher and Teaching Allocation Workflow.
+Current task: R5 - Teacher Restrictions.
 
 1. R0 documentation and fixtures are complete and approved.
 2. The isolated redesign database and additive R1 migration are complete.
 3. R2 - School Setup Workflow is complete.
 4. R3 - Subjects and Curriculum Matrix is complete.
-5. Implement R4 through R8 in the README order.
-6. Update README task statuses and this section after every completed task.
-7. Do not merge to `main` before full verification and supervisor approval.
+5. R4 - Teacher and Teaching Allocation Workflow is complete.
+6. Implement R5 through R8 in the README order.
+7. Update README task statuses and this section after every completed task.
+8. Do not merge to `main` before full verification and supervisor approval.
 
 ## Redesign change log
 
@@ -130,6 +131,27 @@ Current task: R4 - Teacher and Teaching Allocation Workflow.
 - Updated School Setup so sections created after curriculum configuration
   inherit all active grade curriculum immediately.
 - Verified formatting, lint, strict TypeScript checks, 43
+  unit/domain/migration/UI tests, and the 19-route production build.
+
+### 2026-07-28 - R4 teachers and teaching allocation
+
+- Replaced the legacy teacher list with one-at-a-time teacher entry and editable
+  profiles for name, code, full-time/part-time status, exact weekly sessions,
+  and optional daily and consecutive hard limits.
+- Added a live teaching-assignment board covering every active class-subject.
+- Inherits assignment session values from class curriculum so teacher load
+  cannot diverge through a separately typed allocation value.
+- Displays declared, allocated, remaining, and excessive sessions for every
+  teacher while assignments are edited.
+- Displays uncovered class-subject totals and exact-load progress immediately.
+- Preserves one-teacher ownership structurally through the single
+  `ClassCurriculum.teacherId` field and validates every submitted teacher
+  against the authenticated school.
+- Rejects stale allocation forms transactionally instead of partially applying
+  an outdated class-subject list.
+- Added shared domain tests for exact, under, and excessive workloads plus a UI
+  test for uncovered and excessive states.
+- Verified formatting, lint, strict TypeScript checks, 46
   unit/domain/migration/UI tests, and the 19-route production build.
 
 ## Phase 0 execution plan

@@ -131,15 +131,15 @@ shows missing or impossible curriculum values immediately.
 
 #### R4 - Teacher and Teaching Allocation Workflow
 
-Status: **Not started**
+Status: **Complete**
 
-- [ ] Add teachers one at a time.
-- [ ] Record full-time or part-time status.
-- [ ] Record exact weekly teaching sessions.
-- [ ] Allocate one teacher to each class-subject.
-- [ ] Show allocated, required, remaining, and excessive teacher load.
-- [ ] Show uncovered and over-allocated class curriculum.
-- [ ] Prevent ambiguous shared ownership of a class-subject.
+- [x] Add teachers one at a time.
+- [x] Record full-time or part-time status.
+- [x] Record exact weekly teaching sessions.
+- [x] Allocate one teacher to each class-subject.
+- [x] Show allocated, required, remaining, and excessive teacher load.
+- [x] Show uncovered and over-allocated class curriculum.
+- [x] Prevent ambiguous shared ownership of a class-subject.
 
 Completion rule: teacher totals exactly match declared workloads and every
 class-subject is owned by exactly one teacher before generation.
@@ -211,8 +211,8 @@ and the supervisor approves the workflow.
 ### Working Status
 
 - Current branch: `feature/supervisor-workflow-redesign`
-- Current task: **R4 - Teacher and Teaching Allocation Workflow**
-- Last completed task: **R3 - Subjects and Curriculum Matrix**
+- Current task: **R5 - Teacher Restrictions**
+- Last completed task: **R4 - Teacher and Teaching Allocation Workflow**
 - Stable MVP branch: `main`
 
 ## Architecture
