@@ -4,6 +4,7 @@ import { Check, SlidersHorizontal } from "lucide-react";
 import { saveTeacherRestrictions } from "@/app/(protected)/availability/actions";
 import { AvailabilityGrid } from "@/components/availability-grid";
 import { PageHeading, inputClass } from "@/components/setup-ui";
+import { WorkflowNextAction } from "@/components/workflow-next-action";
 import { verifySession } from "@/lib/auth/dal";
 import { getActiveTerm } from "@/lib/setup";
 
@@ -119,6 +120,11 @@ export default async function AvailabilityPage({
           ) : null}
         </>
       )}
+      <WorkflowNextAction
+        description="Restrictions are optional. Continue when teacher availability is ready."
+        href="/readiness"
+        label="Review and generate"
+      />
     </div>
   );
 }

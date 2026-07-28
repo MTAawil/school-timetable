@@ -11,7 +11,9 @@ test("administrator can sign in and add a teacher", async ({ page }) => {
   await page.getByLabel("Password").fill("TimetableAdmin2026!");
   await page.getByRole("button", { name: "Sign in" }).click();
 
-  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Timetable overview" }),
+  ).toBeVisible();
   await page.goto("/teachers");
 
   const suffix = Date.now().toString().slice(-7);

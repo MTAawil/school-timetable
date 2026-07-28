@@ -7,6 +7,7 @@ import {
 } from "@/app/(protected)/teachers/actions";
 import { buttonClass, inputClass, PageHeading } from "@/components/setup-ui";
 import { TeacherAllocationBoard } from "@/components/teacher-allocation-board";
+import { WorkflowNextAction } from "@/components/workflow-next-action";
 import { verifySession } from "@/lib/auth/dal";
 import { getActiveTerm } from "@/lib/setup";
 
@@ -131,6 +132,11 @@ export default async function TeachersPage({
           />
         )}
       </section>
+      <WorkflowNextAction
+        description="Continue after all class-subjects are assigned and every workload matches."
+        href="/availability"
+        label="Continue to restrictions"
+      />
     </div>
   );
 }

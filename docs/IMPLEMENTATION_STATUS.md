@@ -2,8 +2,8 @@
 
 ## Current phase
 
-Stable single-school MVP complete on `main`. Supervisor workflow redesign R6 is
-complete on `feature/supervisor-workflow-redesign`; R7 is the next task.
+Stable single-school MVP complete on `main`. Supervisor workflow redesign R7 is
+complete on `feature/supervisor-workflow-redesign`; R8 is the next task.
 
 ## Decisions
 
@@ -42,7 +42,7 @@ complete on `feature/supervisor-workflow-redesign`; R7 is the next task.
 
 ## Active redesign execution plan
 
-Current task: R7 - Simplified Application Flow.
+Current task: R8 - Migration, End-to-End Verification, and Approval.
 
 1. R0 documentation and fixtures are complete and approved.
 2. The isolated redesign database and additive R1 migration are complete.
@@ -51,9 +51,10 @@ Current task: R7 - Simplified Application Flow.
 5. R4 - Teacher and Teaching Allocation Workflow is complete.
 6. R5 - Teacher Restrictions is complete.
 7. R6 - Readiness and Solver Rules is complete.
-8. Implement R7 and R8 in the README order.
-9. Update README task statuses and this section after every completed task.
-10. Do not merge to `main` before full verification and supervisor approval.
+8. R7 - Simplified Application Flow is complete.
+9. Implement R8.
+10. Update README task statuses and this section after every completed task.
+11. Do not merge to `main` before full verification and supervisor approval.
 
 ## Redesign change log
 
@@ -198,6 +199,29 @@ Current task: R7 - Simplified Application Flow.
 - Verified formatting, workspace lint, strict TypeScript and mypy, 52
   TypeScript tests, 14 solver tests, the 19-route production build, and the
   local solver health endpoint.
+
+### 2026-07-28 - R7 simplified application flow
+
+- Replaced thirteen technical primary links with Overview, School setup,
+  Curriculum, Teachers, Restrictions, Generate, and Timetables.
+- Kept Activity visible as a secondary destination and retained legacy routes
+  for historical records without exposing them in the supervisor workflow.
+- Added a shared live progress strip to every protected page and a workflow
+  overview with one clear Continue action and the latest timetable.
+- Added explicit next-step actions from setup through curriculum, teachers,
+  restrictions, and generation review.
+- Derived completion from normalized records, including curriculum coverage for
+  every active class and exact teacher workload matching.
+- Added a version-2 draft compatibility boundary that remaps immutable solver
+  snapshots to private historical requirement records, preserving editor
+  validation, locks, regeneration, export, publication, and activity history.
+- Added focused navigation/progress component tests and non-mutating desktop
+  and mobile Playwright coverage for the clean-seed R8 gate.
+- Verified formatting, workspace lint, strict TypeScript checks, 54 TypeScript
+  tests, and the 19-route production build.
+- Local Playwright authentication could not run against the modified local
+  administrator password; no password or application data was changed for the
+  test. R8 will run it against a clean seeded database.
 
 ## Phase 0 execution plan
 

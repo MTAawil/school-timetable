@@ -13,6 +13,7 @@ import {
 } from "@/app/(protected)/subjects/actions";
 import { CurriculumMatrix } from "@/components/curriculum-matrix";
 import { buttonClass, inputClass, PageHeading } from "@/components/setup-ui";
+import { WorkflowNextAction } from "@/components/workflow-next-action";
 import { verifySession } from "@/lib/auth/dal";
 import { getActiveTerm } from "@/lib/setup";
 
@@ -249,6 +250,11 @@ export default async function SubjectsPage({
           />
         )}
       </section>
+      <WorkflowNextAction
+        description="Continue after every active grade has its weekly subject sessions."
+        href="/teachers"
+        label="Continue to teachers"
+      />
     </div>
   );
 }

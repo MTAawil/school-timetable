@@ -12,6 +12,7 @@ import {
   saveSectionNames,
 } from "@/app/(protected)/setup/actions";
 import { buttonClass, inputClass, PageHeading } from "@/components/setup-ui";
+import { WorkflowNextAction } from "@/components/workflow-next-action";
 import { verifySession } from "@/lib/auth/dal";
 import { getActiveTerm } from "@/lib/setup";
 
@@ -362,6 +363,11 @@ export default async function SetupPage({
           </form>
         </section>
       ) : null}
+      <WorkflowNextAction
+        description="Continue after the weekly structure and class sections are saved."
+        href="/subjects"
+        label="Continue to curriculum"
+      />
     </div>
   );
 }

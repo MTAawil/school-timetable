@@ -180,14 +180,14 @@ weakens a hard rule, and every returned schedule passes independent validation.
 
 #### R7 - Simplified Application Flow
 
-Status: **Not started**
+Status: **Complete**
 
-- [ ] Replace the large technical sidebar with the target navigation.
-- [ ] Add a clear progress state across setup steps.
-- [ ] Connect setup, teachers, restrictions, readiness, and generation.
-- [ ] Preserve timetable alternatives, editing, locks, regeneration, export,
+- [x] Replace the large technical sidebar with the target navigation.
+- [x] Add a clear progress state across setup steps.
+- [x] Connect setup, teachers, restrictions, readiness, and generation.
+- [x] Preserve timetable alternatives, editing, locks, regeneration, export,
       publication, and activity history.
-- [ ] Remove or hide superseded setup screens only after replacements work.
+- [x] Remove or hide superseded setup screens only after replacements work.
 
 Completion rule: a first-time supervisor can reach timetable generation without
 needing to understand the internal data model.
@@ -211,8 +211,8 @@ and the supervisor approves the workflow.
 ### Working Status
 
 - Current branch: `feature/supervisor-workflow-redesign`
-- Current task: **R7 - Simplified Application Flow**
-- Last completed task: **R6 - Readiness and Solver Rules**
+- Current task: **R8 - Migration, End-to-End Verification, and Approval**
+- Last completed task: **R7 - Simplified Application Flow**
 - Stable MVP branch: `main`
 
 ## Architecture
