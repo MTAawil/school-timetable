@@ -7,6 +7,211 @@ optimization service.
 For a non-technical explanation of what the software does and how a school uses
 it, read [`USER_GUIDE.md`](USER_GUIDE.md).
 
+## Supervisor Workflow Redesign
+
+This is the active implementation plan for branch
+`feature/supervisor-workflow-redesign`.
+
+Codex must read this section before starting redesign work. Tasks are completed
+in order. Do not begin a later task while an earlier task is incomplete unless
+the plan is explicitly revised and documented here.
+
+The stable original MVP remains on `main`. The redesign branch is merged only
+after the complete workflow passes automated tests and supervisor review.
+
+### Confirmed Product Rules
+
+- Every school day uses the same session structure.
+- There is one configurable break per day.
+- All teaching sessions have the same duration.
+- The application starts with editable grade templates: KG1, KG2, KG3, G1
+  through G11, G12 LS, G12 ES, and G12 GS.
+- The supervisor chooses how many sections each grade has.
+- Grade curriculum settings are copied to every section of that grade.
+- The application provides editable common subjects and allows additional
+  subjects.
+- Curriculum is entered as required sessions per week for every grade-subject
+  combination.
+- Each class-subject combination is taught by exactly one teacher.
+- Each teacher has an exact declared weekly teaching workload.
+- The teacher's allocated class-subject sessions must exactly equal that
+  workload.
+- Non-main subjects may appear at most once per class per day.
+- Main subjects may use an optional double session when useful.
+- A main subject may occupy at most two consecutive sessions.
+- Full-time teacher workloads should be balanced across the week.
+- Part-time teacher workloads should preferably be compact and follow their
+  availability.
+- Hard restrictions can never be violated.
+- Soft preferences may be violated with a visible penalty when necessary.
+- Rooms are hidden from the normal redesign workflow.
+
+### Target Navigation
+
+The redesign replaces the technical setup navigation with:
+
+1. School Setup
+2. Teachers
+3. Restrictions
+4. Generate
+5. Timetables
+6. Activity
+
+Advanced configuration must not appear in the primary workflow unless the
+supervisor needs it.
+
+### Redesign Tasks
+
+#### R0 - Product Contract and Acceptance Tests
+
+Status: **In progress**
+
+- [ ] Document the complete supervisor workflow in plain language.
+- [ ] Define grade-template and section naming behavior.
+- [ ] Define the default editable subject catalogue.
+- [ ] Define the curriculum matrix and main-subject behavior.
+- [ ] Define exact teacher workload and allocation rules.
+- [ ] Define hard restrictions and soft preferences.
+- [ ] Define readiness errors and stable codes.
+- [ ] Add acceptance fixtures for the redesigned rules.
+- [ ] Update `docs/DATA_MODEL.md`, `docs/SOLVER_CONTRACT.md`, and
+      `docs/ACCEPTANCE_TESTS.md`.
+- [ ] Review the contract with the supervisor before schema or UI changes.
+
+Completion rule: every confirmed rule has an example and an acceptance test;
+there are no unresolved scheduling meanings hidden in implementation code.
+
+#### R1 - Isolated Database and Domain Migration
+
+Status: **Not started**
+
+- [ ] Create and use a separate local `timetable_redesign` database.
+- [ ] Add normalized grade, curriculum, and teacher-allocation structures.
+- [ ] Add exact weekly workload fields and database checks.
+- [ ] Enforce one teacher per class-subject.
+- [ ] Represent grade-specific main-subject and optional-double eligibility.
+- [ ] Create a new Prisma migration; never edit an applied migration.
+- [ ] Add domain and migration tests.
+
+Completion rule: the new domain can represent the confirmed workflow without
+JSON substitutes for core entities, and the stable MVP database remains
+untouched.
+
+#### R2 - School Setup Workflow
+
+Status: **Not started**
+
+- [ ] Build one guided school-week setup.
+- [ ] Configure working days, sessions per day, session duration, and one break.
+- [ ] Show editable grade templates.
+- [ ] Let the supervisor select section counts.
+- [ ] Generate predictable section names such as G7-A and G7-B.
+- [ ] Allow generated section names to be edited.
+
+Completion rule: a supervisor can create the complete school week and all
+classes without visiting technical entity pages.
+
+#### R3 - Subjects and Curriculum Matrix
+
+Status: **Not started**
+
+- [ ] Provide an editable default subject catalogue.
+- [ ] Allow custom subjects.
+- [ ] Build the grade-by-subject weekly-session matrix.
+- [ ] Configure whether each grade-subject is main.
+- [ ] Configure optional double-session eligibility.
+- [ ] Copy grade curriculum requirements to every generated section.
+- [ ] Display calculated teaching hours from session duration.
+
+Completion rule: every class has an explicit weekly curriculum, and the UI
+shows missing or impossible curriculum values immediately.
+
+#### R4 - Teacher and Teaching Allocation Workflow
+
+Status: **Not started**
+
+- [ ] Add teachers one at a time.
+- [ ] Record full-time or part-time status.
+- [ ] Record exact weekly teaching sessions.
+- [ ] Allocate one teacher to each class-subject.
+- [ ] Show allocated, required, remaining, and excessive teacher load.
+- [ ] Show uncovered and over-allocated class curriculum.
+- [ ] Prevent ambiguous shared ownership of a class-subject.
+
+Completion rule: teacher totals exactly match declared workloads and every
+class-subject is owned by exactly one teacher before generation.
+
+#### R5 - Teacher Restrictions
+
+Status: **Not started**
+
+- [ ] Build a simple weekly restriction grid.
+- [ ] Support hard unavailable periods.
+- [ ] Support preferred and avoid-if-possible periods.
+- [ ] Configure maximum consecutive teaching sessions.
+- [ ] Configure an optional hard daily maximum.
+- [ ] Add soft weekly workload balancing for full-time teachers.
+- [ ] Add compactness preferences for part-time teachers.
+
+Completion rule: the supervisor can understand and enter restrictions without
+editing raw constraint records or weights.
+
+#### R6 - Readiness and Solver Rules
+
+Status: **Not started**
+
+- [ ] Validate exact teacher workload totals.
+- [ ] Validate complete class curriculum coverage.
+- [ ] Validate one teacher per class-subject.
+- [ ] Reject impossible non-main subject frequency.
+- [ ] Enforce at most one non-main subject session per class per day.
+- [ ] Allow optional main-subject doubles with at most two consecutive sessions.
+- [ ] Balance full-time teacher workloads with a soft penalty.
+- [ ] Keep part-time schedules compact where possible.
+- [ ] Preserve every existing collision, availability, locking, regeneration,
+      and post-solve validation guarantee.
+- [ ] Add focused solver fixtures and tests for every changed rule.
+
+Completion rule: readiness stops deterministic failures, the solver never
+weakens a hard rule, and every returned schedule passes independent validation.
+
+#### R7 - Simplified Application Flow
+
+Status: **Not started**
+
+- [ ] Replace the large technical sidebar with the target navigation.
+- [ ] Add a clear progress state across setup steps.
+- [ ] Connect setup, teachers, restrictions, readiness, and generation.
+- [ ] Preserve timetable alternatives, editing, locks, regeneration, export,
+      publication, and activity history.
+- [ ] Remove or hide superseded setup screens only after replacements work.
+
+Completion rule: a first-time supervisor can reach timetable generation without
+needing to understand the internal data model.
+
+#### R8 - Migration, End-to-End Verification, and Approval
+
+Status: **Not started**
+
+- [ ] Test a completely empty school setup.
+- [ ] Test migration or explicit conversion of existing supported data.
+- [ ] Add a complete supervisor Playwright workflow.
+- [ ] Run formatting, lint, types, unit, solver, integration, build, and E2E
+      gates.
+- [ ] Update the plain-language user guide and deployment documentation.
+- [ ] Deploy the branch locally for supervisor manual testing.
+- [ ] Record supervisor approval before merging to `main`.
+
+Completion rule: the redesign is verified from empty setup through publication,
+and the supervisor approves the workflow.
+
+### Working Status
+
+- Current branch: `feature/supervisor-workflow-redesign`
+- Current task: **R0 - Product Contract and Acceptance Tests**
+- Next implementation task: **R1**, only after R0 review and approval
+- Stable MVP branch: `main`
+
 ## Architecture
 
 ```text

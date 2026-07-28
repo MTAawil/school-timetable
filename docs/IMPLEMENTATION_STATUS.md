@@ -2,7 +2,8 @@
 
 ## Current phase
 
-Single-school MVP complete through Task 10 release hardening.
+Stable single-school MVP complete on `main`. Supervisor workflow redesign R0 is
+active on `feature/supervisor-workflow-redesign`.
 
 ## Decisions
 
@@ -32,6 +33,22 @@ Single-school MVP complete through Task 10 release hardening.
   idle memory use.
 - Pin direct dependency versions and commit both `pnpm-lock.yaml` and `uv.lock`.
   Dependabot may propose reviewed upgrades; CI must not install floating versions.
+- Treat the root README's "Supervisor Workflow Redesign" section as the
+  authoritative ordered redesign task list.
+- Keep the stable MVP on `main` and implement the redesign on
+  `feature/supervisor-workflow-redesign`.
+- Use a separate local redesign database before applying redesign migrations so
+  branch changes do not alter the stable MVP database.
+
+## Active redesign execution plan
+
+Current task: R0 - Product Contract and Acceptance Tests.
+
+1. Complete and review R0 documentation and fixtures.
+2. Create the isolated redesign database before R1.
+3. Implement R1 through R8 in the README order.
+4. Update README task statuses and this section after every completed task.
+5. Do not merge to `main` before full verification and supervisor approval.
 
 ## Phase 0 execution plan
 
