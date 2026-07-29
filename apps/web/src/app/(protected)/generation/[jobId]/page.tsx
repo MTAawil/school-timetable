@@ -148,8 +148,9 @@ export default async function GenerationResultPage({
           <div>
             <h2 className="font-semibold">Why generation failed</h2>
             <p className="mt-1 text-sm leading-6 text-[#66706b]">
-              The current hard rules cannot produce a timetable without at least
-              one class or teacher collision.
+              These are not existing bookings. They are example overlaps from
+              the closest relaxed timetable the solver could construct. The
+              combined hard restrictions leave no collision-free arrangement.
             </p>
           </div>
           {parsedDiagnostics.map((diagnostic) => (
@@ -160,7 +161,10 @@ export default async function GenerationResultPage({
               <p className="mt-1 text-sm font-medium">{diagnostic.summary}</p>
               {diagnostic.details.success &&
               diagnostic.details.data.conflicts?.length ? (
-                <ul className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+                <ul
+                  aria-label="Example forced overlaps"
+                  className="mt-3 grid gap-2 text-sm sm:grid-cols-2"
+                >
                   {diagnostic.details.data.conflicts.map((conflict) => {
                     const resourceName =
                       conflict.resourceType === "TEACHER"
@@ -178,7 +182,7 @@ export default async function GenerationResultPage({
                           {conflict.resourceType === "TEACHER"
                             ? "Teacher"
                             : "Class"}{" "}
-                          collision on{" "}
+                          would be forced to overlap on{" "}
                           {dayNames.get(conflict.dayIndex) ??
                             `day ${String(conflict.dayIndex + 1)}`}
                           ,{" "}
