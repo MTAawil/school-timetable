@@ -145,7 +145,7 @@ export default async function TeachersPage({
                     Allocated
                   </th>
                   <th className="px-4 py-3 font-semibold">Status</th>
-                  <th className="w-20 px-4 py-3">
+                  <th className="w-32 px-4 py-3">
                     <span className="sr-only">Edit</span>
                   </th>
                 </tr>
@@ -185,11 +185,22 @@ export default async function TeachersPage({
                       <td className="px-4 py-2">
                         <Link
                           aria-label={`Edit ${teacher.name}`}
-                          className="inline-flex h-9 w-9 items-center justify-center border border-[#9ba59f] bg-white hover:bg-[#f0f2ef]"
-                          href={`/teachers?teacher=${teacher.id}`}
-                          title="Edit teacher"
+                          className={`inline-flex h-9 items-center justify-center border px-3 text-xs font-semibold ${
+                            summary?.status === "EXACT"
+                              ? "w-9 border-[#9ba59f] bg-white hover:bg-[#f0f2ef]"
+                              : "border-[#c85c53] bg-[#fff1ef] text-[#8b2119] hover:bg-[#f8d8d4]"
+                          }`}
+                          href={`/teachers?teacher=${teacher.id}#teacher-editor`}
+                          title={
+                            summary?.status === "EXACT"
+                              ? "Edit teacher"
+                              : "Fix teacher workload"
+                          }
                         >
                           <Pencil aria-hidden="true" size={15} />
+                          {summary?.status === "EXACT" ? null : (
+                            <span className="ml-2">Fix workload</span>
+                          )}
                         </Link>
                       </td>
                     </tr>
@@ -201,7 +212,11 @@ export default async function TeachersPage({
         )}
       </section>
 
-      <section className="space-y-4" aria-labelledby="teacher-editor-heading">
+      <section
+        className="scroll-mt-6 space-y-4"
+        id="teacher-editor"
+        aria-labelledby="teacher-editor-heading"
+      >
         <div className="border-b border-[#dce1dc] pb-3">
           <h2 id="teacher-editor-heading" className="font-semibold">
             {selectedTeacher ? `Edit ${selectedTeacher.name}` : "Add teacher"}

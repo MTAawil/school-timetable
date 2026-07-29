@@ -37,6 +37,10 @@ test("supervisor sees the simplified workflow on desktop", async ({ page }) => {
 
   await primary.getByRole("link", { name: "Teachers" }).click();
   await page.getByRole("link", { name: "Edit Maya Haddad" }).click();
+  await expect(page).toHaveURL(/\/teachers\?teacher=[a-f0-9-]+#teacher-editor/);
+  await expect(
+    page.getByRole("heading", { name: "Edit Maya Haddad" }),
+  ).toBeInViewport();
   await expect(page.getByLabel("Name")).toHaveValue("Maya Haddad");
   await expect(
     page.getByText("Declared and allocated sessions match."),

@@ -19,7 +19,7 @@ export function getReadinessIssueAction(
     const teacher = teachers.find((item) => item.id === teacherId);
     if (teacherId && teacher) {
       return {
-        href: `/teachers?teacher=${encodeURIComponent(teacherId)}`,
+        href: `/teachers?teacher=${encodeURIComponent(teacherId)}#teacher-editor`,
         label: `Edit ${teacher.name}`,
       };
     }

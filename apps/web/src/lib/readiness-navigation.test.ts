@@ -15,7 +15,7 @@ describe("getReadinessIssueAction", () => {
         {},
       ),
     ).toEqual({
-      href: "/teachers?teacher=teacher-rawan",
+      href: "/teachers?teacher=teacher-rawan#teacher-editor",
       label: "Edit Rawan",
     });
   });
