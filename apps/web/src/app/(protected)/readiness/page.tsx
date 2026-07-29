@@ -5,6 +5,7 @@ import { generateTimetable } from "@/app/(protected)/readiness/actions";
 import { PageHeading } from "@/components/setup-ui";
 import { verifySession } from "@/lib/auth/dal";
 import { getCurrentReadiness } from "@/lib/readiness";
+import { getReadinessIssueAction } from "@/lib/readiness-navigation";
 
 const issueDestinations: Record<string, string> = {
   CLASS_CAPACITY_SHORTAGE: "/classes",
@@ -90,53 +91,54 @@ export default async function ReadinessPage() {
         <section className="space-y-3">
           <h2 className="text-base font-semibold">Blocking issues</h2>
           <div className="divide-y divide-[#dce1dc] border border-[#dce1dc] bg-white">
-            {result.issues.map((issue) => (
-              <article
-                key={`${issue.code}:${issue.entityIds.join(":")}`}
-                className="p-5"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="font-mono text-xs font-semibold text-[#9a3d2c]">
-                      {issue.code}
-                    </p>
-                    <h3 className="mt-1 font-semibold">{issue.summary}</h3>
-                  </div>
-                  {issue.required !== undefined &&
-                  issue.available !== undefined ? (
-                    <div className="flex gap-5 text-sm">
-                      <span>
-                        <span className="text-[#66706b]">Required</span>{" "}
-                        <strong>{issue.required}</strong>
-                      </span>
-                      <span>
-                        <span className="text-[#66706b]">Available</span>{" "}
-                        <strong>{issue.available}</strong>
-                      </span>
-                    </div>
-                  ) : null}
-                </div>
-                <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-[#66706b]">
-                  {issue.suggestions
-                    .filter((suggestion) => !suggestion.startsWith("/"))
-                    .map((suggestion) => (
-                      <li key={suggestion}>{suggestion}</li>
-                    ))}
-                </ul>
-                <Link
-                  className="mt-4 inline-flex h-9 items-center border border-[#9ba59f] bg-white px-3 text-sm font-semibold hover:bg-[#f0f2ef]"
-                  href={
-                    issue.suggestions.find((suggestion) =>
-                      suggestion.startsWith("/"),
-                    ) ??
-                    issueDestinations[issue.code] ??
-                    "/setup"
-                  }
+            {result.issues.map((issue) => {
+              const action = getReadinessIssueAction(
+                issue,
+                snapshot.teachers,
+                issueDestinations,
+              );
+              return (
+                <article
+                  key={`${issue.code}:${issue.entityIds.join(":")}`}
+                  className="p-5"
                 >
-                  Review setup
-                </Link>
-              </article>
-            ))}
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="font-mono text-xs font-semibold text-[#9a3d2c]">
+                        {issue.code}
+                      </p>
+                      <h3 className="mt-1 font-semibold">{issue.summary}</h3>
+                    </div>
+                    {issue.required !== undefined &&
+                    issue.available !== undefined ? (
+                      <div className="flex gap-5 text-sm">
+                        <span>
+                          <span className="text-[#66706b]">Required</span>{" "}
+                          <strong>{issue.required}</strong>
+                        </span>
+                        <span>
+                          <span className="text-[#66706b]">Available</span>{" "}
+                          <strong>{issue.available}</strong>
+                        </span>
+                      </div>
+                    ) : null}
+                  </div>
+                  <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-[#66706b]">
+                    {issue.suggestions
+                      .filter((suggestion) => !suggestion.startsWith("/"))
+                      .map((suggestion) => (
+                        <li key={suggestion}>{suggestion}</li>
+                      ))}
+                  </ul>
+                  <Link
+                    className="mt-4 inline-flex h-9 items-center border border-[#9ba59f] bg-white px-3 text-sm font-semibold hover:bg-[#f0f2ef]"
+                    href={action.href}
+                  >
+                    {action.label}
+                  </Link>
+                </article>
+              );
+            })}
           </div>
         </section>
       ) : (
