@@ -49,6 +49,7 @@ export async function saveTeacherWorkflow(formData: FormData): Promise<void> {
   const teacherId = requestedTeacherId
     ? z.uuid().parse(requestedTeacherId)
     : null;
+  const teachingSubjectId = z.uuid().parse(formData.get("teachingSubjectId"));
   const selectedCurriculumIds = z
     .array(z.uuid())
     .parse(formData.getAll("classCurriculumId"));
@@ -83,7 +84,12 @@ export async function saveTeacherWorkflow(formData: FormData): Promise<void> {
           isActive: true,
           classSection: { isActive: true, deletedAt: null },
         },
-        select: { id: true, teacherId: true, weeklySessions: true },
+        select: {
+          id: true,
+          subjectId: true,
+          teacherId: true,
+          weeklySessions: true,
+        },
       }),
       teacherId
         ? db.teacher.findFirst({
@@ -139,6 +145,15 @@ export async function saveTeacherWorkflow(formData: FormData): Promise<void> {
   }
   if (!allocationValidation.valid) {
     throw new Error(allocationValidation.code);
+  }
+  if (
+    selectedCurriculumIds.some(
+      (id) =>
+        curriculum.find((item) => item.id === id)?.subjectId !==
+        teachingSubjectId,
+    )
+  ) {
+    throw new Error("TEACHER_SUBJECT_MISMATCH");
   }
 
   const expectedSlots = days

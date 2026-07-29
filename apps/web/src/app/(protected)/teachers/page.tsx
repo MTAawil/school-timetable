@@ -214,6 +214,7 @@ export default async function TeachersPage({
           action={saveTeacherWorkflow}
           curriculum={curriculum.map((item) => ({
             id: item.id,
+            subjectId: item.subjectId,
             className: item.classSection.sectionName,
             classCode: item.classSection.shortCode,
             subjectName: item.subject.name,
@@ -242,6 +243,7 @@ export default async function TeachersPage({
                   },
                 ],
           )}
+          key={selectedTeacher?.id ?? "new"}
           teacher={
             selectedTeacher
               ? {

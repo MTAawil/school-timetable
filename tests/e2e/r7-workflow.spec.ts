@@ -37,6 +37,7 @@ test("supervisor sees the simplified workflow on desktop", async ({ page }) => {
 
   await primary.getByRole("link", { name: "Teachers" }).click();
   await page.getByRole("link", { name: "Edit Maya Haddad" }).click();
+  await expect(page.getByLabel("Name")).toHaveValue("Maya Haddad");
   await expect(
     page.getByText("Declared and allocated sessions match."),
   ).toBeVisible();
@@ -49,6 +50,8 @@ test("supervisor sees the simplified workflow on desktop", async ({ page }) => {
     "aria-label",
     initialRestriction ?? "",
   );
+  await page.reload();
+  await expect(page.getByLabel("Name")).toHaveValue("Maya Haddad");
   await page.getByRole("button", { name: "Save teacher" }).click();
   await expect(page).toHaveURL(/\/teachers\?teacher=[a-f0-9-]+&saved=teacher/);
   await expect(
@@ -56,6 +59,29 @@ test("supervisor sees the simplified workflow on desktop", async ({ page }) => {
       "Teacher details, classes, subjects, and restrictions saved.",
     ),
   ).toBeVisible();
+  await page
+    .getByLabel("Teaching subject")
+    .selectOption({ label: "English (ENG)" });
+  await expect(
+    page.getByRole("checkbox", { name: /English/ }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: /Reassign from Nour Saad/ }).first(),
+  ).toBeVisible();
+  await expect(page.getByRole("checkbox", { name: /Mathematics/ })).toHaveCount(
+    0,
+  );
+
+  await page.getByRole("link", { name: "Add teacher" }).click();
+  await expect(page.getByLabel("Name")).toHaveValue("");
+  await expect(page.getByLabel("Code")).toHaveValue("");
+  await expect(page.getByLabel("Teaching subject")).toHaveValue("");
+  const subjectEditor = page.getByRole("region", {
+    name: "Subject and classes",
+  });
+  await expect(
+    subjectEditor.getByText("Allocated", { exact: true }).locator(".."),
+  ).toContainText("0");
 
   await primary.getByRole("link", { name: "School setup" }).click();
   await expect(

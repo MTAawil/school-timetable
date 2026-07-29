@@ -95,6 +95,22 @@ Current task: R7.1 - Teacher-Centered Entry and Restrictions.
 - Deployed the verified build against the empty `timetable_manual` database on
   port 3103. Supervisor manual review is the only open R7.1 checklist item.
 
+### 2026-07-29 - R7.1 manual-review fixes
+
+- Changed teacher allocation entry to select the teaching subject before
+  classes; the class list now contains only curriculum rows for that subject.
+- Added server validation preventing submitted class assignments from a
+  different subject.
+- Fixed retained React editor state by keying the client editor to the selected
+  teacher or new-teacher mode.
+- Verified that Edit loads the clicked teacher, Add Teacher clears all profile
+  and subject fields, and the allocated total resets to zero.
+- Added browser regressions for subject filtering, protected ownership,
+  edit identity, add reset, and allocation reset.
+- Passed strict type-check, nine web component tests, the production build, and
+  two desktop/mobile browser tests. Redeployed port 3103 without deleting the
+  supervisor's current manual-test data.
+
 ### 2026-07-29 - R8 migration and verification
 
 - Applied all migrations to the isolated `timetable_r8` PostgreSQL database.

@@ -200,8 +200,9 @@ Status: **Ready for manual review**
       with an Add/Edit Teacher workflow.
 - [x] Keep teacher name, code, employment type, and exact weekly sessions in
       the teacher workflow.
-- [x] Let the supervisor select every class and subject taught by that teacher;
-      inherit session counts from curriculum rather than typing them again.
+- [x] Let the supervisor choose the teacher's subject first, then show only
+      classes containing that subject; inherit session counts from curriculum
+      rather than typing them again.
 - [x] Show declared, allocated, remaining, and excess sessions while editing
       the teacher.
 - [x] Preserve the hard rule that one class-subject has exactly one teacher and
@@ -220,7 +221,7 @@ Status: **Ready for manual review**
       the combined teacher workflow is complete and tested.
 - [x] Add business-logic, component, integration, and Playwright tests for
       teacher creation, exact workload, assignment ownership, restriction-state
-      cycling, and editing an existing teacher.
+      cycling, subject filtering, editor reset, and editing an existing teacher.
 - [ ] Verify the complete flow on an empty manual-test database and obtain
       supervisor approval.
 

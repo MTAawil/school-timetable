@@ -8,6 +8,7 @@ import { buttonClass, inputClass } from "@/components/setup-ui";
 
 type CurriculumItem = {
   id: string;
+  subjectId: string;
   className: string;
   classCode: string;
   subjectName: string;
@@ -87,11 +88,17 @@ export function TeacherWorkflowEditor({
   const [declaredSessions, setDeclaredSessions] = useState(
     teacher?.weeklyTeachingSessions ?? 1,
   );
+  const initiallyAssigned = curriculum.filter(
+    (item) => item.teacherId === teacher?.id,
+  );
+  const [teachingSubjectId, setTeachingSubjectId] = useState(
+    initiallyAssigned[0]?.subjectId ?? "",
+  );
   const [selectedIds, setSelectedIds] = useState(
     () =>
       new Set(
-        curriculum
-          .filter((item) => item.teacherId === teacher?.id)
+        initiallyAssigned
+          .filter((item) => item.subjectId === initiallyAssigned[0]?.subjectId)
           .map((item) => item.id),
       ),
   );
@@ -116,8 +123,19 @@ export function TeacherWorkflowEditor({
   const remaining = Math.max(0, declaredSessions - allocatedSessions);
   const excess = Math.max(0, allocatedSessions - declaredSessions);
   const workloadExact = declaredSessions === allocatedSessions;
+  const subjects = Array.from(
+    new Map(
+      curriculum.map((item) => [
+        item.subjectId,
+        { id: item.subjectId, name: item.subjectName, code: item.subjectCode },
+      ]),
+    ).values(),
+  ).sort((left, right) => left.name.localeCompare(right.name));
+  const visibleCurriculum = teachingSubjectId
+    ? curriculum.filter((item) => item.subjectId === teachingSubjectId)
+    : [];
   const grouped = Map.groupBy(
-    curriculum,
+    visibleCurriculum,
     (item) => `${item.classCode}:${item.className}`,
   );
 
@@ -209,13 +227,34 @@ export function TeacherWorkflowEditor({
       <section className="space-y-4" aria-labelledby="teaching-heading">
         <div className="border-b border-[#dce1dc] pb-3">
           <h2 id="teaching-heading" className="font-semibold">
-            2. Classes and subjects
+            2. Subject and classes
           </h2>
           <p className="mt-1 text-sm text-[#66706b]">
-            Select everything this teacher teaches. Session counts come from
-            curriculum.
+            Choose the teacher&apos;s subject first, then select the classes.
+            Session counts come from curriculum.
           </p>
         </div>
+        <label className="block max-w-lg text-xs font-medium text-[#56615c]">
+          Teaching subject
+          <select
+            className={`${inputClass} mt-1.5`}
+            name="teachingSubjectId"
+            onChange={(event) => {
+              setTeachingSubjectId(event.target.value);
+              setSelectedIds(new Set());
+              setReassignedIds(new Set());
+            }}
+            required
+            value={teachingSubjectId}
+          >
+            <option value="">Select subject</option>
+            {subjects.map((subject) => (
+              <option key={subject.id} value={subject.id}>
+                {subject.name} ({subject.code})
+              </option>
+            ))}
+          </select>
+        </label>
         <dl className="grid border-l border-t border-[#dce1dc] bg-white sm:grid-cols-4">
           {[
             ["Declared", declaredSessions],
@@ -249,6 +288,10 @@ export function TeacherWorkflowEditor({
         {curriculum.length === 0 ? (
           <p className="border border-[#e0c78f] bg-[#fff9e9] px-4 py-3 text-sm text-[#6e5314]">
             Add class curriculum before adding teachers.
+          </p>
+        ) : !teachingSubjectId ? (
+          <p className="border border-[#dce1dc] bg-[#f8f9f7] px-4 py-3 text-sm text-[#56615c]">
+            Select a teaching subject to see its classes.
           </p>
         ) : (
           <div className="space-y-5">
@@ -447,7 +490,9 @@ export function TeacherWorkflowEditor({
 
       <button
         className={buttonClass}
-        disabled={!workloadExact || curriculum.length === 0}
+        disabled={
+          !workloadExact || curriculum.length === 0 || !teachingSubjectId
+        }
         type="submit"
       >
         <Save aria-hidden="true" className="mr-2" size={16} />
