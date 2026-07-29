@@ -154,7 +154,7 @@ export default async function ReadinessPage() {
           </p>
           <form
             action={generateTimetable}
-            className="mt-5 grid gap-3 sm:grid-cols-[180px_220px_auto]"
+            className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-[160px_220px_190px_auto]"
           >
             <label className="text-sm">
               <span className="mb-1 block text-[#66706b]">Alternatives</span>
@@ -182,6 +182,22 @@ export default async function ReadinessPage() {
                 name="maxQualityDegradationPercent"
                 type="number"
               />
+            </label>
+            <label className="text-sm">
+              <span className="mb-1 block text-[#66706b]">
+                Solver time limit
+              </span>
+              <select
+                className="h-10 w-full border border-[#cfd5d1] bg-white px-3"
+                defaultValue="120"
+                name="timeLimitSeconds"
+              >
+                {[30, 60, 120, 180].map((seconds) => (
+                  <option key={seconds} value={seconds}>
+                    {seconds} seconds
+                  </option>
+                ))}
+              </select>
             </label>
             <GenerationSubmitStatus />
           </form>

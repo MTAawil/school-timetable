@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi.testclient import TestClient
+from ortools.sat.python import cp_model
 
 from app.main import app
 from app.models import SolveRequest
@@ -169,3 +170,23 @@ def test_infeasible_response_contains_deterministic_diagnostics_only() -> None:
     assert response.alternatives == []
     assert response.diagnostics
     assert response.diagnostics[0]["code"] == "NO_COMPATIBLE_PLACEMENT"
+
+
+def test_solver_timeout_is_not_reported_as_infeasible(monkeypatch: Any) -> None:
+    monkeypatch.setattr(cp_model.CpSolver, "solve", lambda self, model: cp_model.UNKNOWN)
+    request = SolveRequest.model_validate(load_fixture())
+
+    response = solve(request)
+
+    assert response.status == "FAILED"
+    assert response.alternatives == []
+    assert response.diagnostics == [
+        {
+            "code": "SOLVER_TIME_LIMIT_REACHED",
+            "summary": (
+                "The solver reached its time limit without proving feasibility or infeasibility."
+            ),
+            "solverStatus": "UNKNOWN",
+            "timeLimitSeconds": request.options.time_limit_seconds,
+        }
+    ]

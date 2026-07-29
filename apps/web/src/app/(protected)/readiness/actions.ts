@@ -47,6 +47,7 @@ const solveResponseSchema = z.object({
 const generationOptionsSchema = z.object({
   alternativeCount: z.coerce.number().int().min(1).max(5),
   maxQualityDegradationPercent: z.coerce.number().int().min(0).max(100),
+  timeLimitSeconds: z.coerce.number().int().min(30).max(180),
 });
 
 function jsonValue(value: unknown): Prisma.InputJsonValue {
@@ -59,6 +60,7 @@ export async function generateTimetable(formData: FormData): Promise<void> {
   const selectedOptions = generationOptionsSchema.parse({
     alternativeCount: formData.get("alternativeCount"),
     maxQualityDegradationPercent: formData.get("maxQualityDegradationPercent"),
+    timeLimitSeconds: formData.get("timeLimitSeconds"),
   });
   const snapshot = {
     ...current.snapshot,
@@ -90,8 +92,9 @@ export async function generateTimetable(formData: FormData): Promise<void> {
 
   try {
     const baseUrl = process.env.SOLVER_BASE_URL ?? "http://127.0.0.1:8000";
-    const timeoutSeconds = Number(
-      process.env.SOLVER_REQUEST_TIMEOUT_SECONDS ?? "40",
+    const timeoutSeconds = Math.max(
+      Number(process.env.SOLVER_REQUEST_TIMEOUT_SECONDS ?? "40"),
+      selectedOptions.timeLimitSeconds + 15,
     );
     const response = await fetch(`${baseUrl}/v1/solve`, {
       method: "POST",

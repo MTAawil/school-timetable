@@ -95,6 +95,9 @@ export default async function GenerationResultPage({
     number
   >;
   const successful = job.status === "FEASIBLE" || job.status === "OPTIMAL";
+  const timedOut = job.diagnostics.some(
+    (diagnostic) => diagnostic.code === "SOLVER_TIME_LIMIT_REACHED",
+  );
   const responseMetadata = z
     .object({ runtimeMs: z.number().int().nonnegative().optional() })
     .safeParse(job.responseMetadata);
@@ -146,11 +149,15 @@ export default async function GenerationResultPage({
       {!successful && job.diagnostics.length > 0 ? (
         <section className="space-y-4 border border-[#e3b7b2] bg-white p-5">
           <div>
-            <h2 className="font-semibold">Why generation failed</h2>
+            <h2 className="font-semibold">
+              {timedOut
+                ? "The solver needs more time"
+                : "Why generation failed"}
+            </h2>
             <p className="mt-1 text-sm leading-6 text-[#66706b]">
-              These are not existing bookings. They are example overlaps from
-              the closest relaxed timetable the solver could construct. The
-              combined hard restrictions leave no collision-free arrangement.
+              {timedOut
+                ? "The search ended before the solver could prove whether a valid timetable exists. This is not an infeasibility result. Return to Generate and retry with a longer solver time limit."
+                : "These are not existing bookings. They are example overlaps from the closest relaxed timetable the solver could construct. The combined hard restrictions leave no collision-free arrangement."}
             </p>
           </div>
           {parsedDiagnostics.map((diagnostic) => (
@@ -199,16 +206,18 @@ export default async function GenerationResultPage({
           <div className="flex flex-wrap gap-2 border-t border-[#dce1dc] pt-4">
             <Link
               className="inline-flex h-9 items-center bg-[#0e6b4f] px-3 text-sm font-semibold text-white hover:bg-[#0b5b43]"
-              href="/teachers"
+              href={timedOut ? "/readiness" : "/teachers"}
             >
-              Review teacher limits
+              {timedOut ? "Retry with more time" : "Review teacher limits"}
             </Link>
-            <Link
-              className="inline-flex h-9 items-center border border-[#9ba59f] bg-white px-3 text-sm font-semibold hover:bg-[#f0f2ef]"
-              href="/subjects"
-            >
-              Review curriculum
-            </Link>
+            {!timedOut ? (
+              <Link
+                className="inline-flex h-9 items-center border border-[#9ba59f] bg-white px-3 text-sm font-semibold hover:bg-[#f0f2ef]"
+                href="/subjects"
+              >
+                Review curriculum
+              </Link>
+            ) : null}
           </div>
         </section>
       ) : null}

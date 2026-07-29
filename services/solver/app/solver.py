@@ -434,8 +434,38 @@ def solve(request: SolveRequest) -> SolveResponse:
     first_started = time.monotonic()
     status = solver.solve(model)
     first_runtime_ms = round((time.monotonic() - first_started) * 1000)
-    if status not in (cp_model.FEASIBLE, cp_model.OPTIMAL):
+    if status == cp_model.INFEASIBLE:
         return _infeasible(request, started, len(variables), constraints)
+    if status not in (cp_model.FEASIBLE, cp_model.OPTIMAL):
+        status_name = solver.status_name(status)
+        return SolveResponse(
+            schema_version=request.schema_version,
+            job_id=request.job_id,
+            input_fingerprint=input_fingerprint(request),
+            status="FAILED",
+            runtime_ms=round((time.monotonic() - started) * 1000),
+            alternatives=[],
+            diagnostics=[
+                {
+                    "code": (
+                        "SOLVER_TIME_LIMIT_REACHED"
+                        if status == cp_model.UNKNOWN
+                        else "SOLVER_MODEL_INVALID"
+                    ),
+                    "summary": (
+                        "The solver reached its time limit without proving "
+                        "feasibility or infeasibility."
+                        if status == cp_model.UNKNOWN
+                        else "The solver rejected the generated constraint model."
+                    ),
+                    "solverStatus": status_name,
+                    "timeLimitSeconds": request.options.time_limit_seconds,
+                }
+            ],
+            warnings=[],
+            variable_count=len(variables),
+            constraint_count=constraints,
+        )
 
     selected = {choice for choice, variable in variables.items() if solver.boolean_value(variable)}
     assignments = _assignments_from_choices(selected)
