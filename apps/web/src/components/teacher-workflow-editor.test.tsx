@@ -72,6 +72,17 @@ describe("TeacherWorkflowEditor", () => {
             teacherId: "teacher-1",
             teacherName: "Rawan",
           },
+          {
+            id: "curriculum-math-unassigned",
+            subjectId: "subject-math",
+            className: "G9-A",
+            classCode: "G9-A",
+            subjectName: "Mathematics",
+            subjectCode: "MATH",
+            weeklySessions: 3,
+            teacherId: null,
+            teacherName: null,
+          },
         ]}
         days={[{ dayIndex: 0, name: "Monday" }]}
         periods={[
@@ -92,6 +103,11 @@ describe("TeacherWorkflowEditor", () => {
     );
 
     expect(markup).toContain("Declared and allocated sessions match.");
+    expect(markup).toContain("Teacher coverage");
+    expect(markup).toContain("5 / 8");
+    expect(markup).toContain("3 sessions remaining");
+    expect(markup).toContain("Classes still needing a Mathematics teacher");
+    expect(markup).toContain("G9-A");
     expect(markup).toContain(
       'type="hidden" name="classCurriculumId" value="curriculum-math"',
     );

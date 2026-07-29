@@ -228,6 +228,11 @@ to the next teacher. Switching the filter does not clear earlier selections. A
 whole-school summary may show gaps and
 mismatches, but it is not the primary data-entry interface.
 
+While entering a teacher, the supervisor sees live curriculum coverage for
+every subject. Each subject reports assigned sessions against required
+sessions. Selecting a subject shows the classes that still have no teacher, and
+the values update immediately as class assignments change.
+
 ## 6. Teacher Restrictions
 
 The selected teacher's weekly restriction grid appears inside the Add/Edit

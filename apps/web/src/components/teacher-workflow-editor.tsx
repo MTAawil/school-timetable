@@ -126,6 +126,29 @@ export function TeacherWorkflowEditor({
       ]),
     ).values(),
   ).sort((left, right) => left.name.localeCompare(right.name));
+  const subjectCoverage = subjects.map((subject) => {
+    const items = curriculum.filter((item) => item.subjectId === subject.id);
+    const requiredSessions = items.reduce(
+      (total, item) => total + item.weeklySessions,
+      0,
+    );
+    const isAssigned = (item: CurriculumItem) =>
+      selectedIds.has(item.id) ||
+      Boolean(item.teacherId && item.teacherId !== teacher?.id);
+    const assignedSessions = items
+      .filter(isAssigned)
+      .reduce((total, item) => total + item.weeklySessions, 0);
+
+    return {
+      ...subject,
+      assignedSessions,
+      requiredSessions,
+      missingItems: items.filter((item) => !isAssigned(item)),
+    };
+  });
+  const selectedCoverage = subjectCoverage.find(
+    (subject) => subject.id === teachingSubjectId,
+  );
   const visibleCurriculum = teachingSubjectId
     ? curriculum.filter((item) => item.subjectId === teachingSubjectId)
     : [];
@@ -256,6 +279,108 @@ export function TeacherWorkflowEditor({
             value={id}
           />
         ))}
+        <div
+          aria-label="Teacher coverage by subject"
+          className="border border-[#dce1dc] bg-white"
+          role="region"
+        >
+          <div className="border-b border-[#dce1dc] px-4 py-3">
+            <h3 className="font-semibold">Teacher coverage</h3>
+            <p className="mt-1 text-xs text-[#66706b]">
+              Assigned sessions compared with all sessions required by the
+              curriculum.
+            </p>
+          </div>
+          <div className="grid sm:grid-cols-2 xl:grid-cols-3">
+            {subjectCoverage.map((subject) => {
+              const remainingSessions =
+                subject.requiredSessions - subject.assignedSessions;
+              const isComplete = remainingSessions === 0;
+              const isEmpty = subject.assignedSessions === 0;
+              const missingSummary = subject.missingItems
+                .map(
+                  (item) =>
+                    `${item.className}: ${String(item.weeklySessions)} sessions`,
+                )
+                .join(", ");
+
+              return (
+                <button
+                  aria-pressed={teachingSubjectId === subject.id}
+                  className={`min-h-24 border-r border-b border-[#dce1dc] px-4 py-3 text-left ${
+                    teachingSubjectId === subject.id
+                      ? "outline-2 -outline-offset-2 outline-[#0e6b4f]"
+                      : ""
+                  } ${
+                    isComplete
+                      ? "bg-[#eef8f3]"
+                      : isEmpty
+                        ? "bg-[#fff1ef]"
+                        : "bg-[#fff9e9]"
+                  }`}
+                  key={subject.id}
+                  onClick={() => setTeachingSubjectId(subject.id)}
+                  title={
+                    isComplete
+                      ? "All classes have teachers"
+                      : `Still needs teachers: ${missingSummary}`
+                  }
+                  type="button"
+                >
+                  <span className="block font-semibold">
+                    {subject.name} ({subject.code})
+                  </span>
+                  <span className="mt-1 block text-sm">
+                    {subject.assignedSessions} / {subject.requiredSessions}{" "}
+                    sessions assigned
+                  </span>
+                  <span
+                    className={`mt-1 block text-xs font-semibold ${
+                      isComplete
+                        ? "text-[#0b5b43]"
+                        : isEmpty
+                          ? "text-[#8b2119]"
+                          : "text-[#6e5314]"
+                    }`}
+                  >
+                    {isComplete
+                      ? "Complete"
+                      : `${String(remainingSessions)} sessions remaining`}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          {selectedCoverage ? (
+            <div
+              aria-live="polite"
+              className="border-t border-[#dce1dc] px-4 py-3"
+            >
+              <h4 className="text-sm font-semibold">
+                Classes still needing a {selectedCoverage.name} teacher
+              </h4>
+              {selectedCoverage.missingItems.length === 0 ? (
+                <p className="mt-2 text-sm text-[#0b5b43]">
+                  All classes are covered.
+                </p>
+              ) : (
+                <ul className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                  {selectedCoverage.missingItems.map((item) => (
+                    <li
+                      className="border border-[#e3b7b2] bg-[#fff7f5] px-3 py-2 text-sm"
+                      key={item.id}
+                    >
+                      <span className="font-medium">{item.className}</span>
+                      <span className="ml-2 text-[#66706b]">
+                        {item.weeklySessions} sessions
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ) : null}
+        </div>
         <dl className="grid border-l border-t border-[#dce1dc] bg-white sm:grid-cols-4">
           {[
             ["Declared", declaredSessions],

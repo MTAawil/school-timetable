@@ -111,6 +111,14 @@ Current task: R7.1 - Teacher-Centered Entry and Restrictions.
   two desktop/mobile browser tests. Redeployed port 3103 without deleting the
   supervisor's current manual-test data.
 
+### 2026-07-29 - Live teacher coverage
+
+- Added a live subject coverage summary to the teacher editor.
+- Each subject shows assigned sessions, required sessions, remaining sessions,
+  and a complete, partial, or unassigned visual state.
+- Selecting a subject reveals the classes that still need a teacher.
+- Coverage includes unsaved changes for the teacher currently being edited.
+
 ### 2026-07-29 - R8 migration and verification
 
 - Applied all migrations to the isolated `timetable_r8` PostgreSQL database.

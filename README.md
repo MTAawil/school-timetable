@@ -203,6 +203,8 @@ Status: **Ready for manual review**
 - [x] Let the supervisor use a subject filter when choosing classes, preserving
       allocations across subjects so one teacher can teach multiple subjects;
       inherit session counts from curriculum rather than typing them again.
+- [x] Show live teacher coverage for every subject, including assigned versus
+      required sessions and the classes that still need a teacher.
 - [x] Show declared, allocated, remaining, and excess sessions while editing
       the teacher.
 - [x] Preserve the hard rule that one class-subject has exactly one teacher and
