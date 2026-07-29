@@ -281,6 +281,38 @@ PostgreSQL.
 Docker Desktop is not required. PostgreSQL runs natively as the Windows service
 `postgresql-x64-17`.
 
+## Transfer the local database
+
+Database archives are written to the ignored `backups/` directory. The password
+is supplied through the current PowerShell session and is never stored in Git.
+
+Create and verify a compressed backup:
+
+```powershell
+$env:PGPASSWORD = "your-postgres-password"
+pnpm db:backup
+```
+
+Transfer both the generated `.dump` file and its `.sha256` file to the new
+computer. Confirm the copied archive checksum:
+
+```powershell
+(Get-FileHash -Algorithm SHA256 .\backups\timetable_manual-YYYYMMDD-HHMMSS.dump).Hash
+Get-Content .\backups\timetable_manual-YYYYMMDD-HHMMSS.dump.sha256
+```
+
+Restore into a new database after PostgreSQL and the `timetable` database user
+have been created:
+
+```powershell
+$env:PGPASSWORD = "your-postgres-password"
+pnpm db:restore -- -BackupFile .\backups\timetable_manual-YYYYMMDD-HHMMSS.dump
+```
+
+The restore script refuses to replace an existing database unless `-Force` is
+explicitly supplied. Using `-Force` removes and recreates objects inside the
+target database, so take a fresh backup first.
+
 ## First Setup
 
 1. Copy `.env.example` to `.env`.

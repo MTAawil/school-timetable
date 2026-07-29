@@ -17,6 +17,7 @@ __pycache__/
 
 # Environment and local state
 .env
+backups/
 .env.*
 !.env.example
 *.log

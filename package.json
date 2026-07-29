@@ -34,7 +34,9 @@
     "solver:format:check": "uv run --project services/solver ruff format --check services/solver",
     "solver:lint": "uv run --project services/solver ruff check services/solver",
     "solver:typecheck": "uv run --project services/solver mypy services/solver/app",
-    "solver:test": "uv run --project services/solver pytest services/solver/tests"
+    "solver:test": "uv run --project services/solver pytest services/solver/tests",
+    "db:backup": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/backup-database.ps1",
+    "db:restore": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/restore-database.ps1"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.0",

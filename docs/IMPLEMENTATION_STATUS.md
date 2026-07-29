@@ -6,6 +6,16 @@ Stable single-school MVP complete on `main`. Supervisor workflow redesign R7 is
 complete on `feature/supervisor-workflow-redesign`; R8 verification is in
 progress.
 
+### 2026-07-29 - Portable local database backup
+
+- Added Windows PowerShell backup and restore scripts using PostgreSQL custom
+  archives.
+- Backup creation verifies the archive and writes a SHA-256 checksum without
+  storing database credentials.
+- Rehearsed a full restore into a temporary database and verified 9 teachers,
+  45 curriculum rows, and 8 generation jobs before removing the temporary
+  database.
+
 ## Decisions
 
 - Build a single-school MVP before adding any multi-school or billing behavior.
