@@ -43,7 +43,7 @@ progress.
 
 ## Active redesign execution plan
 
-Current task: R8 - Migration, End-to-End Verification, and Approval.
+Current task: R7.1 - Teacher-Centered Entry and Restrictions.
 
 1. R0 documentation and fixtures are complete and approved.
 2. The isolated redesign database and additive R1 migration are complete.
@@ -53,9 +53,47 @@ Current task: R8 - Migration, End-to-End Verification, and Approval.
 6. R5 - Teacher Restrictions is complete.
 7. R6 - Readiness and Solver Rules is complete.
 8. R7 - Simplified Application Flow is complete.
-9. Implement R8.
-10. Update README task statuses and this section after every completed task.
-11. Do not merge to `main` before full verification and supervisor approval.
+9. Implement the supervisor-requested R7.1 teacher-centered correction.
+10. Resume and complete R8 after R7.1 passes its manual review.
+11. Update README task statuses and this section after every completed task.
+12. Do not merge to `main` before full verification and supervisor approval.
+
+### 2026-07-29 - R7.1 manual-review correction
+
+- Manual testing showed that the class-centered teaching-assignment table does
+  not match the supervisor's teacher-by-teacher data-entry process.
+- The approved correction combines teacher identity, exact workload,
+  class-subject ownership, and the selected teacher's weekly restrictions in
+  one Add/Edit Teacher workflow.
+- Restriction cells will cycle by click through Available, Preferred, and
+  Unavailable, with the entire cell background communicating its state.
+- A compact whole-school coverage summary remains available for validation, but
+  is no longer the primary assignment-entry method.
+- R8 approval is paused until this correction is implemented, tested, and
+  manually reviewed.
+
+### 2026-07-29 - R7.1 implementation ready for review
+
+- Replaced the primary class-centered assignment editor with one selected
+  teacher workflow containing profile, exact workload, class-subject ownership,
+  hard limits, and weekly restrictions.
+- Added live declared, allocated, remaining, and excess totals. The combined
+  save is disabled and rejected server-side unless the workload is exact.
+- Protected class-subject ownership and added explicit confirmation before
+  reassigning a class-subject from another teacher.
+- Replaced restriction dropdowns with full-background clickable cells cycling
+  through Available, Preferred, and Unavailable.
+- Saved teacher data, allocations, and restrictions in one school- and
+  term-scoped transaction.
+- Removed Restrictions from primary navigation and changed readiness correction
+  links to the combined Teachers screen; the legacy route remains available for
+  compatibility.
+- Added shared allocation validation tests, combined editor component coverage,
+  and desktop/mobile Playwright coverage including an actual combined save.
+- Passed 61 TypeScript tests, lint, strict type-check, the 19-route production
+  build, and two focused browser tests.
+- Deployed the verified build against the empty `timetable_manual` database on
+  port 3103. Supervisor manual review is the only open R7.1 checklist item.
 
 ### 2026-07-29 - R8 migration and verification
 

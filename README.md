@@ -192,6 +192,42 @@ Status: **Complete**
 Completion rule: a first-time supervisor can reach timetable generation without
 needing to understand the internal data model.
 
+#### R7.1 - Teacher-Centered Entry and Restrictions
+
+Status: **Ready for manual review**
+
+- [x] Replace the class-centered assignment table as the primary entry method
+      with an Add/Edit Teacher workflow.
+- [x] Keep teacher name, code, employment type, and exact weekly sessions in
+      the teacher workflow.
+- [x] Let the supervisor select every class and subject taught by that teacher;
+      inherit session counts from curriculum rather than typing them again.
+- [x] Show declared, allocated, remaining, and excess sessions while editing
+      the teacher.
+- [x] Preserve the hard rule that one class-subject has exactly one teacher and
+      prevent accidental reassignment without a clear confirmation.
+- [x] Place the selected teacher's weekly restriction grid in the same Add/Edit
+      Teacher workflow.
+- [x] Replace restriction dropdowns with clickable session cells that cycle
+      `Available -> Preferred -> Unavailable -> Available`.
+- [x] Change the complete session-cell background for every restriction state
+      and provide a clear color legend.
+- [x] Save the teacher profile, teaching assignments, and restrictions as one
+      coherent operation with validated school and term ownership.
+- [x] Keep a compact whole-school coverage and workload summary for finding
+      unassigned class-subjects and mismatched teacher loads.
+- [x] Remove the separate Restrictions item from primary navigation only after
+      the combined teacher workflow is complete and tested.
+- [x] Add business-logic, component, integration, and Playwright tests for
+      teacher creation, exact workload, assignment ownership, restriction-state
+      cycling, and editing an existing teacher.
+- [ ] Verify the complete flow on an empty manual-test database and obtain
+      supervisor approval.
+
+Completion rule: the supervisor can completely add one teacher, including
+class-subject ownership and weekly restrictions, without leaving that teacher's
+workflow.
+
 #### R8 - Migration, End-to-End Verification, and Approval
 
 Status: **In progress**
@@ -211,7 +247,7 @@ and the supervisor approves the workflow.
 ### Working Status
 
 - Current branch: `feature/supervisor-workflow-redesign`
-- Current task: **R8 - Migration, End-to-End Verification, and Approval**
+- Current task: **R7.1 - Teacher-Centered Entry and Restrictions**
 - Last completed task: **R7 - Simplified Application Flow**
 - Stable MVP branch: `main`
 

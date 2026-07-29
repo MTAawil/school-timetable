@@ -12,31 +12,24 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("supervisor workflow navigation", () => {
-  it("renders five ordered progress steps and their completion state", () => {
+  it("renders four ordered progress steps and their completion state", () => {
     const markup = renderToStaticMarkup(
       <WorkflowProgress
         steps={[
           { href: "/setup", label: "School setup", complete: true },
           { href: "/subjects", label: "Curriculum", complete: true },
           { href: "/teachers", label: "Teachers", complete: false },
-          {
-            href: "/availability",
-            label: "Restrictions",
-            complete: false,
-            optional: true,
-          },
           { href: "/readiness", label: "Generate", complete: false },
         ]}
       />,
     );
 
-    expect(markup).toContain("2 of 5 complete");
+    expect(markup).toContain("2 of 4 complete");
     expect(markup).toContain("School setup");
-    expect(markup).toContain("Restrictions");
-    expect(markup).toContain("Optional");
+    expect(markup).not.toContain("Restrictions");
   });
 
-  it("keeps only the seven primary destinations and marks the active page", () => {
+  it("keeps only the six primary destinations and marks the active page", () => {
     const markup = renderToStaticMarkup(
       <>
         <DesktopNavigation />
@@ -50,6 +43,7 @@ describe("supervisor workflow navigation", () => {
     expect(markup).toContain('aria-current="page"');
     expect(markup).not.toContain("Rooms");
     expect(markup).not.toContain("Requirements");
+    expect(markup).not.toContain("Restrictions");
     expect(markup).not.toContain("Quality weights");
   });
 });

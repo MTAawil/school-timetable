@@ -94,12 +94,6 @@ export async function getWorkflowSteps(
       complete: teacherCoverageComplete,
     },
     {
-      href: "/availability",
-      label: "Restrictions",
-      complete: teachers.length > 0,
-      optional: true,
-    },
-    {
       href: "/readiness",
       label: "Generate",
       complete: successfulJob !== null,

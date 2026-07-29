@@ -3,7 +3,6 @@
 import {
   BookOpen,
   CalendarRange,
-  Grid3X3,
   LayoutDashboard,
   Settings2,
   ShieldCheck,
@@ -17,7 +16,6 @@ const navigation = [
   { href: "/setup", label: "School setup", icon: Settings2 },
   { href: "/subjects", label: "Curriculum", icon: BookOpen },
   { href: "/teachers", label: "Teachers", icon: Users },
-  { href: "/availability", label: "Restrictions", icon: Grid3X3 },
   { href: "/readiness", label: "Generate", icon: ShieldCheck },
   { href: "/schedules", label: "Timetables", icon: CalendarRange },
 ] as const;

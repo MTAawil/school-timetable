@@ -1,6 +1,8 @@
 "use server";
 
 import { getDatabase } from "@school-timetable/database";
+import type { TeacherRestrictionState } from "@school-timetable/shared/teacher-restrictions";
+import { validateTeacherWorkflowAllocation } from "@school-timetable/shared/teacher-allocation";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -22,6 +24,228 @@ const teacherSchema = z.object({
   maxLessonsPerDay: z.number().int().positive().max(20).nullable(),
   maxConsecutiveLessons: z.number().int().positive().max(20).nullable(),
 });
+
+const restrictionStateSchema = z.enum([
+  "AVAILABLE",
+  "PREFERRED",
+  "DISLIKED",
+  "UNAVAILABLE",
+]);
+
+export async function saveTeacherWorkflow(formData: FormData): Promise<void> {
+  const user = await verifySession();
+  const term = await getActiveTerm(user.schoolId);
+  const input = teacherSchema.parse({
+    name: formData.get("name"),
+    shortCode: formData.get("shortCode"),
+    employmentType: formData.get("employmentType"),
+    weeklyTeachingSessions: Number(formData.get("weeklyTeachingSessions")),
+    maxLessonsPerDay: optionalInteger(formData.get("maxLessonsPerDay")),
+    maxConsecutiveLessons: optionalInteger(
+      formData.get("maxConsecutiveLessons"),
+    ),
+  });
+  const requestedTeacherId = optionalText(formData.get("id"));
+  const teacherId = requestedTeacherId
+    ? z.uuid().parse(requestedTeacherId)
+    : null;
+  const selectedCurriculumIds = z
+    .array(z.uuid())
+    .parse(formData.getAll("classCurriculumId"));
+  const confirmedReassignmentIds = z
+    .array(z.uuid())
+    .parse(formData.getAll("reassignCurriculumId"));
+  const submittedSlots = z
+    .array(z.string().regex(/^\d+:\d+$/))
+    .parse(formData.getAll("restrictionSlot"));
+  const db = getDatabase();
+  const [configuration, days, periods, curriculum, existingTeacher] =
+    await Promise.all([
+      db.schoolWeekConfiguration.findFirst({
+        where: { schoolId: user.schoolId, termId: term.id },
+      }),
+      db.dayDefinition.findMany({
+        where: { schoolId: user.schoolId, termId: term.id, isWorking: true },
+        select: { dayIndex: true },
+      }),
+      db.periodDefinition.findMany({
+        where: {
+          schoolId: user.schoolId,
+          termId: term.id,
+          isTeaching: true,
+        },
+        select: { periodIndex: true },
+      }),
+      db.classCurriculum.findMany({
+        where: {
+          schoolId: user.schoolId,
+          termId: term.id,
+          isActive: true,
+          classSection: { isActive: true, deletedAt: null },
+        },
+        select: { id: true, teacherId: true, weeklySessions: true },
+      }),
+      teacherId
+        ? db.teacher.findFirst({
+            where: {
+              id: teacherId,
+              schoolId: user.schoolId,
+              isActive: true,
+              deletedAt: null,
+            },
+          })
+        : null,
+    ]);
+
+  if (!configuration) {
+    throw new Error("SCHOOL_WEEK_INCOMPLETE");
+  }
+  if (teacherId && !existingTeacher) {
+    throw new Error("TEACHER_NOT_FOUND");
+  }
+  const limitSchema = z
+    .number()
+    .int()
+    .positive()
+    .max(configuration.sessionsPerDay)
+    .nullable();
+  limitSchema.parse(input.maxLessonsPerDay);
+  limitSchema.parse(input.maxConsecutiveLessons);
+
+  const allocationValidation = validateTeacherWorkflowAllocation(
+    teacherId,
+    input.weeklyTeachingSessions,
+    selectedCurriculumIds,
+    curriculum.map((item) => ({
+      classCurriculumId: item.id,
+      teacherId: item.teacherId,
+      weeklySessions: item.weeklySessions,
+    })),
+    confirmedReassignmentIds,
+  );
+  if (
+    !allocationValidation.valid &&
+    allocationValidation.code === "CLASS_SUBJECT_ALREADY_ASSIGNED"
+  ) {
+    redirect("/teachers?error=CLASS_SUBJECT_ALREADY_ASSIGNED");
+  }
+  if (
+    !allocationValidation.valid &&
+    allocationValidation.code === "TEACHER_WORKLOAD_MISMATCH"
+  ) {
+    redirect(
+      `/teachers?error=TEACHER_WORKLOAD_MISMATCH&declared=${String(input.weeklyTeachingSessions)}&allocated=${String(allocationValidation.allocatedWeeklySessions)}`,
+    );
+  }
+  if (!allocationValidation.valid) {
+    throw new Error(allocationValidation.code);
+  }
+
+  const expectedSlots = days
+    .flatMap((day) =>
+      periods.map(
+        (period) => `${String(day.dayIndex)}:${String(period.periodIndex)}`,
+      ),
+    )
+    .sort();
+  const actualSlots = [...submittedSlots].sort();
+  if (
+    expectedSlots.length !== actualSlots.length ||
+    expectedSlots.some((slot, index) => slot !== actualSlots[index])
+  ) {
+    throw new Error("RESTRICTION_FORM_STALE");
+  }
+  const restrictions = submittedSlots.flatMap((slot) => {
+    const [dayIndex, periodIndex] = slot.split(":").map(Number);
+    if (dayIndex === undefined || periodIndex === undefined) {
+      throw new Error("RESTRICTION_SLOT_INVALID");
+    }
+    const state = restrictionStateSchema.parse(formData.get(`state:${slot}`));
+    return state === "AVAILABLE"
+      ? []
+      : [
+          {
+            schoolId: user.schoolId,
+            termId: term.id,
+            entityType: "TEACHER" as const,
+            dayIndex,
+            periodIndex,
+            state: state as Exclude<TeacherRestrictionState, "AVAILABLE">,
+          },
+        ];
+  });
+
+  let savedTeacherId: string;
+  try {
+    savedTeacherId = await db.$transaction(async (transaction) => {
+      const teacher = teacherId
+        ? await transaction.teacher.update({
+            where: { id_schoolId: { id: teacherId, schoolId: user.schoolId } },
+            data: input,
+          })
+        : await transaction.teacher.create({
+            data: { schoolId: user.schoolId, ...input },
+          });
+
+      if (teacherId) {
+        await transaction.classCurriculum.updateMany({
+          where: {
+            schoolId: user.schoolId,
+            termId: term.id,
+            teacherId,
+            id: { notIn: selectedCurriculumIds },
+          },
+          data: { teacherId: null },
+        });
+      }
+      if (selectedCurriculumIds.length > 0) {
+        const allocationResult = await transaction.classCurriculum.updateMany({
+          where: {
+            schoolId: user.schoolId,
+            termId: term.id,
+            id: { in: selectedCurriculumIds },
+          },
+          data: { teacherId: teacher.id },
+        });
+        if (allocationResult.count !== selectedCurriculumIds.length) {
+          throw new Error("CLASS_SUBJECT_ALREADY_ASSIGNED");
+        }
+      }
+
+      await transaction.availabilityRule.deleteMany({
+        where: {
+          schoolId: user.schoolId,
+          termId: term.id,
+          entityType: "TEACHER",
+          entityId: teacher.id,
+        },
+      });
+      if (restrictions.length > 0) {
+        await transaction.availabilityRule.createMany({
+          data: restrictions.map((restriction) => ({
+            ...restriction,
+            entityId: teacher.id,
+          })),
+        });
+      }
+      return teacher.id;
+    });
+  } catch (error: unknown) {
+    if (
+      error instanceof Error &&
+      error.message === "CLASS_SUBJECT_ALREADY_ASSIGNED"
+    ) {
+      redirect("/teachers?error=CLASS_SUBJECT_ALREADY_ASSIGNED");
+    }
+    throw error;
+  }
+
+  revalidatePath("/teachers");
+  revalidatePath("/availability");
+  revalidatePath("/subjects");
+  revalidatePath("/readiness");
+  redirect(`/teachers?teacher=${savedTeacherId}&saved=teacher`);
+}
 
 export async function saveTeacherProfile(formData: FormData): Promise<void> {
   const user = await verifySession();

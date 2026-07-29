@@ -16,8 +16,12 @@ test("administrator can complete the timetable workflow", async ({ page }) => {
   ).toBeVisible();
   await page.goto("/teachers");
 
-  await expect(page.getByText("3 / 3")).toBeVisible();
-  await expect(page.getByText("Uncovered").locator("..")).toContainText("0");
+  await expect(
+    page.getByText("0 class-subjects remain unassigned."),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Edit Maya Haddad" }),
+  ).toBeVisible();
 
   await page.goto("/readiness");
   await expect(

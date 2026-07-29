@@ -14,12 +14,12 @@ A supervisor normally works from left to right:
    sections.
 2. **Curriculum:** choose the subjects taught by each grade and enter their
    weekly sessions, main-subject status, and optional double-session permission.
-3. **Teachers:** add each teacher, declare the exact weekly teaching load, and
-   assign one teacher to every class subject.
-4. **Restrictions:** enter hard unavailability and optional preferences.
-5. **Generate:** correct any blocking readiness messages, then ask the system
+3. **Teachers:** add each teacher, declare the exact weekly teaching load,
+   assign their classes and subjects, and enter their weekly restrictions in
+   the same workflow.
+4. **Generate:** correct any blocking readiness messages, then ask the system
    for timetable alternatives.
-6. **Timetables:** review an alternative, open a draft, make or reject edits,
+5. **Timetables:** review an alternative, open a draft, make or reject edits,
    lock lessons, regenerate unlocked lessons, export, and publish.
 
 The Overview page shows setup progress and the next action. Publishing makes
@@ -221,9 +221,22 @@ The UI continuously displays:
 Generation is blocked unless every class-subject has one teacher and every
 teacher's allocated total exactly equals the declared total.
 
+Teacher entry is teacher-centered. The supervisor completes the profile,
+class-subject assignments, workload comparison, and weekly restrictions for
+one teacher before continuing to the next teacher. A whole-school summary may
+show gaps and mismatches, but it is not the primary data-entry interface.
+
 ## 6. Teacher Restrictions
 
-The weekly restriction grid supports:
+The selected teacher's weekly restriction grid appears inside the Add/Edit
+Teacher workflow. Each session is one clickable cell. Repeated clicks cycle:
+
+```text
+Available -> Preferred -> Unavailable -> Available
+```
+
+The entire cell background changes with its state; the state is not
+communicated by text color alone. A visible legend identifies the three states.
 
 ### Hard restrictions
 

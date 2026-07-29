@@ -8,7 +8,7 @@ import { getCurrentReadiness } from "@/lib/readiness";
 
 const issueDestinations: Record<string, string> = {
   CLASS_CAPACITY_SHORTAGE: "/classes",
-  TEACHER_CAPACITY_SHORTAGE: "/availability",
+  TEACHER_CAPACITY_SHORTAGE: "/teachers",
   REQUIREMENT_COMPATIBILITY_SHORTAGE: "/requirements",
   DAILY_CAPACITY_SHORTAGE: "/requirements",
   DISTINCT_DAYS_SHORTAGE: "/requirements",

@@ -19,7 +19,6 @@ test("supervisor sees the simplified workflow on desktop", async ({ page }) => {
     "School setup",
     "Curriculum",
     "Teachers",
-    "Restrictions",
     "Generate",
     "Timetables",
   ]) {
@@ -29,8 +28,33 @@ test("supervisor sees the simplified workflow on desktop", async ({ page }) => {
   await expect(primary.getByRole("link", { name: "Requirements" })).toHaveCount(
     0,
   );
+  await expect(primary.getByRole("link", { name: "Restrictions" })).toHaveCount(
+    0,
+  );
   await expect(
     page.getByRole("region", { name: "Setup progress" }),
+  ).toBeVisible();
+
+  await primary.getByRole("link", { name: "Teachers" }).click();
+  await page.getByRole("link", { name: "Edit Maya Haddad" }).click();
+  await expect(
+    page.getByText("Declared and allocated sessions match."),
+  ).toBeVisible();
+  const restrictionCell = page.getByRole("button", {
+    name: /Monday, Period 1:/,
+  });
+  const initialRestriction = await restrictionCell.getAttribute("aria-label");
+  await restrictionCell.click();
+  await expect(restrictionCell).not.toHaveAttribute(
+    "aria-label",
+    initialRestriction ?? "",
+  );
+  await page.getByRole("button", { name: "Save teacher" }).click();
+  await expect(page).toHaveURL(/\/teachers\?teacher=[a-f0-9-]+&saved=teacher/);
+  await expect(
+    page.getByText(
+      "Teacher details, classes, subjects, and restrictions saved.",
+    ),
   ).toBeVisible();
 
   await primary.getByRole("link", { name: "School setup" }).click();

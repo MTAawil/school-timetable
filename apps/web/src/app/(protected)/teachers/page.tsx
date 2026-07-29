@@ -1,12 +1,11 @@
 import { getDatabase } from "@school-timetable/database";
-import { Check, Save, UserPlus, Users } from "lucide-react";
+import { summarizeTeacherWorkloads } from "@school-timetable/shared/teacher-allocation";
+import { Check, Pencil, Plus, Users } from "lucide-react";
+import Link from "next/link";
 
-import {
-  saveTeacherProfile,
-  saveTeachingAllocations,
-} from "@/app/(protected)/teachers/actions";
-import { buttonClass, inputClass, PageHeading } from "@/components/setup-ui";
-import { TeacherAllocationBoard } from "@/components/teacher-allocation-board";
+import { saveTeacherWorkflow } from "@/app/(protected)/teachers/actions";
+import { buttonClass, PageHeading } from "@/components/setup-ui";
+import { TeacherWorkflowEditor } from "@/components/teacher-workflow-editor";
 import { WorkflowNextAction } from "@/components/workflow-next-action";
 import { verifySession } from "@/lib/auth/dal";
 import { getActiveTerm } from "@/lib/setup";
@@ -14,12 +13,19 @@ import { getActiveTerm } from "@/lib/setup";
 export default async function TeachersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ saved?: string }>;
+  searchParams: Promise<{
+    saved?: string;
+    teacher?: string;
+    error?: string;
+    declared?: string;
+    allocated?: string;
+  }>;
 }) {
   const user = await verifySession();
   const term = await getActiveTerm(user.schoolId);
   const db = getDatabase();
-  const [teachers, curriculum] = await Promise.all([
+  const params = await searchParams;
+  const [teachers, curriculum, days, periods] = await Promise.all([
     db.teacher.findMany({
       where: { schoolId: user.schoolId, isActive: true, deletedAt: null },
       orderBy: { name: "asc" },
@@ -31,20 +37,54 @@ export default async function TeachersPage({
         isActive: true,
         classSection: { isActive: true, deletedAt: null },
       },
-      include: { classSection: true, subject: true },
+      include: { classSection: true, subject: true, teacher: true },
       orderBy: [
         { classSection: { shortCode: "asc" } },
         { subject: { name: "asc" } },
       ],
     }),
+    db.dayDefinition.findMany({
+      where: { schoolId: user.schoolId, termId: term.id, isWorking: true },
+      orderBy: { dayIndex: "asc" },
+    }),
+    db.periodDefinition.findMany({
+      where: { schoolId: user.schoolId, termId: term.id },
+      orderBy: { periodIndex: "asc" },
+    }),
   ]);
-  const params = await searchParams;
+  const selectedTeacher =
+    params.teacher === "new"
+      ? undefined
+      : (teachers.find((teacher) => teacher.id === params.teacher) ??
+        teachers[0]);
+  const restrictions = selectedTeacher
+    ? await db.availabilityRule.findMany({
+        where: {
+          schoolId: user.schoolId,
+          termId: term.id,
+          entityType: "TEACHER",
+          entityId: selectedTeacher.id,
+        },
+      })
+    : [];
+  const workload = summarizeTeacherWorkloads(
+    teachers.map((teacher) => ({
+      teacherId: teacher.id,
+      declaredWeeklySessions: teacher.weeklyTeachingSessions,
+    })),
+    curriculum.map((item) => ({
+      classCurriculumId: item.id,
+      teacherId: item.teacherId,
+      weeklySessions: item.weeklySessions,
+    })),
+  );
+  const uncovered = curriculum.filter((item) => !item.teacherId).length;
 
   return (
     <div className="space-y-8">
       <PageHeading
-        title="Teachers and assignments"
-        description={`Add teachers and assign every class-subject for ${term.name}.`}
+        title="Teachers"
+        description={`Complete one teacher at a time for ${term.name}.`}
       />
 
       {params.saved ? (
@@ -53,189 +93,177 @@ export default async function TeachersPage({
           role="status"
         >
           <Check aria-hidden="true" size={17} />
-          {params.saved === "allocations"
-            ? "Teaching assignments saved."
-            : "Teacher saved."}
+          Teacher details, classes, subjects, and restrictions saved.
+        </div>
+      ) : null}
+      {params.error ? (
+        <div
+          className="border border-[#e3b7b2] bg-[#fff1ef] px-4 py-3 text-sm font-medium text-[#8b2119]"
+          role="alert"
+        >
+          {params.error === "CLASS_SUBJECT_ALREADY_ASSIGNED"
+            ? "A selected class-subject was assigned to another teacher. Review the locked assignments and try again."
+            : `Declared sessions (${params.declared ?? "0"}) must equal allocated sessions (${params.allocated ?? "0"}).`}
         </div>
       ) : null}
 
-      <section className="space-y-5" aria-labelledby="add-teacher-heading">
-        <div className="flex items-center gap-3 border-b border-[#dce1dc] pb-3">
-          <UserPlus aria-hidden="true" size={20} className="text-[#0e6b4f]" />
+      <section className="space-y-4" aria-labelledby="teacher-list-heading">
+        <div className="flex flex-wrap items-center gap-3 border-b border-[#dce1dc] pb-3">
+          <Users aria-hidden="true" className="text-[#0e6b4f]" size={20} />
           <div>
-            <h2 id="add-teacher-heading" className="font-semibold">
-              Add teacher
+            <h2 id="teacher-list-heading" className="font-semibold">
+              Teachers and coverage
             </h2>
             <p className="mt-1 text-sm text-[#66706b]">
-              Weekly teaching sessions are an exact required total.
+              {uncovered} class-subjects remain unassigned.
             </p>
           </div>
+          <Link
+            className={`${buttonClass} ml-auto`}
+            href="/teachers?teacher=new"
+          >
+            <Plus aria-hidden="true" className="mr-2" size={16} />
+            Add teacher
+          </Link>
         </div>
-        <TeacherForm />
-      </section>
 
-      {teachers.length > 0 ? (
-        <section className="space-y-5" aria-labelledby="staff-heading">
-          <div className="flex items-center gap-3 border-b border-[#dce1dc] pb-3">
-            <Users aria-hidden="true" size={20} className="text-[#0e6b4f]" />
-            <div>
-              <h2 id="staff-heading" className="font-semibold">
-                Teacher profiles
-              </h2>
-              <p className="mt-1 text-sm text-[#66706b]">
-                Edit identity, employment type, exact workload, and hard daily
-                limits.
-              </p>
-            </div>
-          </div>
-          <div className="space-y-3">
-            {teachers.map((teacher) => (
-              <TeacherForm key={teacher.id} teacher={teacher} />
-            ))}
-          </div>
-        </section>
-      ) : null}
-
-      <section className="space-y-5" aria-labelledby="assignments-heading">
-        <div className="border-b border-[#dce1dc] pb-3">
-          <h2 id="assignments-heading" className="font-semibold">
-            Teaching assignments
-          </h2>
-          <p className="mt-1 text-sm text-[#66706b]">
-            Every class-subject accepts one teacher. Session totals come from
-            curriculum and cannot be changed here.
-          </p>
-        </div>
         {teachers.length === 0 ? (
-          <Notice>Add at least one teacher before assigning curriculum.</Notice>
-        ) : curriculum.length === 0 ? (
-          <Notice>
-            Save grade curriculum before creating teaching assignments.
-          </Notice>
+          <p className="border border-[#e0c78f] bg-[#fff9e9] px-4 py-3 text-sm text-[#6e5314]">
+            No teachers yet. Complete the form below to add the first teacher.
+          </p>
         ) : (
-          <TeacherAllocationBoard
-            teachers={teachers.map(({ id, name, weeklyTeachingSessions }) => ({
-              id,
-              name,
-              weeklyTeachingSessions,
-            }))}
-            initialAllocations={curriculum.map((item) => ({
-              id: item.id,
-              className: item.classSection.sectionName,
-              classCode: item.classSection.shortCode,
-              subjectName: item.subject.name,
-              subjectCode: item.subject.shortCode,
-              weeklySessions: item.weeklySessions,
-              teacherId: item.teacherId,
-            }))}
-            action={saveTeachingAllocations}
-          />
+          <div className="overflow-x-auto border border-[#dce1dc] bg-white">
+            <table className="w-full min-w-[680px] border-collapse text-left text-sm">
+              <thead className="bg-[#f2f5f2] text-xs text-[#56615c]">
+                <tr>
+                  <th className="px-4 py-3 font-semibold">Teacher</th>
+                  <th className="px-4 py-3 font-semibold">Employment</th>
+                  <th className="px-4 py-3 text-center font-semibold">
+                    Declared
+                  </th>
+                  <th className="px-4 py-3 text-center font-semibold">
+                    Allocated
+                  </th>
+                  <th className="px-4 py-3 font-semibold">Status</th>
+                  <th className="w-20 px-4 py-3">
+                    <span className="sr-only">Edit</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {teachers.map((teacher) => {
+                  const summary = workload.find(
+                    (item) => item.teacherId === teacher.id,
+                  );
+                  return (
+                    <tr className="border-t border-[#dce1dc]" key={teacher.id}>
+                      <td className="px-4 py-3 font-medium">{teacher.name}</td>
+                      <td className="px-4 py-3">
+                        {teacher.employmentType === "FULL_TIME"
+                          ? "Full time"
+                          : "Part time"}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {summary?.declaredWeeklySessions ?? 0}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {summary?.allocatedWeeklySessions ?? 0}
+                      </td>
+                      <td
+                        className={`px-4 py-3 font-medium ${
+                          summary?.status === "EXACT"
+                            ? "text-[#0e6b4f]"
+                            : "text-[#9d2e25]"
+                        }`}
+                      >
+                        {summary?.status === "EXACT"
+                          ? "Exact"
+                          : summary?.status === "OVER"
+                            ? "Over allocated"
+                            : "Needs allocation"}
+                      </td>
+                      <td className="px-4 py-2">
+                        <Link
+                          aria-label={`Edit ${teacher.name}`}
+                          className="inline-flex h-9 w-9 items-center justify-center border border-[#9ba59f] bg-white hover:bg-[#f0f2ef]"
+                          href={`/teachers?teacher=${teacher.id}`}
+                          title="Edit teacher"
+                        >
+                          <Pencil aria-hidden="true" size={15} />
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
+
+      <section className="space-y-4" aria-labelledby="teacher-editor-heading">
+        <div className="border-b border-[#dce1dc] pb-3">
+          <h2 id="teacher-editor-heading" className="font-semibold">
+            {selectedTeacher ? `Edit ${selectedTeacher.name}` : "Add teacher"}
+          </h2>
+          <p className="mt-1 text-sm text-[#66706b]">
+            Finish all three sections before saving this teacher.
+          </p>
+        </div>
+        <TeacherWorkflowEditor
+          action={saveTeacherWorkflow}
+          curriculum={curriculum.map((item) => ({
+            id: item.id,
+            className: item.classSection.sectionName,
+            classCode: item.classSection.shortCode,
+            subjectName: item.subject.name,
+            subjectCode: item.subject.shortCode,
+            weeklySessions: item.weeklySessions,
+            teacherId: item.teacherId,
+            teacherName: item.teacher?.name ?? null,
+          }))}
+          days={days.map((day) => ({
+            dayIndex: day.dayIndex,
+            name: day.name,
+          }))}
+          periods={periods.map((period) => ({
+            periodIndex: period.periodIndex,
+            name: period.name,
+            isTeaching: period.isTeaching,
+          }))}
+          restrictions={restrictions.flatMap((rule) =>
+            rule.state === "AVAILABLE"
+              ? []
+              : [
+                  {
+                    dayIndex: rule.dayIndex,
+                    periodIndex: rule.periodIndex,
+                    state: rule.state,
+                  },
+                ],
+          )}
+          teacher={
+            selectedTeacher
+              ? {
+                  id: selectedTeacher.id,
+                  name: selectedTeacher.name,
+                  shortCode: selectedTeacher.shortCode,
+                  employmentType: selectedTeacher.employmentType,
+                  weeklyTeachingSessions:
+                    selectedTeacher.weeklyTeachingSessions,
+                  maxLessonsPerDay: selectedTeacher.maxLessonsPerDay,
+                  maxConsecutiveLessons: selectedTeacher.maxConsecutiveLessons,
+                }
+              : undefined
+          }
+        />
+      </section>
+
       <WorkflowNextAction
-        description="Continue after all class-subjects are assigned and every workload matches."
-        href="/availability"
-        label="Continue to restrictions"
+        description="Continue after every class-subject is assigned and every teacher workload is exact."
+        href="/readiness"
+        label="Review and generate"
       />
     </div>
-  );
-}
-
-type TeacherFormValue = {
-  id: string;
-  name: string;
-  shortCode: string;
-  employmentType: "FULL_TIME" | "PART_TIME";
-  weeklyTeachingSessions: number;
-  maxLessonsPerDay: number | null;
-  maxConsecutiveLessons: number | null;
-};
-
-function TeacherForm({ teacher }: { teacher?: TeacherFormValue }) {
-  return (
-    <form
-      action={saveTeacherProfile}
-      className="grid gap-3 border-y border-[#dce1dc] bg-white px-4 py-4 sm:grid-cols-2 xl:grid-cols-[1.3fr_8rem_10rem_9rem_9rem_9rem_auto]"
-    >
-      {teacher ? <input type="hidden" name="id" value={teacher.id} /> : null}
-      <label className="text-xs font-medium text-[#56615c]">
-        Name
-        <input
-          className={`${inputClass} mt-1.5`}
-          name="name"
-          defaultValue={teacher?.name}
-          maxLength={100}
-          required
-        />
-      </label>
-      <label className="text-xs font-medium text-[#56615c]">
-        Code
-        <input
-          className={`${inputClass} mt-1.5`}
-          name="shortCode"
-          defaultValue={teacher?.shortCode}
-          pattern="[A-Za-z0-9_]+"
-          maxLength={12}
-          required
-        />
-      </label>
-      <label className="text-xs font-medium text-[#56615c]">
-        Employment
-        <select
-          className={`${inputClass} mt-1.5`}
-          name="employmentType"
-          defaultValue={teacher?.employmentType ?? "FULL_TIME"}
-        >
-          <option value="FULL_TIME">Full time</option>
-          <option value="PART_TIME">Part time</option>
-        </select>
-      </label>
-      <label className="text-xs font-medium text-[#56615c]">
-        Weekly sessions
-        <input
-          className={`${inputClass} mt-1.5`}
-          name="weeklyTeachingSessions"
-          type="number"
-          min="1"
-          max="100"
-          defaultValue={teacher?.weeklyTeachingSessions}
-          required
-        />
-      </label>
-      <label className="text-xs font-medium text-[#56615c]">
-        Max per day
-        <input
-          className={`${inputClass} mt-1.5`}
-          name="maxLessonsPerDay"
-          type="number"
-          min="1"
-          max="20"
-          defaultValue={teacher?.maxLessonsPerDay ?? ""}
-        />
-      </label>
-      <label className="text-xs font-medium text-[#56615c]">
-        Max consecutive
-        <input
-          className={`${inputClass} mt-1.5`}
-          name="maxConsecutiveLessons"
-          type="number"
-          min="1"
-          max="20"
-          defaultValue={teacher?.maxConsecutiveLessons ?? ""}
-        />
-      </label>
-      <button className={`${buttonClass} self-end`} type="submit">
-        <Save aria-hidden="true" className="mr-2" size={16} />
-        {teacher ? "Update" : "Add"}
-      </button>
-    </form>
-  );
-}
-
-function Notice({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="border border-[#e0c78f] bg-[#fff9e9] px-4 py-3 text-sm text-[#6e5314]">
-      {children}
-    </p>
   );
 }
