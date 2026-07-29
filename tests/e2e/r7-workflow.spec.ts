@@ -45,6 +45,11 @@ test("supervisor sees the simplified workflow on desktop", async ({ page }) => {
     name: "Teacher coverage by subject",
   });
   await expect(coverage).toBeVisible();
+  const coverageBox = await coverage.boundingBox();
+  const detailsBox = await page
+    .getByRole("heading", { name: "1. Teacher details" })
+    .boundingBox();
+  expect(coverageBox?.y).toBeLessThan(detailsBox?.y ?? 0);
   await coverage.getByRole("button", { name: /Mathematics/ }).hover();
   await expect(coverage.getByRole("tooltip")).toBeVisible();
   const allocatedWorkload = page

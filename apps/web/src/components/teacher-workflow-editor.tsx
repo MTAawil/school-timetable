@@ -161,6 +161,151 @@ export function TeacherWorkflowEditor({
     <form action={action} className="space-y-8">
       {teacher ? <input name="id" type="hidden" value={teacher.id} /> : null}
 
+      <div
+        aria-label="Teacher coverage by subject"
+        className="border border-[#dce1dc] bg-white"
+        role="region"
+      >
+        <div className="border-b border-[#dce1dc] px-4 py-3">
+          <h3 className="font-semibold">Teacher coverage</h3>
+          <p className="mt-1 text-xs text-[#66706b]">
+            Assigned sessions compared with all sessions required by the
+            curriculum.
+          </p>
+        </div>
+        <div className="grid sm:grid-cols-2 xl:grid-cols-3">
+          {subjectCoverage.map((subject) => {
+            const remainingSessions =
+              subject.requiredSessions - subject.assignedSessions;
+            const isComplete = remainingSessions === 0;
+            const isEmpty = subject.assignedSessions === 0;
+            const missingSummary = subject.missingItems
+              .slice(0, 4)
+              .map((item) => ({
+                id: item.id,
+                className: item.className,
+                sessions: item.weeklySessions,
+              }));
+            const tooltipId = `coverage-tooltip-${subject.id}`;
+
+            return (
+              <button
+                aria-describedby={tooltipId}
+                aria-pressed={teachingSubjectId === subject.id}
+                className={`group relative min-h-24 border-r border-b border-[#dce1dc] px-4 py-3 text-left ${
+                  teachingSubjectId === subject.id
+                    ? "outline-2 -outline-offset-2 outline-[#0e6b4f]"
+                    : ""
+                } ${
+                  isComplete
+                    ? "bg-[#eef8f3]"
+                    : isEmpty
+                      ? "bg-[#fff1ef]"
+                      : "bg-[#fff9e9]"
+                }`}
+                key={subject.id}
+                onClick={() => setTeachingSubjectId(subject.id)}
+                type="button"
+              >
+                <span className="block font-semibold">
+                  {subject.name} ({subject.code})
+                </span>
+                <span className="mt-1 block text-sm">
+                  {subject.assignedSessions} / {subject.requiredSessions}{" "}
+                  sessions assigned
+                </span>
+                <span
+                  className={`mt-1 block text-xs font-semibold ${
+                    isComplete
+                      ? "text-[#0b5b43]"
+                      : isEmpty
+                        ? "text-[#8b2119]"
+                        : "text-[#6e5314]"
+                  }`}
+                >
+                  {isComplete
+                    ? "Complete"
+                    : `${String(remainingSessions)} sessions remaining`}
+                </span>
+                <span
+                  className="pointer-events-none absolute inset-x-2 top-[calc(100%-0.5rem)] z-20 hidden border border-[#b8c0bb] bg-[#24312c] p-3 text-left text-white shadow-lg group-hover:block group-focus-visible:block"
+                  id={tooltipId}
+                  role="tooltip"
+                >
+                  <span className="block text-sm font-semibold">
+                    {subject.name} coverage
+                  </span>
+                  <span className="mt-1 block text-xs text-[#dbe4df]">
+                    {subject.assignedSessions} of {subject.requiredSessions}{" "}
+                    required sessions assigned
+                  </span>
+                  {isComplete ? (
+                    <span className="mt-3 block border-t border-[#53615b] pt-2 text-xs font-medium text-[#bde6d3]">
+                      All classes have teachers.
+                    </span>
+                  ) : (
+                    <>
+                      <span className="mt-3 block border-t border-[#53615b] pt-2 text-xs font-semibold">
+                        Still needs a teacher
+                      </span>
+                      <span className="mt-1 block space-y-1">
+                        {missingSummary.map((item) => (
+                          <span
+                            className="flex justify-between gap-3 text-xs"
+                            key={item.id}
+                          >
+                            <span>{item.className}</span>
+                            <span className="text-[#dbe4df]">
+                              {item.sessions} sessions
+                            </span>
+                          </span>
+                        ))}
+                      </span>
+                      {subject.missingItems.length > missingSummary.length ? (
+                        <span className="mt-2 block text-xs text-[#bfc9c3]">
+                          +{" "}
+                          {subject.missingItems.length - missingSummary.length}{" "}
+                          more classes
+                        </span>
+                      ) : null}
+                    </>
+                  )}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        {selectedCoverage ? (
+          <div
+            aria-live="polite"
+            className="border-t border-[#dce1dc] px-4 py-3"
+          >
+            <h4 className="text-sm font-semibold">
+              Classes still needing a {selectedCoverage.name} teacher
+            </h4>
+            {selectedCoverage.missingItems.length === 0 ? (
+              <p className="mt-2 text-sm text-[#0b5b43]">
+                All classes are covered.
+              </p>
+            ) : (
+              <ul className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                {selectedCoverage.missingItems.map((item) => (
+                  <li
+                    className="border border-[#e3b7b2] bg-[#fff7f5] px-3 py-2 text-sm"
+                    key={item.id}
+                  >
+                    <span className="font-medium">{item.className}</span>
+                    <span className="ml-2 text-[#66706b]">
+                      {item.weeklySessions} sessions
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        ) : null}
+      </div>
+
       <section className="space-y-4" aria-labelledby="teacher-details-heading">
         <div className="border-b border-[#dce1dc] pb-3">
           <h2 id="teacher-details-heading" className="font-semibold">
@@ -279,151 +424,6 @@ export function TeacherWorkflowEditor({
             value={id}
           />
         ))}
-        <div
-          aria-label="Teacher coverage by subject"
-          className="border border-[#dce1dc] bg-white"
-          role="region"
-        >
-          <div className="border-b border-[#dce1dc] px-4 py-3">
-            <h3 className="font-semibold">Teacher coverage</h3>
-            <p className="mt-1 text-xs text-[#66706b]">
-              Assigned sessions compared with all sessions required by the
-              curriculum.
-            </p>
-          </div>
-          <div className="grid sm:grid-cols-2 xl:grid-cols-3">
-            {subjectCoverage.map((subject) => {
-              const remainingSessions =
-                subject.requiredSessions - subject.assignedSessions;
-              const isComplete = remainingSessions === 0;
-              const isEmpty = subject.assignedSessions === 0;
-              const missingSummary = subject.missingItems
-                .slice(0, 4)
-                .map((item) => ({
-                  id: item.id,
-                  className: item.className,
-                  sessions: item.weeklySessions,
-                }));
-              const tooltipId = `coverage-tooltip-${subject.id}`;
-
-              return (
-                <button
-                  aria-describedby={tooltipId}
-                  aria-pressed={teachingSubjectId === subject.id}
-                  className={`group relative min-h-24 border-r border-b border-[#dce1dc] px-4 py-3 text-left ${
-                    teachingSubjectId === subject.id
-                      ? "outline-2 -outline-offset-2 outline-[#0e6b4f]"
-                      : ""
-                  } ${
-                    isComplete
-                      ? "bg-[#eef8f3]"
-                      : isEmpty
-                        ? "bg-[#fff1ef]"
-                        : "bg-[#fff9e9]"
-                  }`}
-                  key={subject.id}
-                  onClick={() => setTeachingSubjectId(subject.id)}
-                  type="button"
-                >
-                  <span className="block font-semibold">
-                    {subject.name} ({subject.code})
-                  </span>
-                  <span className="mt-1 block text-sm">
-                    {subject.assignedSessions} / {subject.requiredSessions}{" "}
-                    sessions assigned
-                  </span>
-                  <span
-                    className={`mt-1 block text-xs font-semibold ${
-                      isComplete
-                        ? "text-[#0b5b43]"
-                        : isEmpty
-                          ? "text-[#8b2119]"
-                          : "text-[#6e5314]"
-                    }`}
-                  >
-                    {isComplete
-                      ? "Complete"
-                      : `${String(remainingSessions)} sessions remaining`}
-                  </span>
-                  <span
-                    className="pointer-events-none absolute inset-x-2 top-[calc(100%-0.5rem)] z-20 hidden border border-[#b8c0bb] bg-[#24312c] p-3 text-left text-white shadow-lg group-hover:block group-focus-visible:block"
-                    id={tooltipId}
-                    role="tooltip"
-                  >
-                    <span className="block text-sm font-semibold">
-                      {subject.name} coverage
-                    </span>
-                    <span className="mt-1 block text-xs text-[#dbe4df]">
-                      {subject.assignedSessions} of {subject.requiredSessions}{" "}
-                      required sessions assigned
-                    </span>
-                    {isComplete ? (
-                      <span className="mt-3 block border-t border-[#53615b] pt-2 text-xs font-medium text-[#bde6d3]">
-                        All classes have teachers.
-                      </span>
-                    ) : (
-                      <>
-                        <span className="mt-3 block border-t border-[#53615b] pt-2 text-xs font-semibold">
-                          Still needs a teacher
-                        </span>
-                        <span className="mt-1 block space-y-1">
-                          {missingSummary.map((item) => (
-                            <span
-                              className="flex justify-between gap-3 text-xs"
-                              key={item.id}
-                            >
-                              <span>{item.className}</span>
-                              <span className="text-[#dbe4df]">
-                                {item.sessions} sessions
-                              </span>
-                            </span>
-                          ))}
-                        </span>
-                        {subject.missingItems.length > missingSummary.length ? (
-                          <span className="mt-2 block text-xs text-[#bfc9c3]">
-                            +{" "}
-                            {subject.missingItems.length -
-                              missingSummary.length}{" "}
-                            more classes
-                          </span>
-                        ) : null}
-                      </>
-                    )}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-          {selectedCoverage ? (
-            <div
-              aria-live="polite"
-              className="border-t border-[#dce1dc] px-4 py-3"
-            >
-              <h4 className="text-sm font-semibold">
-                Classes still needing a {selectedCoverage.name} teacher
-              </h4>
-              {selectedCoverage.missingItems.length === 0 ? (
-                <p className="mt-2 text-sm text-[#0b5b43]">
-                  All classes are covered.
-                </p>
-              ) : (
-                <ul className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-                  {selectedCoverage.missingItems.map((item) => (
-                    <li
-                      className="border border-[#e3b7b2] bg-[#fff7f5] px-3 py-2 text-sm"
-                      key={item.id}
-                    >
-                      <span className="font-medium">{item.className}</span>
-                      <span className="ml-2 text-[#66706b]">
-                        {item.weeklySessions} sessions
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          ) : null}
-        </div>
         <dl className="grid border-l border-t border-[#dce1dc] bg-white sm:grid-cols-4">
           {[
             ["Declared", declaredSessions],
