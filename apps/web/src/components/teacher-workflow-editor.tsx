@@ -95,12 +95,7 @@ export function TeacherWorkflowEditor({
     initiallyAssigned[0]?.subjectId ?? "",
   );
   const [selectedIds, setSelectedIds] = useState(
-    () =>
-      new Set(
-        initiallyAssigned
-          .filter((item) => item.subjectId === initiallyAssigned[0]?.subjectId)
-          .map((item) => item.id),
-      ),
+    () => new Set(initiallyAssigned.map((item) => item.id)),
   );
   const [reassignedIds, setReassignedIds] = useState(() => new Set<string>());
   const [states, setStates] = useState(() => {
@@ -227,23 +222,18 @@ export function TeacherWorkflowEditor({
       <section className="space-y-4" aria-labelledby="teaching-heading">
         <div className="border-b border-[#dce1dc] pb-3">
           <h2 id="teaching-heading" className="font-semibold">
-            2. Subject and classes
+            2. Subjects and classes
           </h2>
           <p className="mt-1 text-sm text-[#66706b]">
-            Choose the teacher&apos;s subject first, then select the classes.
-            Session counts come from curriculum.
+            Choose a subject to filter the class list. Switching subjects keeps
+            the classes already selected for this teacher.
           </p>
         </div>
         <label className="block max-w-lg text-xs font-medium text-[#56615c]">
-          Teaching subject
+          Subject filter
           <select
             className={`${inputClass} mt-1.5`}
-            name="teachingSubjectId"
-            onChange={(event) => {
-              setTeachingSubjectId(event.target.value);
-              setSelectedIds(new Set());
-              setReassignedIds(new Set());
-            }}
+            onChange={(event) => setTeachingSubjectId(event.target.value)}
             required
             value={teachingSubjectId}
           >
@@ -255,6 +245,17 @@ export function TeacherWorkflowEditor({
             ))}
           </select>
         </label>
+        {[...selectedIds].map((id) => (
+          <input key={id} name="classCurriculumId" type="hidden" value={id} />
+        ))}
+        {[...reassignedIds].map((id) => (
+          <input
+            key={id}
+            name="reassignCurriculumId"
+            type="hidden"
+            value={id}
+          />
+        ))}
         <dl className="grid border-l border-t border-[#dce1dc] bg-white sm:grid-cols-4">
           {[
             ["Declared", declaredSessions],
@@ -321,18 +322,10 @@ export function TeacherWorkflowEditor({
                           }`}
                           key={item.id}
                         >
-                          {reassigned ? (
-                            <input
-                              name="reassignCurriculumId"
-                              type="hidden"
-                              value={item.id}
-                            />
-                          ) : null}
                           <input
                             aria-label={`${item.className} ${item.subjectName}`}
                             checked={selectedIds.has(item.id)}
                             disabled={initiallyOwnedByOther && !reassigned}
-                            name="classCurriculumId"
                             onChange={(event) =>
                               setSelectedIds((current) => {
                                 const next = new Set(current);

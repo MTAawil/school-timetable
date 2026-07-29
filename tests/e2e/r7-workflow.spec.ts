@@ -41,6 +41,11 @@ test("supervisor sees the simplified workflow on desktop", async ({ page }) => {
   await expect(
     page.getByText("Declared and allocated sessions match."),
   ).toBeVisible();
+  const allocatedWorkload = page
+    .getByRole("region", { name: "Subjects and classes" })
+    .getByText("Allocated", { exact: true })
+    .locator("..");
+  await expect(allocatedWorkload).toContainText("8");
   const restrictionCell = page.getByRole("button", {
     name: /Monday, Period 1:/,
   });
@@ -60,8 +65,9 @@ test("supervisor sees the simplified workflow on desktop", async ({ page }) => {
     ),
   ).toBeVisible();
   await page
-    .getByLabel("Teaching subject")
+    .getByLabel("Subject filter")
     .selectOption({ label: "English (ENG)" });
+  await expect(allocatedWorkload).toContainText("8");
   await expect(
     page.getByRole("checkbox", { name: /English/ }).first(),
   ).toBeVisible();
@@ -75,9 +81,9 @@ test("supervisor sees the simplified workflow on desktop", async ({ page }) => {
   await page.getByRole("link", { name: "Add teacher" }).click();
   await expect(page.getByLabel("Name")).toHaveValue("");
   await expect(page.getByLabel("Code")).toHaveValue("");
-  await expect(page.getByLabel("Teaching subject")).toHaveValue("");
+  await expect(page.getByLabel("Subject filter")).toHaveValue("");
   const subjectEditor = page.getByRole("region", {
-    name: "Subject and classes",
+    name: "Subjects and classes",
   });
   await expect(
     subjectEditor.getByText("Allocated", { exact: true }).locator(".."),

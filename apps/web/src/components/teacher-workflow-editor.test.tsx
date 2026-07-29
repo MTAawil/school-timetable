@@ -28,7 +28,7 @@ describe("TeacherWorkflowEditor", () => {
     );
 
     expect(markup).toContain("1. Teacher details");
-    expect(markup).toContain("2. Subject and classes");
+    expect(markup).toContain("2. Subjects and classes");
     expect(markup).toContain("3. Weekly restrictions");
     expect(markup).toContain("Add teacher");
     expect(markup).not.toContain('name="id"');
@@ -61,6 +61,17 @@ describe("TeacherWorkflowEditor", () => {
             teacherId: "teacher-2",
             teacherName: "Nour",
           },
+          {
+            id: "curriculum-science",
+            subjectId: "subject-science",
+            className: "G8-A",
+            classCode: "G8-A",
+            subjectName: "Science",
+            subjectCode: "SCI",
+            weeklySessions: 2,
+            teacherId: "teacher-1",
+            teacherName: "Rawan",
+          },
         ]}
         days={[{ dayIndex: 0, name: "Monday" }]}
         periods={[
@@ -73,7 +84,7 @@ describe("TeacherWorkflowEditor", () => {
           name: "Rawan",
           shortCode: "RW",
           employmentType: "FULL_TIME",
-          weeklyTeachingSessions: 5,
+          weeklyTeachingSessions: 7,
           maxLessonsPerDay: null,
           maxConsecutiveLessons: null,
         }}
@@ -82,7 +93,10 @@ describe("TeacherWorkflowEditor", () => {
 
     expect(markup).toContain("Declared and allocated sessions match.");
     expect(markup).toContain(
-      'name="classCurriculumId" checked="" value="curriculum-math"',
+      'type="hidden" name="classCurriculumId" value="curriculum-math"',
+    );
+    expect(markup).toContain(
+      'type="hidden" name="classCurriculumId" value="curriculum-science"',
     );
     expect(markup).not.toContain('value="curriculum-english"');
     expect(markup).not.toContain("Reassign from Nour");

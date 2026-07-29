@@ -221,10 +221,11 @@ The UI continuously displays:
 Generation is blocked unless every class-subject has one teacher and every
 teacher's allocated total exactly equals the declared total.
 
-Teacher entry is teacher-centered. The supervisor completes the profile,
-selects the teaching subject, chooses from only the classes containing that
-subject, reviews the workload comparison, and enters weekly restrictions before
-continuing to the next teacher. A whole-school summary may show gaps and
+Teacher entry is teacher-centered. The supervisor completes the profile, uses
+the subject filter to choose classes for one or more subjects, reviews the
+combined workload comparison, and enters weekly restrictions before continuing
+to the next teacher. Switching the filter does not clear earlier selections. A
+whole-school summary may show gaps and
 mismatches, but it is not the primary data-entry interface.
 
 ## 6. Teacher Restrictions

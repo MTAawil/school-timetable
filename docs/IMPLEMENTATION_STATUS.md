@@ -97,10 +97,10 @@ Current task: R7.1 - Teacher-Centered Entry and Restrictions.
 
 ### 2026-07-29 - R7.1 manual-review fixes
 
-- Changed teacher allocation entry to select the teaching subject before
-  classes; the class list now contains only curriculum rows for that subject.
-- Added server validation preventing submitted class assignments from a
-  different subject.
+- Changed teacher allocation entry to use a subject filter; the visible class
+  list contains only curriculum rows for that subject while allocations made
+  under other subjects remain selected and are saved together.
+- Teachers can be allocated classes from multiple subjects in one workflow.
 - Fixed retained React editor state by keying the client editor to the selected
   teacher or new-teacher mode.
 - Verified that Edit loads the clicked teacher, Add Teacher clears all profile

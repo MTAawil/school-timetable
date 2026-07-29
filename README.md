@@ -200,9 +200,9 @@ Status: **Ready for manual review**
       with an Add/Edit Teacher workflow.
 - [x] Keep teacher name, code, employment type, and exact weekly sessions in
       the teacher workflow.
-- [x] Let the supervisor choose the teacher's subject first, then show only
-      classes containing that subject; inherit session counts from curriculum
-      rather than typing them again.
+- [x] Let the supervisor use a subject filter when choosing classes, preserving
+      allocations across subjects so one teacher can teach multiple subjects;
+      inherit session counts from curriculum rather than typing them again.
 - [x] Show declared, allocated, remaining, and excess sessions while editing
       the teacher.
 - [x] Preserve the hard rule that one class-subject has exactly one teacher and
