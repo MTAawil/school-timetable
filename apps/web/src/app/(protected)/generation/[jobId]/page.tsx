@@ -2,6 +2,7 @@ import { getDatabase } from "@school-timetable/database";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { z } from "zod";
 
 import { PageHeading } from "@/components/setup-ui";
 import { openAlternativeAsDraft } from "@/app/(protected)/generation/actions";
@@ -15,6 +16,20 @@ type StoredAssignment = {
   roomId: string | null;
 };
 
+const diagnosticDetailsSchema = z.object({
+  conflicts: z
+    .array(
+      z.object({
+        resourceType: z.enum(["CLASS_SECTION", "TEACHER"]),
+        resourceId: z.string(),
+        dayIndex: z.number().int().nonnegative(),
+        periodIndex: z.number().int().nonnegative(),
+        overlap: z.number().int().positive(),
+      }),
+    )
+    .optional(),
+});
+
 export default async function GenerationResultPage({
   params,
   searchParams,
@@ -24,11 +39,51 @@ export default async function GenerationResultPage({
 }) {
   const user = await verifySession();
   const { jobId } = await params;
-  const job = await getDatabase().generationJob.findFirst({
+  const db = getDatabase();
+  const job = await db.generationJob.findFirst({
     where: { id: jobId, schoolId: user.schoolId },
     include: { alternatives: { orderBy: { rank: "asc" } }, diagnostics: true },
   });
   if (!job) notFound();
+  const parsedDiagnostics = job.diagnostics.map((diagnostic) => ({
+    ...diagnostic,
+    details: diagnosticDetailsSchema.safeParse(diagnostic.details),
+  }));
+  const conflicts = parsedDiagnostics.flatMap((diagnostic) =>
+    diagnostic.details.success ? (diagnostic.details.data.conflicts ?? []) : [],
+  );
+  const [conflictClasses, conflictTeachers, days, periods] = await Promise.all([
+    db.classSection.findMany({
+      where: {
+        schoolId: user.schoolId,
+        id: {
+          in: conflicts
+            .filter((conflict) => conflict.resourceType === "CLASS_SECTION")
+            .map((conflict) => conflict.resourceId),
+        },
+      },
+      select: { id: true, sectionName: true },
+    }),
+    db.teacher.findMany({
+      where: {
+        schoolId: user.schoolId,
+        id: {
+          in: conflicts
+            .filter((conflict) => conflict.resourceType === "TEACHER")
+            .map((conflict) => conflict.resourceId),
+        },
+      },
+      select: { id: true, name: true },
+    }),
+    db.dayDefinition.findMany({
+      where: { schoolId: user.schoolId, termId: job.termId },
+      select: { dayIndex: true, name: true },
+    }),
+    db.periodDefinition.findMany({
+      where: { schoolId: user.schoolId, termId: job.termId },
+      select: { periodIndex: true, name: true },
+    }),
+  ]);
 
   const requestedRank = Number((await searchParams).alternative ?? "1");
   const alternative =
@@ -40,6 +95,23 @@ export default async function GenerationResultPage({
     number
   >;
   const successful = job.status === "FEASIBLE" || job.status === "OPTIMAL";
+  const responseMetadata = z
+    .object({ runtimeMs: z.number().int().nonnegative().optional() })
+    .safeParse(job.responseMetadata);
+  const runtimeMs =
+    alternative?.runtimeMs ??
+    (responseMetadata.success ? responseMetadata.data.runtimeMs : undefined) ??
+    0;
+  const classNames = new Map(
+    conflictClasses.map((item) => [item.id, item.sectionName]),
+  );
+  const teacherNames = new Map(
+    conflictTeachers.map((item) => [item.id, item.name]),
+  );
+  const dayNames = new Map(days.map((item) => [item.dayIndex, item.name]));
+  const periodNames = new Map(
+    periods.map((item) => [item.periodIndex, item.name]),
+  );
 
   return (
     <div className="space-y-7">
@@ -67,10 +139,75 @@ export default async function GenerationResultPage({
           </h2>
           <p className="mt-1 text-sm text-[#66706b]">
             {job.errorMessage ??
-              `${alternative?.solverStatus ?? job.status} · ${String(alternative?.runtimeMs ?? 0)} ms`}
+              `${alternative?.solverStatus ?? job.status} | ${String(runtimeMs)} ms`}
           </p>
         </div>
       </section>
+      {!successful && job.diagnostics.length > 0 ? (
+        <section className="space-y-4 border border-[#e3b7b2] bg-white p-5">
+          <div>
+            <h2 className="font-semibold">Why generation failed</h2>
+            <p className="mt-1 text-sm leading-6 text-[#66706b]">
+              The current hard rules cannot produce a timetable without at least
+              one class or teacher collision.
+            </p>
+          </div>
+          {parsedDiagnostics.map((diagnostic) => (
+            <div key={diagnostic.id}>
+              <p className="font-mono text-xs font-semibold text-[#9a3d2c]">
+                {diagnostic.code}
+              </p>
+              <p className="mt-1 text-sm font-medium">{diagnostic.summary}</p>
+              {diagnostic.details.success &&
+              diagnostic.details.data.conflicts?.length ? (
+                <ul className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+                  {diagnostic.details.data.conflicts.map((conflict) => {
+                    const resourceName =
+                      conflict.resourceType === "TEACHER"
+                        ? (teacherNames.get(conflict.resourceId) ??
+                          "Unknown teacher")
+                        : (classNames.get(conflict.resourceId) ??
+                          "Unknown class");
+                    return (
+                      <li
+                        className="border border-[#e3b7b2] bg-[#fff7f5] px-3 py-2"
+                        key={`${conflict.resourceType}:${conflict.resourceId}:${String(conflict.dayIndex)}:${String(conflict.periodIndex)}`}
+                      >
+                        <span className="font-semibold">{resourceName}</span>
+                        <span className="block text-xs text-[#66706b]">
+                          {conflict.resourceType === "TEACHER"
+                            ? "Teacher"
+                            : "Class"}{" "}
+                          collision on{" "}
+                          {dayNames.get(conflict.dayIndex) ??
+                            `day ${String(conflict.dayIndex + 1)}`}
+                          ,{" "}
+                          {periodNames.get(conflict.periodIndex) ??
+                            `session ${String(conflict.periodIndex + 1)}`}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : null}
+            </div>
+          ))}
+          <div className="flex flex-wrap gap-2 border-t border-[#dce1dc] pt-4">
+            <Link
+              className="inline-flex h-9 items-center bg-[#0e6b4f] px-3 text-sm font-semibold text-white hover:bg-[#0b5b43]"
+              href="/teachers"
+            >
+              Review teacher limits
+            </Link>
+            <Link
+              className="inline-flex h-9 items-center border border-[#9ba59f] bg-white px-3 text-sm font-semibold hover:bg-[#f0f2ef]"
+              href="/subjects"
+            >
+              Review curriculum
+            </Link>
+          </div>
+        </section>
+      ) : null}
       {job.alternatives.length > 1 ? (
         <nav
           aria-label="Generated alternatives"
