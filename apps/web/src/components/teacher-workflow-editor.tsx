@@ -306,6 +306,51 @@ export function TeacherWorkflowEditor({
         ) : null}
       </div>
 
+      {teacher && !workloadExact ? (
+        <section
+          aria-labelledby="workload-correction-heading"
+          className="border border-[#c85c53] bg-[#fff1ef] p-5"
+          role="alert"
+        >
+          <div className="flex items-start gap-3">
+            <AlertTriangle
+              aria-hidden="true"
+              className="mt-0.5 shrink-0 text-[#9d2e25]"
+              size={20}
+            />
+            <div className="min-w-0 flex-1">
+              <h2 id="workload-correction-heading" className="font-semibold">
+                {teacher.name}&apos;s workload needs correction
+              </h2>
+              <p className="mt-1 text-sm text-[#6f302a]">
+                Declared: <strong>{declaredSessions}</strong> sessions.
+                Allocated from selected classes:{" "}
+                <strong>{allocatedSessions}</strong> sessions.
+              </p>
+              <p className="mt-2 text-sm text-[#6f302a]">
+                Either make the declared workload match the current allocation,
+                or change the selected classes and subjects below.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <button
+                  className="inline-flex h-9 items-center bg-[#9d2e25] px-3 text-sm font-semibold text-white hover:bg-[#84251f]"
+                  onClick={() => setDeclaredSessions(allocatedSessions)}
+                  type="button"
+                >
+                  Set declared to {allocatedSessions}
+                </button>
+                <a
+                  className="inline-flex h-9 items-center border border-[#b77b74] bg-white px-3 text-sm font-semibold text-[#6f302a] hover:bg-[#fff8f7]"
+                  href="#teaching-heading"
+                >
+                  Review class allocations
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       <section className="space-y-4" aria-labelledby="teacher-details-heading">
         <div className="border-b border-[#dce1dc] pb-3">
           <h2 id="teacher-details-heading" className="font-semibold">
@@ -349,7 +394,7 @@ export function TeacherWorkflowEditor({
             Exact weekly sessions
             <input
               className={`${inputClass} mt-1.5`}
-              defaultValue={teacher?.weeklyTeachingSessions}
+              id="weekly-teaching-sessions"
               max="100"
               min="1"
               name="weeklyTeachingSessions"
@@ -358,6 +403,7 @@ export function TeacherWorkflowEditor({
               }
               required
               type="number"
+              value={declaredSessions}
             />
           </label>
           <label className="text-xs font-medium text-[#56615c]">

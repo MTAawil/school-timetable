@@ -125,4 +125,42 @@ describe("TeacherWorkflowEditor", () => {
     expect(markup).toContain("Monday, Session 1: Unavailable");
     expect(markup).not.toContain('name="state:0:1"');
   });
+
+  it("shows an actionable workload correction for the selected teacher", () => {
+    const markup = renderToStaticMarkup(
+      <TeacherWorkflowEditor
+        action={async () => undefined}
+        curriculum={[
+          {
+            id: "curriculum-history",
+            subjectId: "subject-history",
+            className: "G10-A",
+            classCode: "G10-A",
+            subjectName: "History",
+            subjectCode: "HIS",
+            weeklySessions: 20,
+            teacherId: "teacher-rawad",
+            teacherName: "Rawad",
+          },
+        ]}
+        days={[{ dayIndex: 0, name: "Monday" }]}
+        periods={[{ periodIndex: 0, name: "Session 1", isTeaching: true }]}
+        restrictions={[]}
+        teacher={{
+          id: "teacher-rawad",
+          name: "Rawad",
+          shortCode: "RAW",
+          employmentType: "FULL_TIME",
+          weeklyTeachingSessions: 21,
+          maxLessonsPerDay: null,
+          maxConsecutiveLessons: null,
+        }}
+      />,
+    );
+
+    expect(markup).toContain("Rawad&#x27;s workload needs correction");
+    expect(markup).toContain("Set declared to 20");
+    expect(markup).toContain("Review class allocations");
+    expect(markup).toContain('value="21"');
+  });
 });
