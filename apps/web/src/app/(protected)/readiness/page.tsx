@@ -2,6 +2,7 @@ import { AlertTriangle, CheckCircle2, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 
 import { generateTimetable } from "@/app/(protected)/readiness/actions";
+import { GenerationSubmitStatus } from "@/components/generation-submit-status";
 import { PageHeading } from "@/components/setup-ui";
 import { verifySession } from "@/lib/auth/dal";
 import { getCurrentReadiness } from "@/lib/readiness";
@@ -182,12 +183,7 @@ export default async function ReadinessPage() {
                 type="number"
               />
             </label>
-            <button
-              className="mt-auto inline-flex h-10 items-center justify-center bg-[#0e6b4f] px-4 text-sm font-semibold text-white hover:bg-[#0b5b43]"
-              type="submit"
-            >
-              Generate timetable
-            </button>
+            <GenerationSubmitStatus />
           </form>
         </section>
       )}

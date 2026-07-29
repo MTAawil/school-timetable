@@ -1,5 +1,18 @@
 @import "tailwindcss";
 
+@keyframes generation-progress {
+  from {
+    transform: translateX(-120%);
+  }
+  to {
+    transform: translateX(320%);
+  }
+}
+
+.generation-progress-indicator {
+  animation: generation-progress 1.25s ease-in-out infinite;
+}
+
 :root {
   --background: #f5f6f3;
   --foreground: #18201d;
