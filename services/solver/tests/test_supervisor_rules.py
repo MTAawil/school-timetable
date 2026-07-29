@@ -1,8 +1,10 @@
+import hashlib
+import json
 from typing import Any
 
 from app.models import Assignment, SolveRequest
 from app.scoring import score_assignments
-from app.solver import solve
+from app.solver import input_fingerprint, solve
 from app.validator import validate_assignments
 
 
@@ -52,7 +54,14 @@ def supervisor_request(
             }
         ],
         "subjects": [{"id": "MATH", "name": "MATH"}],
-        "classSections": [{"id": "G7-A", "name": "G7-A", "maxLessonsPerDay": 4}],
+        "classSections": [
+            {
+                "id": "G7-A",
+                "name": "G7-A",
+                "shortCode": "G7-A",
+                "maxLessonsPerDay": 4,
+            }
+        ],
         "rooms": [],
         "requirements": [
             {
@@ -154,3 +163,20 @@ def test_full_time_balance_penalty_orders_daily_distributions() -> None:
         < near.breakdown["FULL_TIME_DAILY_BALANCE"]
         < uneven.breakdown["FULL_TIME_DAILY_BALANCE"]
     )
+
+
+def test_fingerprint_uses_the_exact_supplied_contract() -> None:
+    request = supervisor_request()
+    supplied = request.model_dump(
+        by_alias=True,
+        exclude={"job_id"},
+        exclude_unset=True,
+    )
+    canonical = json.dumps(
+        supplied,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    )
+
+    assert input_fingerprint(request) == hashlib.sha256(canonical.encode()).hexdigest()

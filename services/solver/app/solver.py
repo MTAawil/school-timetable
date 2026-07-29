@@ -31,7 +31,11 @@ class Choice:
 
 
 def input_fingerprint(request: SolveRequest) -> str:
-    data = request.model_dump(by_alias=True, exclude={"job_id"})
+    data = request.model_dump(
+        by_alias=True,
+        exclude={"job_id"},
+        exclude_unset=True,
+    )
     canonical = json.dumps(data, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     return hashlib.sha256(canonical.encode()).hexdigest()
 

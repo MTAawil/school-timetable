@@ -194,15 +194,15 @@ needing to understand the internal data model.
 
 #### R8 - Migration, End-to-End Verification, and Approval
 
-Status: **Not started**
+Status: **In progress**
 
-- [ ] Test a completely empty school setup.
-- [ ] Test migration or explicit conversion of existing supported data.
-- [ ] Add a complete supervisor Playwright workflow.
+- [x] Test a completely empty school setup.
+- [x] Test migration or explicit conversion of existing supported data.
+- [x] Add a complete supervisor Playwright workflow.
 - [ ] Run formatting, lint, types, unit, solver, integration, build, and E2E
       gates.
-- [ ] Update the plain-language user guide and deployment documentation.
-- [ ] Deploy the branch locally for supervisor manual testing.
+- [x] Update the plain-language user guide and deployment documentation.
+- [x] Deploy the branch locally for supervisor manual testing.
 - [ ] Record supervisor approval before merging to `main`.
 
 Completion rule: the redesign is verified from empty setup through publication,

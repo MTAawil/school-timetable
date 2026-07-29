@@ -6,6 +6,26 @@ This document defines the redesign from the school supervisor's point of view.
 It is a product contract, not an implementation suggestion. Database, UI, and
 solver work must preserve these meanings.
 
+## Using the Application
+
+A supervisor normally works from left to right:
+
+1. **School setup:** enter the school week and choose the grades and number of
+   sections.
+2. **Curriculum:** choose the subjects taught by each grade and enter their
+   weekly sessions, main-subject status, and optional double-session permission.
+3. **Teachers:** add each teacher, declare the exact weekly teaching load, and
+   assign one teacher to every class subject.
+4. **Restrictions:** enter hard unavailability and optional preferences.
+5. **Generate:** correct any blocking readiness messages, then ask the system
+   for timetable alternatives.
+6. **Timetables:** review an alternative, open a draft, make or reject edits,
+   lock lessons, regenerate unlocked lessons, export, and publish.
+
+The Overview page shows setup progress and the next action. Publishing makes
+that timetable version immutable; later changes create another draft version
+instead of changing published history.
+
 ## 1. School Setup
 
 The supervisor configures one shared weekly structure:

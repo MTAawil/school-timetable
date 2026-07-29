@@ -238,6 +238,31 @@ function buildSupervisorSnapshot(
 }
 
 describe("supervisor readiness", () => {
+  it("blocks a completely empty school setup", () => {
+    const result = validateReadiness(
+      buildSupervisorSnapshot({
+        weekConfiguration: {
+          workingDayCount: 0,
+          sessionsPerDay: 0,
+          sessionDurationMinutes: 0,
+          breakAfterSession: 0,
+          breakDurationMinutes: 0,
+        },
+        calendar: { days: [], periods: [], enabledSlots: [] },
+        teachers: [],
+        subjects: [],
+        classSections: [],
+        requirements: [],
+      }),
+    );
+
+    expect(result.ready).toBe(false);
+    expect(result.issues.map((issue) => issue.code)).toEqual([
+      "CURRICULUM_EMPTY",
+      "SCHOOL_WEEK_INCOMPLETE",
+    ]);
+  });
+
   it("accepts an optional main-subject double", () => {
     expect(validateReadiness(buildSupervisorSnapshot())).toEqual({
       ready: true,

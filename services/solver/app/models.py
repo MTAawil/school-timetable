@@ -78,6 +78,7 @@ class Subject(ContractModel):
 class ClassSection(ContractModel):
     id: str
     name: str
+    short_code: str | None = None
     max_lessons_per_day: int | None = Field(default=None, ge=1)
 
 

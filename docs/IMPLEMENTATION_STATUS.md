@@ -3,7 +3,8 @@
 ## Current phase
 
 Stable single-school MVP complete on `main`. Supervisor workflow redesign R7 is
-complete on `feature/supervisor-workflow-redesign`; R8 is the next task.
+complete on `feature/supervisor-workflow-redesign`; R8 verification is in
+progress.
 
 ## Decisions
 
@@ -55,6 +56,31 @@ Current task: R8 - Migration, End-to-End Verification, and Approval.
 9. Implement R8.
 10. Update README task statuses and this section after every completed task.
 11. Do not merge to `main` before full verification and supervisor approval.
+
+### 2026-07-29 - R8 migration and verification
+
+- Applied all migrations to the isolated `timetable_r8` PostgreSQL database.
+- Added an idempotent legacy-data converter that preserves historical records
+  and verifies normalized week, curriculum, and exact teacher workload data.
+- Converted the clean seeded database twice successfully to prove idempotency.
+- Added explicit empty-school readiness coverage and a complete supervisor
+  Playwright workflow from login through generation, editing, regeneration,
+  export, publication, and activity history.
+- Fixed schema-version-2 solver compatibility and cross-service fingerprint
+  canonicalization.
+- Fixed production database pool exhaustion by reusing the process-wide Prisma
+  client.
+- Passed lint, strict TypeScript, 55 TypeScript unit/component tests, Ruff,
+  mypy, 15 solver tests, migration conversion, and the 19-route production
+  build.
+- The desktop/mobile R7 smoke workflow passed against the converted production
+  server. The complete browser workflow reached generation, Teacher view,
+  collision rejection, locking, and Undo/Redo checks, but repeated runs were
+  unstable on the memory-constrained laptop while a personal Chrome session
+  used about 4 GB. Keep the full E2E gate open until one uninterrupted run
+  reaches publication.
+- Local R8 verification is available on port 3102. Supervisor approval and the
+  merge to `main` remain intentionally open.
 
 ## Redesign change log
 

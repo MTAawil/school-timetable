@@ -27,6 +27,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "prisma db seed",
+    "prisma:convert-legacy": "tsx prisma/convert-legacy-supervisor.ts",
     "solver:dev": "uv run --project services/solver uvicorn app.main:app --app-dir services/solver --reload --port 8000",
     "solver:format": "uv run --project services/solver ruff format services/solver",
     "solver:format:check": "uv run --project services/solver ruff format --check services/solver",

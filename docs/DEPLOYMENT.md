@@ -42,6 +42,19 @@ uv sync --project services/solver --locked --no-dev
 Back up PostgreSQL before every migration. Applied Prisma migrations are
 immutable.
 
+For a school database created before the supervisor redesign, run the explicit
+conversion once after deploying migrations:
+
+```bash
+pnpm prisma:convert-legacy
+```
+
+The converter is idempotent, keeps historical schedule records, rejects
+unsupported multiple-teacher ownership of one class subject, and verifies the
+converted week, curriculum, and exact teacher workloads before it exits.
+Back up the database before conversion and review its output before starting
+the application.
+
 ## Start
 
 ```bash

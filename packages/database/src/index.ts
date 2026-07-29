@@ -21,9 +21,7 @@ export function getDatabase(): PrismaClient {
     adapter: new PrismaPg({ connectionString }),
   });
 
-  if (process.env.NODE_ENV !== "production") {
-    globalForDatabase.timetableDatabase = client;
-  }
+  globalForDatabase.timetableDatabase = client;
 
   return client;
 }
