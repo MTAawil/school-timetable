@@ -19,6 +19,9 @@ export default async function TeachersPage({
     error?: string;
     declared?: string;
     allocated?: string;
+    issue?: string;
+    required?: string;
+    available?: string;
   }>;
 }) {
   const user = await verifySession();
@@ -225,6 +228,27 @@ export default async function TeachersPage({
             Finish all three sections before saving this teacher.
           </p>
         </div>
+        {params.issue === "capacity" && selectedTeacher ? (
+          <div
+            className="border border-[#c85c53] bg-[#fff1ef] p-4 text-sm text-[#6f302a]"
+            role="alert"
+          >
+            <p className="font-semibold">
+              {selectedTeacher.name} can be scheduled in only{" "}
+              {params.available ?? "0"} slots but must teach{" "}
+              {params.required ?? "0"} sessions.
+            </p>
+            <p className="mt-2 leading-6">
+              This is availability capacity, not allocated curriculum. Review
+              Maximum sessions per day, Maximum consecutive sessions, and the
+              red Unavailable cells below. {selectedTeacher.name} currently has
+              a consecutive limit of{" "}
+              {selectedTeacher.maxConsecutiveLessons ?? "none"}; increasing that
+              limit provides more usable slots if the current restriction was
+              not intentional.
+            </p>
+          </div>
+        ) : null}
         <TeacherWorkflowEditor
           action={saveTeacherWorkflow}
           curriculum={curriculum.map((item) => ({

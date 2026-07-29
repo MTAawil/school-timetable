@@ -112,13 +112,19 @@ export function AvailabilityGrid({
           />
         </label>
         <div className="border-r border-b border-[#dce1dc] p-4">
-          <p className="text-xs text-[#66706b]">Hard available capacity</p>
+          <p className="text-xs text-[#66706b]">
+            Usable slots / required workload
+          </p>
           <p
             className={`mt-1 text-xl font-semibold ${
               capacityShortage ? "text-[#9d2e25]" : "text-[#0e6b4f]"
             }`}
           >
             {availableCapacity} / {teacher.weeklyTeachingSessions}
+          </p>
+          <p className="mt-1 text-xs leading-5 text-[#66706b]">
+            After hard restrictions and daily limits. This is not curriculum
+            allocation.
           </p>
         </div>
         <div className="border-r border-b border-[#dce1dc] p-4">

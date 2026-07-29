@@ -36,4 +36,23 @@ describe("getReadinessIssueAction", () => {
       label: "Review setup",
     });
   });
+
+  it("opens the combined teacher editor for a capacity blocker", () => {
+    expect(
+      getReadinessIssueAction(
+        {
+          code: "TEACHER_CAPACITY_SHORTAGE",
+          entityIds: ["teacher-rawad"],
+          suggestions: ["/availability", "/teachers"],
+          required: 21,
+          available: 20,
+        },
+        [{ id: "teacher-rawad", name: "Rawad" }],
+        {},
+      ),
+    ).toEqual({
+      href: "/teachers?teacher=teacher-rawad&issue=capacity&required=21&available=20#teacher-editor",
+      label: "Fix Rawad's capacity",
+    });
+  });
 });

@@ -1,5 +1,6 @@
 import { getDatabase } from "@school-timetable/database";
 import { Check, SlidersHorizontal } from "lucide-react";
+import Link from "next/link";
 
 import { saveTeacherRestrictions } from "@/app/(protected)/availability/actions";
 import { AvailabilityGrid } from "@/components/availability-grid";
@@ -94,29 +95,43 @@ export default async function AvailabilityPage({
             </form>
           </section>
           {teacher ? (
-            <AvailabilityGrid
-              days={days}
-              periods={periods}
-              restrictions={rules.flatMap((rule) =>
-                rule.state === "AVAILABLE"
-                  ? []
-                  : [
-                      {
-                        dayIndex: rule.dayIndex,
-                        periodIndex: rule.periodIndex,
-                        state: rule.state,
-                      },
-                    ],
-              )}
-              teacher={{
-                id: teacher.id,
-                employmentType: teacher.employmentType,
-                weeklyTeachingSessions: teacher.weeklyTeachingSessions,
-                maxLessonsPerDay: teacher.maxLessonsPerDay,
-                maxConsecutiveLessons: teacher.maxConsecutiveLessons,
-              }}
-              action={saveTeacherRestrictions}
-            />
+            <>
+              <div className="flex flex-wrap items-center justify-between gap-3 border border-[#dce1dc] bg-white p-4">
+                <p className="text-sm text-[#56615c]">
+                  Teacher details, allocations, and the current restriction
+                  editor are available together in the main teacher workflow.
+                </p>
+                <Link
+                  className="inline-flex h-9 items-center bg-[#0e6b4f] px-3 text-sm font-semibold text-white hover:bg-[#0b5b43]"
+                  href={`/teachers?teacher=${teacher.id}#teacher-editor`}
+                >
+                  Open full teacher editor
+                </Link>
+              </div>
+              <AvailabilityGrid
+                days={days}
+                periods={periods}
+                restrictions={rules.flatMap((rule) =>
+                  rule.state === "AVAILABLE"
+                    ? []
+                    : [
+                        {
+                          dayIndex: rule.dayIndex,
+                          periodIndex: rule.periodIndex,
+                          state: rule.state,
+                        },
+                      ],
+                )}
+                teacher={{
+                  id: teacher.id,
+                  employmentType: teacher.employmentType,
+                  weeklyTeachingSessions: teacher.weeklyTeachingSessions,
+                  maxLessonsPerDay: teacher.maxLessonsPerDay,
+                  maxConsecutiveLessons: teacher.maxConsecutiveLessons,
+                }}
+                action={saveTeacherRestrictions}
+              />
+            </>
           ) : null}
         </>
       )}
