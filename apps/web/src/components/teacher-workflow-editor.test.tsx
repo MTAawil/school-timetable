@@ -108,6 +108,10 @@ describe("TeacherWorkflowEditor", () => {
     expect(markup).toContain("3 sessions remaining");
     expect(markup).toContain("Classes still needing a Mathematics teacher");
     expect(markup).toContain("G9-A");
+    expect(markup).toContain("Mathematics coverage");
+    expect(markup).toContain("5 of 8");
+    expect(markup).toContain("Still needs a teacher");
+    expect(markup).toContain("All classes have teachers.");
     expect(markup).toContain(
       'type="hidden" name="classCurriculumId" value="curriculum-math"',
     );

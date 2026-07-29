@@ -298,16 +298,19 @@ export function TeacherWorkflowEditor({
               const isComplete = remainingSessions === 0;
               const isEmpty = subject.assignedSessions === 0;
               const missingSummary = subject.missingItems
-                .map(
-                  (item) =>
-                    `${item.className}: ${String(item.weeklySessions)} sessions`,
-                )
-                .join(", ");
+                .slice(0, 4)
+                .map((item) => ({
+                  id: item.id,
+                  className: item.className,
+                  sessions: item.weeklySessions,
+                }));
+              const tooltipId = `coverage-tooltip-${subject.id}`;
 
               return (
                 <button
+                  aria-describedby={tooltipId}
                   aria-pressed={teachingSubjectId === subject.id}
-                  className={`min-h-24 border-r border-b border-[#dce1dc] px-4 py-3 text-left ${
+                  className={`group relative min-h-24 border-r border-b border-[#dce1dc] px-4 py-3 text-left ${
                     teachingSubjectId === subject.id
                       ? "outline-2 -outline-offset-2 outline-[#0e6b4f]"
                       : ""
@@ -320,11 +323,6 @@ export function TeacherWorkflowEditor({
                   }`}
                   key={subject.id}
                   onClick={() => setTeachingSubjectId(subject.id)}
-                  title={
-                    isComplete
-                      ? "All classes have teachers"
-                      : `Still needs teachers: ${missingSummary}`
-                  }
                   type="button"
                 >
                   <span className="block font-semibold">
@@ -346,6 +344,51 @@ export function TeacherWorkflowEditor({
                     {isComplete
                       ? "Complete"
                       : `${String(remainingSessions)} sessions remaining`}
+                  </span>
+                  <span
+                    className="pointer-events-none absolute inset-x-2 top-[calc(100%-0.5rem)] z-20 hidden border border-[#b8c0bb] bg-[#24312c] p-3 text-left text-white shadow-lg group-hover:block group-focus-visible:block"
+                    id={tooltipId}
+                    role="tooltip"
+                  >
+                    <span className="block text-sm font-semibold">
+                      {subject.name} coverage
+                    </span>
+                    <span className="mt-1 block text-xs text-[#dbe4df]">
+                      {subject.assignedSessions} of {subject.requiredSessions}{" "}
+                      required sessions assigned
+                    </span>
+                    {isComplete ? (
+                      <span className="mt-3 block border-t border-[#53615b] pt-2 text-xs font-medium text-[#bde6d3]">
+                        All classes have teachers.
+                      </span>
+                    ) : (
+                      <>
+                        <span className="mt-3 block border-t border-[#53615b] pt-2 text-xs font-semibold">
+                          Still needs a teacher
+                        </span>
+                        <span className="mt-1 block space-y-1">
+                          {missingSummary.map((item) => (
+                            <span
+                              className="flex justify-between gap-3 text-xs"
+                              key={item.id}
+                            >
+                              <span>{item.className}</span>
+                              <span className="text-[#dbe4df]">
+                                {item.sessions} sessions
+                              </span>
+                            </span>
+                          ))}
+                        </span>
+                        {subject.missingItems.length > missingSummary.length ? (
+                          <span className="mt-2 block text-xs text-[#bfc9c3]">
+                            +{" "}
+                            {subject.missingItems.length -
+                              missingSummary.length}{" "}
+                            more classes
+                          </span>
+                        ) : null}
+                      </>
+                    )}
                   </span>
                 </button>
               );

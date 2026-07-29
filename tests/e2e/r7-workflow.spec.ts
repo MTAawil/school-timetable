@@ -41,9 +41,12 @@ test("supervisor sees the simplified workflow on desktop", async ({ page }) => {
   await expect(
     page.getByText("Declared and allocated sessions match."),
   ).toBeVisible();
-  await expect(
-    page.getByRole("region", { name: "Teacher coverage by subject" }),
-  ).toBeVisible();
+  const coverage = page.getByRole("region", {
+    name: "Teacher coverage by subject",
+  });
+  await expect(coverage).toBeVisible();
+  await coverage.getByRole("button", { name: /Mathematics/ }).hover();
+  await expect(coverage.getByRole("tooltip")).toBeVisible();
   const allocatedWorkload = page
     .getByRole("region", { name: "Subjects and classes" })
     .getByText("Allocated", { exact: true })
