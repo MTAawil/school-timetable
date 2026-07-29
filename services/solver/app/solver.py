@@ -430,7 +430,7 @@ def solve(request: SolveRequest) -> SolveResponse:
     solver = cp_model.CpSolver()
     solver.parameters.max_time_in_seconds = request.options.time_limit_seconds
     solver.parameters.random_seed = request.options.random_seed
-    solver.parameters.num_search_workers = 1
+    solver.parameters.num_search_workers = 8
     first_started = time.monotonic()
     status = solver.solve(model)
     first_runtime_ms = round((time.monotonic() - first_started) * 1000)

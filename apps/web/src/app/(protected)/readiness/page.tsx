@@ -160,7 +160,7 @@ export default async function ReadinessPage() {
               <span className="mb-1 block text-[#66706b]">Alternatives</span>
               <select
                 className="h-10 w-full border border-[#cfd5d1] bg-white px-3"
-                defaultValue="3"
+                defaultValue="1"
                 name="alternativeCount"
               >
                 {[1, 2, 3, 4, 5].map((count) => (
