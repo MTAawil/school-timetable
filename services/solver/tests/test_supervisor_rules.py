@@ -4,7 +4,7 @@ from typing import Any
 
 from app.models import Assignment, SolveRequest
 from app.scoring import score_assignments
-from app.solver import input_fingerprint, solve
+from app.solver import _resource_packing_diagnostic, input_fingerprint, solve
 from app.validator import validate_assignments
 
 
@@ -193,6 +193,117 @@ def test_infeasible_teacher_packing_diagnostic_names_resource() -> None:
     assert response.diagnostics[0]["code"] == "TEACHER_PACKING_CONFLICT"
     assert response.diagnostics[0]["resourceName"] == "Teacher"
     assert response.diagnostics[0]["required"] == 3
+
+
+def test_teacher_packing_diagnostic_ignores_cross_day_clock_matches() -> None:
+    payload = supervisor_request(
+        weekly_sessions=1,
+        is_main_subject=False,
+        allow_double_session=False,
+        sessions_per_day=2,
+    ).model_dump(by_alias=True)
+    payload["teachers"][0]["employmentType"] = "PART_TIME"
+    payload["teachers"][0]["weeklyTeachingSessions"] = 2
+    payload["classSections"].append(
+        {
+            "id": "G8-A",
+            "name": "G8-A",
+            "shortCode": "G8-A",
+            "maxLessonsPerDay": 2,
+        }
+    )
+    payload["requirements"].append(
+        {
+            "id": "G8-A:MATH",
+            "classSectionId": "G8-A",
+            "subjectId": "MATH",
+            "teacherId": "teacher",
+            "weeklySessions": 1,
+            "isMainSubject": False,
+            "allowDoubleSession": False,
+            "fixedSlots": [],
+            "forbiddenSlots": [],
+        }
+    )
+    payload["requirements"][0]["fixedSlots"] = [{"dayIndex": 0, "periodIndex": 0}]
+    payload["requirements"][1]["fixedSlots"] = [{"dayIndex": 1, "periodIndex": 0}]
+    request = SolveRequest.model_validate(payload)
+
+    diagnostic = _resource_packing_diagnostic(
+        request,
+        resource_type="TEACHER",
+        resource_id="teacher",
+        requirements=request.requirements,
+    )
+
+    assert diagnostic is None
+
+
+def test_teacher_packing_diagnostic_includes_overlap_examples() -> None:
+    payload = supervisor_request(
+        weekly_sessions=1,
+        is_main_subject=False,
+        allow_double_session=False,
+        sessions_per_day=6,
+    ).model_dump(by_alias=True)
+    payload["teachers"][0]["employmentType"] = "PART_TIME"
+    payload["teachers"][0]["weeklyTeachingSessions"] = 2
+    payload["classSections"][0]["recessAfterSession"] = 3
+    payload["classSections"].append(
+        {
+            "id": "G10-A",
+            "name": "G10-A",
+            "shortCode": "G10-A",
+            "maxLessonsPerDay": 6,
+            "recessAfterSession": 4,
+        }
+    )
+    payload["requirements"].append(
+        {
+            "id": "G10-A:MATH",
+            "classSectionId": "G10-A",
+            "subjectId": "MATH",
+            "teacherId": "teacher",
+            "weeklySessions": 1,
+            "isMainSubject": False,
+            "allowDoubleSession": False,
+            "fixedSlots": [{"dayIndex": 0, "periodIndex": 3}],
+            "forbiddenSlots": [],
+        }
+    )
+    payload["requirements"][0]["fixedSlots"] = [{"dayIndex": 0, "periodIndex": 3}]
+    request = SolveRequest.model_validate(payload)
+
+    diagnostic = _resource_packing_diagnostic(
+        request,
+        resource_type="TEACHER",
+        resource_id="teacher",
+        requirements=request.requirements,
+    )
+
+    assert diagnostic is not None
+    assert diagnostic["code"] == "TEACHER_PACKING_CONFLICT"
+    assert diagnostic["overlapExamples"] == [
+        {
+            "dayIndex": 0,
+            "left": {
+                "requirementId": "G7-A:MATH",
+                "className": "G7-A",
+                "subjectName": "MATH",
+                "session": 4,
+                "startsAtMinutes": 605,
+                "endsAtMinutes": 650,
+            },
+            "right": {
+                "requirementId": "G10-A:MATH",
+                "className": "G10-A",
+                "subjectName": "MATH",
+                "session": 4,
+                "startsAtMinutes": 585,
+                "endsAtMinutes": 630,
+            },
+        }
+    ]
 
 
 def test_optional_main_double_is_adjacent_and_does_not_cross_break() -> None:

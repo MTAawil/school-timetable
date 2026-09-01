@@ -21,6 +21,7 @@ from app.validator import validate_assignments
 
 MAX_STRUCTURAL_DIAGNOSTICS = 5
 MAX_DIAGNOSTIC_REQUIREMENTS = 12
+MAX_DIAGNOSTIC_OVERLAPS = 8
 
 
 @dataclass(frozen=True)
@@ -1091,6 +1092,145 @@ def _shared_group_diagnostics(request: SolveRequest) -> list[dict[str, object]]:
     return diagnostics
 
 
+def _teacher_overlap_examples(
+    request: SolveRequest,
+    teacher_id: str,
+    requirements: list[Requirement],
+) -> list[dict[str, object]]:
+    model = cp_model.CpModel()
+    variables: dict[Choice, cp_model.IntVar] = {}
+    starts_by_requirement: dict[str, list[cp_model.IntVar]] = defaultdict(list)
+    starts_by_requirement_day: dict[tuple[str, int], list[cp_model.IntVar]] = defaultdict(list)
+    day_used: dict[tuple[str, int], cp_model.IntVar] = {}
+    events: list[tuple[Choice, Requirement, cp_model.IntVar, tuple[int, int]]] = []
+    days = [day.index for day in request.calendar.days if day.is_working]
+
+    for requirement in requirements:
+        for choice in compatible_choices(request, requirement, 0):
+            variable = model.new_bool_var(
+                f"overlap_{teacher_id}_{requirement.id}_{choice.day}_{choice.period}"
+            )
+            variables[choice] = variable
+            starts_by_requirement[requirement.id].append(variable)
+            starts_by_requirement_day[(requirement.id, choice.day)].append(variable)
+            events.append(
+                (
+                    choice,
+                    requirement,
+                    variable,
+                    class_session_interval(
+                        request,
+                        requirement.class_section_id,
+                        choice.period,
+                        choice.duration,
+                    ),
+                )
+            )
+        model.add(sum(starts_by_requirement[requirement.id]) == requirement.occurrence_count)
+        relax_part_time_distribution = part_time_distribution_can_relax(request, requirement)
+        for day in days:
+            starts = starts_by_requirement_day.get((requirement.id, day), [])
+            if not starts:
+                continue
+            if not relax_part_time_distribution:
+                model.add(sum(starts) <= requirement.daily_occurrence_limit)
+            used = model.new_bool_var(f"overlap_used_{requirement.id}_{day}")
+            day_used[(requirement.id, day)] = used
+            model.add(sum(starts) >= used)
+            used_limit = (
+                requirement.occurrence_count
+                if relax_part_time_distribution
+                else requirement.daily_occurrence_limit
+            )
+            model.add(sum(starts) <= used_limit * used)
+        if not relax_part_time_distribution:
+            used_variables = [
+                day_used[(requirement.id, day)] for day in days if (requirement.id, day) in day_used
+            ]
+            model.add(sum(used_variables) >= requirement.distinct_day_minimum)
+
+    overlap_terms: list[cp_model.IntVar] = []
+    overlap_pairs: list[
+        tuple[
+            cp_model.IntVar,
+            tuple[Choice, Requirement, tuple[int, int]],
+            tuple[Choice, Requirement, tuple[int, int]],
+        ]
+    ] = []
+    for index, left_event in enumerate(events):
+        for right_event in events[index + 1 :]:
+            left_choice, left_requirement, left_variable, left_interval = left_event
+            right_choice, right_requirement, right_variable, right_interval = right_event
+            if left_choice.day != right_choice.day:
+                continue
+            same_shared_event = (
+                left_requirement.shared_teaching_group_id is not None
+                and left_requirement.shared_teaching_group_id
+                == right_requirement.shared_teaching_group_id
+                and left_choice.period == right_choice.period
+                and left_choice.room_id == right_choice.room_id
+                and left_interval == right_interval
+            )
+            if same_shared_event or not intervals_overlap(left_interval, right_interval):
+                continue
+            overlap = model.new_bool_var(
+                f"overlap_pair_{len(overlap_terms)}_{left_choice.day}_{left_choice.period}"
+            )
+            model.add(overlap <= left_variable)
+            model.add(overlap <= right_variable)
+            model.add(overlap >= left_variable + right_variable - 1)
+            overlap_terms.append(overlap)
+            overlap_pairs.append(
+                (
+                    overlap,
+                    (left_choice, left_requirement, left_interval),
+                    (right_choice, right_requirement, right_interval),
+                )
+            )
+    if overlap_terms:
+        model.minimize(sum(overlap_terms))
+
+    solver = cp_model.CpSolver()
+    solver.parameters.max_time_in_seconds = 2
+    solver.parameters.num_search_workers = 1
+    status = solver.solve(model)
+    if status not in (cp_model.FEASIBLE, cp_model.OPTIMAL):
+        return []
+
+    class_sections = {item.id: item for item in request.class_sections}
+    subjects = {item.id: item for item in request.subjects}
+    examples: list[dict[str, object]] = []
+    for overlap, left, right in overlap_pairs:
+        if not solver.boolean_value(overlap):
+            continue
+        left_choice, left_requirement, left_interval = left
+        right_choice, right_requirement, right_interval = right
+        examples.append(
+            {
+                "dayIndex": left_choice.day,
+                "left": {
+                    "requirementId": left_requirement.id,
+                    "className": class_sections[left_requirement.class_section_id].name,
+                    "subjectName": subjects[left_requirement.subject_id].name,
+                    "session": left_choice.period + 1,
+                    "startsAtMinutes": left_interval[0],
+                    "endsAtMinutes": left_interval[1],
+                },
+                "right": {
+                    "requirementId": right_requirement.id,
+                    "className": class_sections[right_requirement.class_section_id].name,
+                    "subjectName": subjects[right_requirement.subject_id].name,
+                    "session": right_choice.period + 1,
+                    "startsAtMinutes": right_interval[0],
+                    "endsAtMinutes": right_interval[1],
+                },
+            }
+        )
+        if len(examples) >= MAX_DIAGNOSTIC_OVERLAPS:
+            break
+    return examples
+
+
 def _resource_packing_diagnostic(
     request: SolveRequest,
     *,
@@ -1165,6 +1305,8 @@ def _resource_packing_diagnostic(
             for right_event in teacher_events[index + 1 :]:
                 left_choice, left_requirement, left_variable, left_interval = left_event
                 right_choice, right_requirement, right_variable, right_interval = right_event
+                if left_choice.day != right_choice.day:
+                    continue
                 same_shared_event = (
                     left_requirement.shared_teaching_group_id is not None
                     and left_requirement.shared_teaching_group_id
@@ -1229,6 +1371,11 @@ def _resource_packing_diagnostic(
         "required": demand,
         "requirements": requirement_details[:MAX_DIAGNOSTIC_REQUIREMENTS],
         "requirementCount": len(requirement_details),
+        "overlapExamples": (
+            _teacher_overlap_examples(request, resource_id, requirements)
+            if resource_type == "TEACHER"
+            else []
+        ),
     }
 
 

@@ -100,7 +100,9 @@ Diagnostics run in this order:
 
 Diagnostic relaxation is never a valid production schedule. Diagnostic results
 contain no selectable alternatives and are persisted separately from feasible
-generation alternatives.
+generation alternatives. Teacher packing diagnostics for schema-version-2
+snapshots include example same-day clock-overlap pairs when a closest relaxed
+teacher packing can be constructed.
 
 ## Supervisor redesign solver semantics
 

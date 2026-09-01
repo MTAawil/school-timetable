@@ -17,6 +17,21 @@ type StoredAssignment = {
   roomId: string | null;
 };
 
+function minuteLabel(minutes: number): string {
+  return `${Math.floor(minutes / 60)
+    .toString()
+    .padStart(2, "0")}:${(minutes % 60).toString().padStart(2, "0")}`;
+}
+
+const overlapSideSchema = z.object({
+  requirementId: z.string(),
+  className: z.string(),
+  subjectName: z.string(),
+  session: z.number().int().positive(),
+  startsAtMinutes: z.number().int().nonnegative(),
+  endsAtMinutes: z.number().int().nonnegative(),
+});
+
 const diagnosticDetailsSchema = z.object({
   conflicts: z
     .array(
@@ -26,6 +41,15 @@ const diagnosticDetailsSchema = z.object({
         dayIndex: z.number().int().nonnegative(),
         periodIndex: z.number().int().nonnegative(),
         overlap: z.number().int().positive(),
+      }),
+    )
+    .optional(),
+  overlapExamples: z
+    .array(
+      z.object({
+        dayIndex: z.number().int().nonnegative(),
+        left: overlapSideSchema,
+        right: overlapSideSchema,
       }),
     )
     .optional(),
@@ -285,6 +309,64 @@ export default async function GenerationResultPage({
                       {diagnostic.details.data.requirementCount} rows.
                     </p>
                   ) : null}
+                </div>
+              ) : null}
+              {diagnostic.details.success &&
+              diagnostic.details.data.overlapExamples?.length ? (
+                <div className="mt-3 overflow-x-auto border border-[#e7eae7]">
+                  <table className="w-full min-w-[840px] border-collapse text-left text-xs">
+                    <thead className="bg-[#f8f1ef] font-semibold text-[#66706b]">
+                      <tr>
+                        <th className="border-b border-[#e7eae7] px-3 py-2">
+                          Day
+                        </th>
+                        <th className="border-b border-[#e7eae7] px-3 py-2">
+                          First lesson
+                        </th>
+                        <th className="border-b border-[#e7eae7] px-3 py-2">
+                          Time
+                        </th>
+                        <th className="border-b border-[#e7eae7] px-3 py-2">
+                          Second lesson
+                        </th>
+                        <th className="border-b border-[#e7eae7] px-3 py-2">
+                          Time
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#e7eae7]">
+                      {diagnostic.details.data.overlapExamples.map(
+                        (example) => (
+                          <tr
+                            key={`${example.left.requirementId}:${example.right.requirementId}:${String(example.dayIndex)}:${String(example.left.session)}:${String(example.right.session)}`}
+                          >
+                            <td className="px-3 py-2">
+                              {dayNames.get(example.dayIndex) ??
+                                `day ${String(example.dayIndex + 1)}`}
+                            </td>
+                            <td className="px-3 py-2">
+                              {example.left.className} ·{" "}
+                              {example.left.subjectName} · session{" "}
+                              {example.left.session}
+                            </td>
+                            <td className="px-3 py-2">
+                              {minuteLabel(example.left.startsAtMinutes)}-
+                              {minuteLabel(example.left.endsAtMinutes)}
+                            </td>
+                            <td className="px-3 py-2">
+                              {example.right.className} ·{" "}
+                              {example.right.subjectName} · session{" "}
+                              {example.right.session}
+                            </td>
+                            <td className="px-3 py-2">
+                              {minuteLabel(example.right.startsAtMinutes)}-
+                              {minuteLabel(example.right.endsAtMinutes)}
+                            </td>
+                          </tr>
+                        ),
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               ) : null}
             </div>

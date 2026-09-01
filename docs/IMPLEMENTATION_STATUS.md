@@ -17,6 +17,9 @@
       still allowing later sessions when needed for feasibility.
 - [x] Allow part-time teacher subject distribution to relax with a named heavy
       penalty when hard availability leaves too few days for strict spreading.
+- [x] Report concrete same-day teacher clock-overlap examples in packing
+      diagnostics and avoid treating matching clock times on different days as
+      collisions.
 
 ## Current phase
 
