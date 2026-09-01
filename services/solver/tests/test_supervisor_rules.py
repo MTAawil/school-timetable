@@ -470,6 +470,112 @@ def test_class_recess_separates_double_session_adjacency() -> None:
     assert scored.breakdown["MAIN_DOUBLE_ADJACENCY"] == 12
 
 
+def test_teacher_can_cross_timing_groups_when_clock_times_do_not_overlap() -> None:
+    request = supervisor_request(
+        weekly_sessions=1,
+        is_main_subject=False,
+        allow_double_session=False,
+        sessions_per_day=6,
+    )
+    payload = request.model_dump(by_alias=True)
+    payload["teachers"][0]["weeklyTeachingSessions"] = 2
+    payload["classSections"][0]["recessAfterSession"] = 3
+    payload["classSections"].append(
+        {
+            "id": "G10-A",
+            "name": "G10-A",
+            "shortCode": "G10-A",
+            "maxLessonsPerDay": 6,
+            "recessAfterSession": 4,
+        }
+    )
+    payload["requirements"].append(
+        {
+            "id": "G10-A:MATH",
+            "classSectionId": "G10-A",
+            "subjectId": "MATH",
+            "teacherId": "teacher",
+            "weeklySessions": 1,
+            "isMainSubject": False,
+            "allowDoubleSession": False,
+            "fixedSlots": [{"dayIndex": 0, "periodIndex": 3}],
+            "forbiddenSlots": [],
+        }
+    )
+    payload["requirements"][0]["fixedSlots"] = [{"dayIndex": 0, "periodIndex": 2}]
+    request = SolveRequest.model_validate(payload)
+    candidate = [
+        Assignment(
+            requirement_id="G7-A:MATH",
+            day_index=0,
+            period_index=2,
+            duration_periods=1,
+        ),
+        Assignment(
+            requirement_id="G10-A:MATH",
+            day_index=0,
+            period_index=3,
+            duration_periods=1,
+        ),
+    ]
+
+    assert validate_assignments(request, candidate) == []
+    response = solve(request)
+    assert response.status in {"FEASIBLE", "OPTIMAL"}
+    assert validate_assignments(request, response.alternatives[0].assignments) == []
+
+
+def test_teacher_cannot_cross_timing_groups_when_clock_times_overlap() -> None:
+    request = supervisor_request(
+        weekly_sessions=1,
+        is_main_subject=False,
+        allow_double_session=False,
+        sessions_per_day=6,
+    )
+    payload = request.model_dump(by_alias=True)
+    payload["teachers"][0]["weeklyTeachingSessions"] = 2
+    payload["classSections"][0]["recessAfterSession"] = 3
+    payload["classSections"].append(
+        {
+            "id": "G10-A",
+            "name": "G10-A",
+            "shortCode": "G10-A",
+            "maxLessonsPerDay": 6,
+            "recessAfterSession": 4,
+        }
+    )
+    payload["requirements"].append(
+        {
+            "id": "G10-A:MATH",
+            "classSectionId": "G10-A",
+            "subjectId": "MATH",
+            "teacherId": "teacher",
+            "weeklySessions": 1,
+            "isMainSubject": False,
+            "allowDoubleSession": False,
+            "fixedSlots": [],
+            "forbiddenSlots": [],
+        }
+    )
+    request = SolveRequest.model_validate(payload)
+    candidate = [
+        Assignment(
+            requirement_id="G7-A:MATH",
+            day_index=0,
+            period_index=3,
+            duration_periods=1,
+        ),
+        Assignment(
+            requirement_id="G10-A:MATH",
+            day_index=0,
+            period_index=3,
+            duration_periods=1,
+        ),
+    ]
+
+    assert "COLLISION:TEACHER_TIME:teacher" in validate_assignments(request, candidate)
+
+
 def test_class_recess_uses_teaching_session_order_not_physical_period_index() -> None:
     request = supervisor_request(weekly_sessions=2)
     payload = request.model_dump(by_alias=True)

@@ -301,14 +301,15 @@ def solve(request: SolveRequest) -> SolveResponse:
         for offset in range(choice.duration):
             period = choice.period + offset
             if not requirement.shared_teaching_group_id or requirement.id in shared_representatives:
-                occupancy[("teacher", requirement.teacher_id, choice.day, period)].append(variable)
                 occupancy[("teacher_load", requirement.teacher_id, choice.day, period)].append(
                     variable
                 )
             occupancy[("class", requirement.class_section_id, choice.day, period)].append(variable)
             if choice.room_id:
                 occupancy[("room", choice.room_id, choice.day, period)].append(variable)
-    for conflict_variables in occupancy.values():
+    for (resource_type, _resource_id, _day, _period), conflict_variables in occupancy.items():
+        if resource_type == "teacher_load":
+            continue
         if len(conflict_variables) > 1:
             model.add(sum(conflict_variables) <= 1)
             constraints += 1
@@ -1115,7 +1116,8 @@ def _resource_packing_diagnostic(
             starts_by_requirement[requirement.id].append(variable)
             starts_by_requirement_day[(requirement.id, choice.day)].append(variable)
             for offset in range(choice.duration):
-                occupied_by_position[(choice.day, choice.period + offset)].append(variable)
+                if resource_type == "CLASS_SECTION":
+                    occupied_by_position[(choice.day, choice.period + offset)].append(variable)
             if resource_type == "TEACHER":
                 teacher_events.append(
                     (

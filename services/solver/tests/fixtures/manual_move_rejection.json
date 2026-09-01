@@ -17,5 +17,5 @@
       "roomId": null
     }
   ],
-  "expectedCode": "COLLISION:TEACHER:teacher-a"
+  "expectedCode": "COLLISION:TEACHER_TIME:teacher-a"
 }

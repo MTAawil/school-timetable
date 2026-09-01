@@ -92,7 +92,6 @@ def validate_assignments(
     rooms = {room.id: room for room in request.rooms}
     group_positions: dict[str, dict[str, set[tuple[int, int]]]] = {}
     teacher_event_seen: set[tuple[str, int, int]] = set()
-    teacher_occupancy: dict[tuple[str, int, int], str | None] = {}
     teacher_events: dict[tuple[str, int], list[tuple[Assignment, str | None, tuple[int, int]]]] = {}
 
     for requirement in request.requirements:
@@ -132,15 +131,6 @@ def validate_assignments(
             period = assignment.period_index + offset
             if (day, period) not in enabled or period not in teaching:
                 errors.append(f"INVALID_SLOT:{current_requirement.id}")
-            teacher_slot = (current_requirement.teacher_id, day, period)
-            shared_group = current_requirement.shared_teaching_group_id
-            existing_group = teacher_occupancy.get(teacher_slot)
-            if teacher_slot in teacher_occupancy and (
-                shared_group is None or existing_group != shared_group
-            ):
-                errors.append(f"COLLISION:TEACHER:{current_requirement.teacher_id}")
-            else:
-                teacher_occupancy[teacher_slot] = shared_group
             for kind, entity_id in (
                 (
                     "TEACHER",

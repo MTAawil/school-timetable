@@ -87,7 +87,7 @@ Expected:
 Expected:
 
 - Move rejected.
-- Error code `COLLISION:TEACHER:<teacher-id>`.
+- Error code `COLLISION:TEACHER_TIME:<teacher-id>`.
 - Existing draft remains unchanged.
 
 ## Fixture I — subject spread scoring

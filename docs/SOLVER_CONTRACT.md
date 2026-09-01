@@ -63,6 +63,11 @@ Independently validate every candidate solution before returning it:
 
 If validation fails, log the violation and return `FAILED`, not `FEASIBLE`.
 
+For schema version 2, teacher collisions are evaluated by actual class clock
+intervals derived from each class section's recess position. Two lessons for
+the same teacher may use different period indexes across timing groups only
+when their derived clock intervals do not overlap.
+
 ## Alternative generation
 
 Prefer quality first. Alternative 2 and later should differ meaningfully from earlier solutions while staying near the best penalty score. Add tests that verify alternatives differ for a fixture designed with many feasible solutions.
