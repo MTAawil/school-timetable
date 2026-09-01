@@ -21,6 +21,10 @@ backups/
 .env.*
 !.env.example
 *.log
+.corepack/
+.local-pglite/
+.local-postgres/
+.tools/
 .npm-cache/
 .logs/
 
