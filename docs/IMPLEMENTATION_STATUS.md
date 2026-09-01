@@ -7,6 +7,14 @@
 - [x] Expose both options in the existing class and teacher setup workflows.
 - [x] Carry both rules into the immutable solver snapshot and enforce them as hard constraints.
 - [x] Add focused database, application, and solver tests; a separate seed fixture was not needed.
+- [x] Correct class recess semantics so it marks the break between teaching
+      sessions instead of blocking a teaching session.
+- [x] Expose per-class break timing in the Classes UI with session-time previews
+      that shift later lessons after that class's break.
+- [x] Use class-derived clock intervals for schema-version-2 teacher collision
+      checks and display generated session labels with their actual times.
+- [x] Prefer main subjects in sessions 1-4 with a weighted soft constraint while
+      still allowing later sessions when needed for feasibility.
 
 ## Current phase
 

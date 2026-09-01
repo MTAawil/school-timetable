@@ -95,6 +95,7 @@ export type SupervisorSolverSnapshot = SnapshotBase & {
     workingDayCount: number;
     sessionsPerDay: number;
     sessionDurationMinutes: number;
+    firstSessionStartMinutes: number;
     breakAfterSession: number;
     breakDurationMinutes: number;
   } | null;

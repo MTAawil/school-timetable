@@ -1,4 +1,4 @@
-import { getDatabase } from "@school-timetable/database";
+import { getDatabase, type SolverSnapshot } from "@school-timetable/database";
 import { Lock, LockOpen, Redo2, RefreshCw, Undo2 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -18,6 +18,7 @@ import {
 } from "@/components/schedule-drag";
 import { PrintButton } from "@/components/print-button";
 import { verifySession } from "@/lib/auth/dal";
+import { assignmentSessionLabel } from "@/lib/session-times";
 
 type ViewType = "school" | "class" | "teacher" | "room";
 
@@ -101,12 +102,23 @@ export default async function SchedulePage({
     if (view === "room") return assignment.roomId === entityId;
     return true;
   });
+  const snapshot = schedule.inputSnapshot as unknown as SolverSnapshot;
   const days = schedule.term.days
     .filter((day) => day.isWorking)
     .sort((left, right) => left.dayIndex - right.dayIndex);
-  const periods = schedule.term.periods.sort(
-    (left, right) => left.periodIndex - right.periodIndex,
-  );
+  const periods =
+    snapshot.schemaVersion === 2
+      ? snapshot.calendar.periods
+          .map((period) => ({
+            id: period.id,
+            periodIndex: period.index,
+            name: period.name,
+            isTeaching: period.isTeaching,
+          }))
+          .sort((left, right) => left.periodIndex - right.periodIndex)
+      : schedule.term.periods.sort(
+          (left, right) => left.periodIndex - right.periodIndex,
+        );
   const tray = schedule.assignments.filter(
     (assignment) =>
       assignment.startDayIndex === null || assignment.startPeriodIndex === null,
@@ -297,6 +309,14 @@ export default async function SchedulePage({
                                   {assignment.teacher.name}
                                   {assignment.isLocked ? " · Locked" : ""}
                                 </span>
+                                <span className="mt-0.5 block text-[#66706b]">
+                                  {assignmentSessionLabel(
+                                    snapshot,
+                                    assignment.teachingRequirementId,
+                                    assignment.startPeriodIndex ?? 0,
+                                    assignment.durationPeriods,
+                                  )}
+                                </span>
                               </a>
                             </DraggableAssignment>
                           ))}
@@ -461,7 +481,12 @@ export default async function SchedulePage({
                       .filter((period) => period.isTeaching)
                       .map((period) => (
                         <option key={period.id} value={period.periodIndex}>
-                          {period.name}
+                          {assignmentSessionLabel(
+                            snapshot,
+                            assignment.teachingRequirementId,
+                            period.periodIndex,
+                            assignment.durationPeriods,
+                          )}
                         </option>
                       ))}
                   </select>

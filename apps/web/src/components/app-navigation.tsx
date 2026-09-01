@@ -3,6 +3,7 @@
 import {
   BookOpen,
   CalendarRange,
+  GraduationCap,
   LayoutDashboard,
   Settings2,
   ShieldCheck,
@@ -14,6 +15,7 @@ import { usePathname } from "next/navigation";
 const navigation = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
   { href: "/setup", label: "School setup", icon: Settings2 },
+  { href: "/classes", label: "Classes", icon: GraduationCap },
   { href: "/subjects", label: "Curriculum", icon: BookOpen },
   { href: "/teachers", label: "Teachers", icon: Users },
   { href: "/readiness", label: "Generate", icon: ShieldCheck },

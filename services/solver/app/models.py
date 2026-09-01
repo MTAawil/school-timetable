@@ -54,6 +54,7 @@ class WeekConfiguration(ContractModel):
     working_day_count: int = Field(ge=1)
     sessions_per_day: int = Field(ge=1)
     session_duration_minutes: int = Field(ge=1)
+    first_session_start_minutes: int = Field(ge=0, le=1439)
     break_after_session: int = Field(ge=1)
     break_duration_minutes: int = Field(ge=1)
 

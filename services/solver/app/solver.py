@@ -30,6 +30,57 @@ class Choice:
     duration: int
 
 
+def class_break_after_session(request: SolveRequest, class_section_id: str) -> int | None:
+    class_section = next(item for item in request.class_sections if item.id == class_section_id)
+    if class_section.recess_after_session is not None:
+        return class_section.recess_after_session
+    return request.week_configuration.break_after_session if request.week_configuration else None
+
+
+def crosses_break(
+    left_period: int,
+    right_period: int,
+    break_after_session: int | None,
+    teaching_session_by_period: dict[int, int],
+) -> bool:
+    left_session = teaching_session_by_period.get(left_period)
+    right_session = teaching_session_by_period.get(right_period)
+    return (
+        break_after_session is not None
+        and left_session == break_after_session
+        and right_session == break_after_session + 1
+    )
+
+
+def class_session_interval(
+    request: SolveRequest,
+    class_section_id: str,
+    period: int,
+    duration: int,
+) -> tuple[int, int]:
+    if request.schema_version != 2 or request.week_configuration is None:
+        return (period, period + duration)
+    break_after_session = class_break_after_session(request, class_section_id)
+    shift = (
+        request.week_configuration.break_duration_minutes
+        if break_after_session is not None and period >= break_after_session
+        else 0
+    )
+    starts_at = (
+        request.week_configuration.first_session_start_minutes
+        + period * request.week_configuration.session_duration_minutes
+        + shift
+    )
+    return (
+        starts_at,
+        starts_at + duration * request.week_configuration.session_duration_minutes,
+    )
+
+
+def intervals_overlap(left: tuple[int, int], right: tuple[int, int]) -> bool:
+    return left[0] < right[1] and right[0] < left[1]
+
+
 def input_fingerprint(request: SolveRequest) -> str:
     data = request.model_dump(
         by_alias=True,
@@ -45,8 +96,6 @@ def compatible_choices(
 ) -> list[Choice]:
     enabled = {(slot.day_index, slot.period_index) for slot in request.calendar.enabled_slots}
     teaching = {period.index for period in request.calendar.periods if period.is_teaching}
-    class_by_id = {item.id: item for item in request.class_sections}
-    class_recess = class_by_id[requirement.class_section_id].recess_after_session
     forbidden = {(slot.day_index, slot.period_index) for slot in requirement.forbidden_slots}
     unavailable = {
         (rule.entity_type, rule.entity_id, rule.day_index, rule.period_index)
@@ -71,6 +120,11 @@ def compatible_choices(
     locked = [item for item in request.locked_assignments if item.requirement_id == requirement.id]
     if occurrence < len(locked):
         fixed = locked[occurrence]
+    break_after_session = (
+        class_break_after_session(request, requirement.class_section_id)
+        if request.schema_version == 2
+        else None
+    )
 
     choices: list[Choice] = []
     for day, period in sorted(enabled):
@@ -81,17 +135,15 @@ def compatible_choices(
         for room_id in rooms:
             if isinstance(fixed, Assignment) and room_id != fixed.room_id:
                 continue
+            if (
+                break_after_session is not None
+                and period < break_after_session <= period + requirement.occurrence_duration - 1
+            ):
+                continue
             valid = True
             for offset in range(requirement.occurrence_duration):
                 position = (day, period + offset)
-                if (
-                    position not in enabled
-                    or position[1] not in teaching
-                    or (
-                        class_recess is not None
-                        and position[1] == class_recess - 1
-                    )
-                ):
+                if position not in enabled or position[1] not in teaching:
                     valid = False
                     break
                 resources = (
@@ -131,13 +183,11 @@ def solve(request: SolveRequest) -> SolveResponse:
         if requirement.shared_teaching_group_id:
             shared_requirements[requirement.shared_teaching_group_id].append(requirement.id)
     shared_representatives = {
-        requirement_ids[0]
-        for requirement_ids in shared_requirements.values()
-        if requirement_ids
+        requirement_ids[0] for requirement_ids in shared_requirements.values() if requirement_ids
     }
-    positions_by_requirement: dict[
-        str, dict[tuple[int, int, str | None], cp_model.IntVar]
-    ] = defaultdict(dict)
+    positions_by_requirement: dict[str, dict[tuple[int, int, str | None], cp_model.IntVar]] = (
+        defaultdict(dict)
+    )
 
     for requirement in request.requirements:
         occurrence_range = (
@@ -199,8 +249,10 @@ def solve(request: SolveRequest) -> SolveResponse:
         if len(requirement_ids) < 2:
             return _infeasible(request, started, len(variables), constraints)
         anchor = requirement_ids[0]
+        anchor_requirement = requirement_by_id[anchor]
         anchor_positions = positions_by_requirement[anchor]
         for member_id in requirement_ids[1:]:
+            member_requirement = requirement_by_id[member_id]
             member_positions = positions_by_requirement[member_id]
             all_positions = set(anchor_positions) | set(member_positions)
             for position in all_positions:
@@ -208,8 +260,27 @@ def solve(request: SolveRequest) -> SolveResponse:
                 right = member_positions.get(position, 0)
                 model.add(left == right)
                 constraints += 1
+                if position in anchor_positions and position in member_positions:
+                    anchor_interval = class_session_interval(
+                        request,
+                        anchor_requirement.class_section_id,
+                        position[1],
+                        anchor_requirement.occurrence_duration,
+                    )
+                    member_interval = class_session_interval(
+                        request,
+                        member_requirement.class_section_id,
+                        position[1],
+                        member_requirement.occurrence_duration,
+                    )
+                    if anchor_interval != member_interval:
+                        model.add(left == 0)
+                        constraints += 1
 
     occupancy: dict[tuple[str, str, int, int], list[cp_model.IntVar]] = defaultdict(list)
+    teacher_choices: dict[
+        tuple[str, int], list[tuple[Choice, Requirement, cp_model.IntVar, tuple[int, int]]]
+    ] = defaultdict(list)
     starts_by_day: dict[tuple[str, int], list[cp_model.IntVar]] = defaultdict(list)
     starts_by_period: dict[tuple[str, int, int], list[cp_model.IntVar]] = defaultdict(list)
     day_used: dict[tuple[str, int], cp_model.IntVar] = {}
@@ -219,13 +290,8 @@ def solve(request: SolveRequest) -> SolveResponse:
         starts_by_period[(choice.requirement_id, choice.day, choice.period)].append(variable)
         for offset in range(choice.duration):
             period = choice.period + offset
-            if (
-                not requirement.shared_teaching_group_id
-                or requirement.id in shared_representatives
-            ):
-                occupancy[("teacher", requirement.teacher_id, choice.day, period)].append(
-                    variable
-                )
+            if not requirement.shared_teaching_group_id or requirement.id in shared_representatives:
+                occupancy[("teacher", requirement.teacher_id, choice.day, period)].append(variable)
                 occupancy[("teacher_load", requirement.teacher_id, choice.day, period)].append(
                     variable
                 )
@@ -236,11 +302,47 @@ def solve(request: SolveRequest) -> SolveResponse:
         if len(conflict_variables) > 1:
             model.add(sum(conflict_variables) <= 1)
             constraints += 1
+    for choice, variable in variables.items():
+        requirement = requirement_by_id[choice.requirement_id]
+        if requirement.shared_teaching_group_id and requirement.id not in shared_representatives:
+            continue
+        teacher_choices[(requirement.teacher_id, choice.day)].append(
+            (
+                choice,
+                requirement,
+                variable,
+                class_session_interval(
+                    request,
+                    requirement.class_section_id,
+                    choice.period,
+                    choice.duration,
+                ),
+            )
+        )
+    for teacher_day_choices in teacher_choices.values():
+        for index, left_event in enumerate(teacher_day_choices):
+            for right_event in teacher_day_choices[index + 1 :]:
+                left_choice, left_requirement, left_variable, left_interval = left_event
+                right_choice, right_requirement, right_variable, right_interval = right_event
+                same_shared_event = (
+                    left_requirement.shared_teaching_group_id is not None
+                    and left_requirement.shared_teaching_group_id
+                    == right_requirement.shared_teaching_group_id
+                    and left_choice.period == right_choice.period
+                    and left_choice.room_id == right_choice.room_id
+                    and left_interval == right_interval
+                )
+                if not same_shared_event and intervals_overlap(left_interval, right_interval):
+                    model.add(left_variable + right_variable <= 1)
+                    constraints += 1
 
     days = [day.index for day in request.calendar.days if day.is_working]
     teaching_periods = sorted(
         period.index for period in request.calendar.periods if period.is_teaching
     )
+    teaching_session_by_period = {
+        period: session for session, period in enumerate(teaching_periods, start=1)
+    }
     raw_terms: dict[str, list[cp_model.LinearExpr]] = defaultdict(list)
     for teacher in request.teachers:
         for day in days:
@@ -263,7 +365,15 @@ def solve(request: SolveRequest) -> SolveResponse:
                     if (
                         request.schema_version == 2
                         and request.week_configuration
-                        and request.week_configuration.break_after_session - 1 in window[:-1]
+                        and any(
+                            crosses_break(
+                                left,
+                                right,
+                                request.week_configuration.break_after_session,
+                                teaching_session_by_period,
+                            )
+                            for left, right in zip(window, window[1:], strict=False)
+                        )
                     ):
                         continue
                     window_variables = [
@@ -303,13 +413,19 @@ def solve(request: SolveRequest) -> SolveResponse:
                     and requirement.is_main_subject
                     and requirement.allow_double_session
                 ):
+                    subject_break_after_session = class_break_after_session(
+                        request,
+                        requirement.class_section_id,
+                    )
                     adjacent_pairs: list[cp_model.IntVar] = []
                     for left, right in zip(teaching_periods, teaching_periods[1:], strict=False):
                         if right != left + 1:
                             continue
-                        if (
-                            request.week_configuration
-                            and left == request.week_configuration.break_after_session - 1
+                        if crosses_break(
+                            left,
+                            right,
+                            subject_break_after_session,
+                            teaching_session_by_period,
                         ):
                             continue
                         left_starts = starts_by_period.get((requirement.id, day, left), [])
@@ -370,14 +486,15 @@ def solve(request: SolveRequest) -> SolveResponse:
                 late_penalty = len(teaching_periods) - rank - 1
                 if late_penalty:
                     raw_terms["LATE_HEAVY_SUBJECT"].append(late_penalty * variable)
+            if request.schema_version == 2 and requirement.is_main_subject and rank >= 4:
+                raw_terms["MAIN_SUBJECT_LATE_SESSION"].append(variable)
 
     occupied_indicator: dict[tuple[str, int, int], cp_model.IntVar] = {}
     for teacher in request.teachers:
         total_periods = sum(
             requirement.occurrence_count * requirement.occurrence_duration
             for requirement in request.requirements
-            if requirement.teacher_id == teacher.id
-            and not requirement.shared_teaching_group_id
+            if requirement.teacher_id == teacher.id and not requirement.shared_teaching_group_id
         )
         total_periods += sum(
             requirement.occurrence_count * requirement.occurrence_duration
@@ -398,11 +515,11 @@ def solve(request: SolveRequest) -> SolveResponse:
         for day in days:
             daily_indicators: list[cp_model.IntVar] = []
             for period in teaching_periods:
-                candidates = occupancy.get(("teacher_load", teacher.id, day, period), [])
-                if not candidates:
+                lesson_candidates = occupancy.get(("teacher_load", teacher.id, day, period), [])
+                if not lesson_candidates:
                     continue
                 occupied = model.new_bool_var(f"occupied_{teacher.id}_{day}_{period}")
-                model.add(occupied == sum(candidates))
+                model.add(occupied == sum(lesson_candidates))
                 constraints += 1
                 occupied_indicator[(teacher.id, day, period)] = occupied
                 daily_indicators.append(occupied)

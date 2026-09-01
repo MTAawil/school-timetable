@@ -59,6 +59,13 @@ export const softConstraints = [
     defaultWeight: 4,
   },
   {
+    code: "MAIN_SUBJECT_LATE_SESSION",
+    label: "Main subjects before session 5",
+    description:
+      "Prefer main-subject lessons in sessions 1-4 while allowing later sessions when needed.",
+    defaultWeight: 8,
+  },
+  {
     code: "FULL_TIME_DAILY_BALANCE",
     label: "Full-time daily balance",
     description:

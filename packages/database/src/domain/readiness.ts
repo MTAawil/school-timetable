@@ -719,9 +719,18 @@ function validateSupervisorReadiness(
 
   const positions = teachingPositions(snapshot);
   for (const teacher of snapshot.teachers) {
+    const countedSharedGroups = new Set<string>();
     const allocated = snapshot.requirements
       .filter((item) => item.teacherId === teacher.id)
-      .reduce((total, item) => total + item.weeklySessions, 0);
+      .reduce((total, item) => {
+        if (item.sharedTeachingGroupId) {
+          if (countedSharedGroups.has(item.sharedTeachingGroupId)) {
+            return total;
+          }
+          countedSharedGroups.add(item.sharedTeachingGroupId);
+        }
+        return total + item.weeklySessions;
+      }, 0);
     if (allocated !== teacher.weeklyTeachingSessions) {
       issues.push({
         code: "TEACHER_WORKLOAD_MISMATCH",

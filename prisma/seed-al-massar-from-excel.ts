@@ -3331,6 +3331,7 @@ async function main(): Promise<void> {
     ["REPEATED_SUBJECT_DAY", 0],
     ["SUBJECT_CONSECUTIVE_PREFERENCE", 8],
     ["LATE_HEAVY_SUBJECT", 4],
+    ["MAIN_SUBJECT_LATE_SESSION", 8],
     ["DAILY_WORKLOAD_BALANCE", 2],
   ] as const) {
     await db.constraintWeight.create({

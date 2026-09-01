@@ -13,6 +13,7 @@ SOFT_CONSTRAINT_CODES = (
     "SUBJECT_SPREAD",
     "REPEATED_SUBJECT_DAY",
     "LATE_HEAVY_SUBJECT",
+    "MAIN_SUBJECT_LATE_SESSION",
     "DAILY_WORKLOAD_BALANCE",
     "FULL_TIME_DAILY_BALANCE",
 )
@@ -23,6 +24,28 @@ class Score:
     total: int
     breakdown: dict[str, int]
     raw: dict[str, int]
+
+
+def _class_break_after_session(request: SolveRequest, class_section_id: str) -> int | None:
+    class_section = next(item for item in request.class_sections if item.id == class_section_id)
+    if class_section.recess_after_session is not None:
+        return class_section.recess_after_session
+    return request.week_configuration.break_after_session if request.week_configuration else None
+
+
+def _crosses_break(
+    left_period: int,
+    right_period: int,
+    break_after_session: int | None,
+    teaching_session_by_period: dict[int, int],
+) -> bool:
+    left_session = teaching_session_by_period.get(left_period)
+    right_session = teaching_session_by_period.get(right_period)
+    return (
+        break_after_session is not None
+        and left_session == break_after_session
+        and right_session == break_after_session + 1
+    )
 
 
 def score_assignments(request: SolveRequest, assignments: list[Assignment]) -> Score:
@@ -37,6 +60,9 @@ def score_assignments(request: SolveRequest, assignments: list[Assignment]) -> S
     first_period = teaching_periods[0] if teaching_periods else -1
     last_period = teaching_periods[-1] if teaching_periods else -1
     period_rank = {period: rank for rank, period in enumerate(teaching_periods)}
+    teaching_session_by_period = {
+        period: session for session, period in enumerate(teaching_periods, start=1)
+    }
     availability = {
         (rule.entity_type, rule.entity_id, rule.day_index, rule.period_index): rule.state
         for rule in request.availability
@@ -76,6 +102,8 @@ def score_assignments(request: SolveRequest, assignments: list[Assignment]) -> S
                 raw["LATE_HEAVY_SUBJECT"] += rank
             elif subject.preferred_time_band == "LATE":
                 raw["LATE_HEAVY_SUBJECT"] += len(teaching_periods) - rank - 1
+            if request.schema_version == 2 and requirement.is_main_subject and rank >= 4:
+                raw["MAIN_SUBJECT_LATE_SESSION"] += 1
 
     for (teacher_id, _day), periods in occupied_by_teacher.items():
         if not periods:
@@ -109,11 +137,17 @@ def score_assignments(request: SolveRequest, assignments: list[Assignment]) -> S
         ):
             continue
         ordered = sorted(daily_subject_periods)
+        subject_break_after_session = _class_break_after_session(
+            request,
+            requirement.class_section_id,
+        )
         has_adjacent_pair = any(
             right == left + 1
-            and not (
-                request.week_configuration
-                and left == request.week_configuration.break_after_session - 1
+            and not _crosses_break(
+                left,
+                right,
+                subject_break_after_session,
+                teaching_session_by_period,
             )
             for left, right in zip(ordered, ordered[1:], strict=False)
         )

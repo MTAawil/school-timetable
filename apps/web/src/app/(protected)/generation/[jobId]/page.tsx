@@ -1,12 +1,13 @@
-import { getDatabase } from "@school-timetable/database";
+import { getDatabase, type SolverSnapshot } from "@school-timetable/database";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 
-import { PageHeading } from "@/components/setup-ui";
 import { openAlternativeAsDraft } from "@/app/(protected)/generation/actions";
+import { PageHeading } from "@/components/setup-ui";
 import { verifySession } from "@/lib/auth/dal";
+import { assignmentSessionLabel } from "@/lib/session-times";
 
 type StoredAssignment = {
   requirementId: string;
@@ -112,6 +113,7 @@ export default async function GenerationResultPage({
     conflictTeachers.map((item) => [item.id, item.name]),
   );
   const dayNames = new Map(days.map((item) => [item.dayIndex, item.name]));
+  const snapshot = job.inputSnapshot as unknown as SolverSnapshot;
   const periodNames = new Map(
     periods.map((item) => [item.periodIndex, item.name]),
   );
@@ -303,7 +305,14 @@ export default async function GenerationResultPage({
                     {assignment.requirementId}
                   </td>
                   <td className="px-4 py-3">{assignment.dayIndex + 1}</td>
-                  <td className="px-4 py-3">{assignment.periodIndex + 1}</td>
+                  <td className="px-4 py-3">
+                    {assignmentSessionLabel(
+                      snapshot,
+                      assignment.requirementId,
+                      assignment.periodIndex,
+                      assignment.durationPeriods,
+                    )}
+                  </td>
                   <td className="px-4 py-3">{assignment.durationPeriods}</td>
                   <td className="px-4 py-3">
                     {assignment.roomId ?? "Not required"}

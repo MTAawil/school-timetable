@@ -466,6 +466,7 @@ Suggested default relative weights:
 | Class internal gap | 8 |
 | Same subject repeated in one day | 10 |
 | Poor subject spread | 10 |
+| Main subject after session 4 | 8 |
 | Heavy subject in late period | 4 |
 | Daily workload imbalance | 3 |
 | Move from existing hinted schedule | 6 |

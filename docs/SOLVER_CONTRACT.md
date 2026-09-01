@@ -140,11 +140,28 @@ The redesigned solver must enforce:
 14. A shared-teaching group selects identical slots for every member class and
     counts those synchronized sessions once for teacher collision and workload
     constraints.
-15. A class-specific recess position is unavailable to that class; null uses
-    the school's default recess.
+15. A class-specific recess position marks the break between two teaching
+    sessions for that class; it does not remove either teaching session from
+    the timetable. The value is a teaching-session number, not a physical
+    `periodIndex`. Null uses the school's default break position.
 
 Rooms are omitted from new redesign snapshots. Existing schema-version-1 room
 behavior remains unchanged for historical reproducibility.
+
+For schema version 2, solver assignment `periodIndex` values are zero-based
+teaching-session indexes, not normalized `PeriodDefinition.periodIndex` values.
+The normalized physical calendar may still contain a school-default break row
+for calendar setup and teacher availability entry, but solver snapshots remap
+the day to `Session 1...N` so class-specific break timing does not remove a
+teaching slot from any class. The snapshot includes `firstSessionStartMinutes`,
+`sessionDurationMinutes`, and `breakDurationMinutes` so the solver can derive
+the real clock interval for each class session.
+
+Teacher hard collisions for schema version 2 are checked by real class clock
+intervals. A teacher cannot be assigned to two classes whose lesson intervals
+overlap, even when their teaching-session indexes differ because the classes
+take breaks at different times. Shared teaching is only valid when every member
+class's synchronized session resolves to the same clock interval.
 
 ### Optional-double modeling
 
@@ -158,11 +175,15 @@ For a main subject on a given day:
   `MAIN_DOUBLE_ADJACENCY` as a soft penalty
 
 Valid adjacency is defined by teaching-session order, not raw clock minutes.
-The break separates adjacency even when period indices are numerically
-consecutive.
+The applicable class break separates adjacency even when period indices are
+numerically consecutive.
 
 The solver must not force an allowed double to occur and must not fail a
 schedule solely because an allowed same-day double is distributed.
+
+For schema version 2, main subjects also receive a weighted soft penalty when
+placed after the first four teaching sessions of a day. This is a preference,
+not a hard restriction.
 
 ### Full-time workload balance
 

@@ -49,8 +49,19 @@ export type SchoolPeriod = {
 
 export function buildSchoolPeriods(
   configuration: z.input<typeof schoolWeekConfigurationSchema>,
+  breakAfterSessionOverride?: number | null,
 ): SchoolPeriod[] {
   const input = schoolWeekConfigurationSchema.parse(configuration);
+  const breakAfterSession =
+    breakAfterSessionOverride === undefined ||
+    breakAfterSessionOverride === null
+      ? input.breakAfterSession
+      : z
+          .number()
+          .int()
+          .positive()
+          .max(input.sessionsPerDay - 1)
+          .parse(breakAfterSessionOverride);
   const periods: SchoolPeriod[] = [];
   let startsAtMinutes = input.firstSessionStartMinutes;
 
@@ -64,7 +75,7 @@ export function buildSchoolPeriods(
     });
     startsAtMinutes += input.sessionDurationMinutes;
 
-    if (session === input.breakAfterSession) {
+    if (session === breakAfterSession) {
       periods.push({
         periodIndex: periods.length,
         name: "Break",

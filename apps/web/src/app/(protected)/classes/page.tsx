@@ -1,7 +1,10 @@
-import { getDatabase } from "@school-timetable/database";
+import { buildSchoolPeriods, getDatabase } from "@school-timetable/database";
 import { Save } from "lucide-react";
 
-import { saveClassRecess, saveClassSection } from "@/app/(protected)/setup/actions";
+import {
+  saveClassRecess,
+  saveClassSection,
+} from "@/app/(protected)/setup/actions";
 import { EntityTable } from "@/components/entity-table";
 import {
   PageHeading,
@@ -11,6 +14,33 @@ import {
 } from "@/components/setup-ui";
 import { verifySession } from "@/lib/auth/dal";
 import { getActiveTerm } from "@/lib/setup";
+
+function timeLabel(minutes: number): string {
+  return `${Math.floor(minutes / 60)
+    .toString()
+    .padStart(2, "0")}:${(minutes % 60).toString().padStart(2, "0")}`;
+}
+
+function timingPreview(
+  week: {
+    workingDayCount: number;
+    sessionsPerDay: number;
+    sessionDurationMinutes: number;
+    firstSessionStartMinutes: number;
+    breakAfterSession: number;
+    breakDurationMinutes: number;
+  } | null,
+  breakAfterSession: number | null,
+): string {
+  if (!week) return "Set the school week first";
+  return buildSchoolPeriods(week, breakAfterSession)
+    .filter((period) => period.isTeaching)
+    .map(
+      (period) =>
+        `${period.name.replace("Session ", "S")}: ${timeLabel(period.startsAtMinutes)}-${timeLabel(period.endsAtMinutes)}`,
+    )
+    .join(" | ");
+}
 
 export default async function ClassesPage() {
   const user = await verifySession();
@@ -96,10 +126,10 @@ export default async function ClassesPage() {
               className={inputClass}
               defaultValue=""
               name="recessAfterSession"
-              title="Class recess"
+              title="Class break timing"
             >
               <option value="">
-                Default recess{week ? ` (after ${week.breakAfterSession})` : ""}
+                Default break{week ? ` (after ${week.breakAfterSession})` : ""}
               </option>
               {week
                 ? Array.from(
@@ -107,7 +137,7 @@ export default async function ClassesPage() {
                     (_, index) => index + 1,
                   ).map((session) => (
                     <option key={session} value={session}>
-                      Recess after session {session}
+                      Break after session {session}
                     </option>
                   ))
                 : null}
@@ -120,7 +150,14 @@ export default async function ClassesPage() {
         </form>
       </section>
       <EntityTable
-        headers={["Class", "Code", "Recess", "Homeroom teacher", "Room"]}
+        headers={[
+          "Class",
+          "Code",
+          "Break",
+          "Session times",
+          "Homeroom teacher",
+          "Room",
+        ]}
         emptyMessage="No classes yet."
         rows={classes.map((item) => [
           `Grade ${item.grade} - ${item.sectionName}`,
@@ -130,12 +167,13 @@ export default async function ClassesPage() {
             : week
               ? `Default (after ${week.breakAfterSession})`
               : "Default",
+          timingPreview(week, item.recessAfterSession),
           item.homeroomTeacher?.name ?? "Not assigned",
           item.fixedRoom?.name ?? "Not assigned",
         ])}
       />
-      <section className="space-y-3" aria-labelledby="class-recess-heading">
-        <SectionHeading>Class recess overrides</SectionHeading>
+      <section className="space-y-3" aria-labelledby="class-break-heading">
+        <SectionHeading>Class break timing</SectionHeading>
         <div className="space-y-2">
           {classes.map((item) => (
             <form
@@ -151,7 +189,8 @@ export default async function ClassesPage() {
                 name="recessAfterSession"
               >
                 <option value="">
-                  Default recess{week ? ` (after ${week.breakAfterSession})` : ""}
+                  Default break
+                  {week ? ` (after ${week.breakAfterSession})` : ""}
                 </option>
                 {week
                   ? Array.from(
@@ -164,9 +203,12 @@ export default async function ClassesPage() {
                     ))
                   : null}
               </select>
+              <span className="min-w-full text-xs text-[#66706b] lg:min-w-[32rem]">
+                {timingPreview(week, item.recessAfterSession)}
+              </span>
               <button className={buttonClass} type="submit">
                 <Save aria-hidden="true" className="mr-2" size={16} />
-                Save recess
+                Save break
               </button>
             </form>
           ))}

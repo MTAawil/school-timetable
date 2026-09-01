@@ -7,6 +7,7 @@ import {
 } from "@school-timetable/database";
 
 import { getActiveTerm } from "@/lib/setup";
+import { softConstraints } from "@/lib/soft-constraints";
 
 export async function buildCurrentSnapshot(
   schoolId: string,
@@ -83,6 +84,54 @@ export async function buildCurrentSnapshot(
       },
     }),
   ]);
+  const snapshotPeriods = weekConfiguration
+    ? Array.from({ length: weekConfiguration.sessionsPerDay }, (_, index) => ({
+        id: `session-${String(index + 1)}`,
+        index,
+        name: `Session ${String(index + 1)}`,
+        isTeaching: true,
+      }))
+    : periods.map((period) => ({
+        id: period.id,
+        index: period.periodIndex,
+        name: period.name,
+        isTeaching: period.isTeaching,
+      }));
+  const physicalTeachingSessionByPeriod = new Map(
+    periods
+      .filter((period) => period.isTeaching)
+      .map((period, index) => [period.periodIndex, index]),
+  );
+  const snapshotEnabledSlots = weekConfiguration
+    ? days
+        .filter((day) => day.isWorking)
+        .flatMap((day) =>
+          snapshotPeriods.map((period) => ({
+            id: `${day.id}-${period.id}`,
+            dayIndex: day.dayIndex,
+            periodIndex: period.index,
+          })),
+        )
+    : slots.map((slot) => ({
+        id: slot.id,
+        dayIndex: slot.dayIndex,
+        periodIndex: slot.periodIndex,
+      }));
+  const snapshotAvailability = availability.flatMap((rule) => {
+    const periodIndex = weekConfiguration
+      ? physicalTeachingSessionByPeriod.get(rule.periodIndex)
+      : rule.periodIndex;
+    if (periodIndex === undefined) return [];
+    return [
+      {
+        entityType: rule.entityType,
+        entityId: rule.entityId,
+        dayIndex: rule.dayIndex,
+        periodIndex,
+        state: rule.state,
+      },
+    ];
+  });
 
   return {
     schemaVersion: solverSchemaVersion,
@@ -93,6 +142,7 @@ export async function buildCurrentSnapshot(
           workingDayCount: weekConfiguration.workingDayCount,
           sessionsPerDay: weekConfiguration.sessionsPerDay,
           sessionDurationMinutes: weekConfiguration.sessionDurationMinutes,
+          firstSessionStartMinutes: weekConfiguration.firstSessionStartMinutes,
           breakAfterSession: weekConfiguration.breakAfterSession,
           breakDurationMinutes: weekConfiguration.breakDurationMinutes,
         }
@@ -104,17 +154,8 @@ export async function buildCurrentSnapshot(
         name: day.name,
         isWorking: day.isWorking,
       })),
-      periods: periods.map((period) => ({
-        id: period.id,
-        index: period.periodIndex,
-        name: period.name,
-        isTeaching: period.isTeaching,
-      })),
-      enabledSlots: slots.map((slot) => ({
-        id: slot.id,
-        dayIndex: slot.dayIndex,
-        periodIndex: slot.periodIndex,
-      })),
+      periods: snapshotPeriods,
+      enabledSlots: snapshotEnabledSlots,
     },
     teachers: teachers.map((teacher) => ({
       id: teacher.id,
@@ -151,18 +192,18 @@ export async function buildCurrentSnapshot(
       fixedSlots: [],
       forbiddenSlots: [],
     })),
-    availability: availability.map((rule) => ({
-      entityType: rule.entityType,
-      entityId: rule.entityId,
-      dayIndex: rule.dayIndex,
-      periodIndex: rule.periodIndex,
-      state: rule.state,
-    })),
+    availability: snapshotAvailability,
     lockedAssignments: [],
     existingAssignments: [],
     constraintProfile: {
       id: profile?.id ?? null,
       weights: {
+        ...Object.fromEntries(
+          softConstraints.map((constraint) => [
+            constraint.code,
+            constraint.defaultWeight,
+          ]),
+        ),
         ...Object.fromEntries(
           profile?.weights.map((weight) => [weight.code, weight.weight ?? 0]) ??
             [],

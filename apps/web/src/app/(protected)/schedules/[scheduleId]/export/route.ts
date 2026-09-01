@@ -1,8 +1,9 @@
-import { getDatabase } from "@school-timetable/database";
+import { getDatabase, type SolverSnapshot } from "@school-timetable/database";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { verifySession } from "@/lib/auth/dal";
+import { assignmentSessionLabel } from "@/lib/session-times";
 
 const paramsSchema = z.object({ scheduleId: z.uuid() });
 
@@ -38,9 +39,7 @@ export async function GET(
   const days = new Map(
     schedule.term.days.map((day) => [day.dayIndex, day.name]),
   );
-  const periods = new Map(
-    schedule.term.periods.map((period) => [period.periodIndex, period.name]),
-  );
+  const snapshot = schedule.inputSnapshot as unknown as SolverSnapshot;
   const rows = schedule.assignments
     .toSorted(
       (left, right) =>
@@ -54,8 +53,12 @@ export async function GET(
         : (days.get(assignment.startDayIndex) ?? assignment.startDayIndex),
       assignment.startPeriodIndex === null
         ? ""
-        : (periods.get(assignment.startPeriodIndex) ??
-          assignment.startPeriodIndex),
+        : assignmentSessionLabel(
+            snapshot,
+            assignment.teachingRequirementId,
+            assignment.startPeriodIndex,
+            assignment.durationPeriods,
+          ),
       assignment.classSection.shortCode,
       assignment.teachingRequirement.subject.shortCode,
       assignment.teacher.name,

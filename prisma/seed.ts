@@ -13,6 +13,23 @@ type TeacherDetail = {
   sourceRow: number;
 };
 
+type SharedTeachingCombination = {
+  teacher: string;
+  subject: string;
+  anchorClassName: string;
+  sharedClassNames: string[];
+  hours: number;
+  sourceRow: number;
+};
+
+type SeedSharedCurriculum = {
+  id: string;
+  classSectionId: string;
+  teacherId: string | null;
+  weeklySessions: number;
+  sharedTeachingGroupId: string | null;
+};
+
 const ids = {
   school: "00000000-0000-4000-8000-000000000001",
   term: "00000000-0000-4000-8000-000000000002",
@@ -28,7 +45,7 @@ const schoolWeekConfiguration = {
   sessionDurationMinutes: 55,
   firstSessionStartMinutes: 7 * 60 + 30,
   breakAfterSession: 3,
-  breakDurationMinutes: 20,
+  breakDurationMinutes: 30,
 } as const;
 
 const gradesSevenToTwelveClasses = [
@@ -3020,57 +3037,75 @@ const teacherDetails: TeacherDetail[] = [
   },
 ];
 
-const demoMissingDetails: TeacherDetail[] = [
+const sharedTeachingCombinations: SharedTeachingCombination[] = [
   {
-    teacher: "demo",
-    subject: "جغرافيا",
-    className: "SE",
-    hours: 1,
-    sourceRow: 0,
-  },
-  {
-    teacher: "demo",
-    subject: "تربية",
-    className: "SE",
-    hours: 1,
-    sourceRow: 0,
-  },
-  {
-    teacher: "demo",
+    teacher: "هنادي نون",
     subject: "لغة عربية",
-    className: "EB 3",
+    anchorClassName: "Grade 3 A",
+    sharedClassNames: ["EB 3"],
     hours: 8,
     sourceRow: 0,
   },
   {
-    teacher: "demo",
-    subject: "دين",
-    className: "EB 3",
-    hours: 1,
-    sourceRow: 0,
-  },
-  {
-    teacher: "demo",
-    subject: "رياضة",
-    className: "EB 3",
-    hours: 1,
-    sourceRow: 0,
-  },
-  {
-    teacher: "demo",
-    subject: "تربية",
-    className: "EB 3",
-    hours: 1,
-    sourceRow: 0,
-  },
-  {
-    teacher: "demo",
+    teacher: "اميرة حمية",
     subject: "ART",
-    className: "EB 3",
+    anchorClassName: "Grade 3 A",
+    sharedClassNames: ["EB 3"],
+    hours: 1,
+    sourceRow: 0,
+  },
+  {
+    teacher: "بتول كرنيب",
+    subject: "تربية",
+    anchorClassName: "Grade 3 A",
+    sharedClassNames: ["EB 3"],
+    hours: 1,
+    sourceRow: 0,
+  },
+  {
+    teacher: "عادل رزق",
+    subject: "رياضة",
+    anchorClassName: "Grade 3 A",
+    sharedClassNames: ["EB 3"],
+    hours: 1,
+    sourceRow: 0,
+  },
+  {
+    teacher: "فاطمة يحفوفي",
+    subject: "دين",
+    anchorClassName: "Grade 3 A",
+    sharedClassNames: ["EB 3"],
+    hours: 1,
+    sourceRow: 0,
+  },
+  {
+    teacher: "محمد عبدو",
+    subject: "تربية",
+    anchorClassName: "GRADE 12 ES",
+    sharedClassNames: ["SE"],
+    hours: 1,
+    sourceRow: 0,
+  },
+  {
+    teacher: "محمد عبدو",
+    subject: "جغرافيا",
+    anchorClassName: "GRADE 12 ES",
+    sharedClassNames: ["SE"],
     hours: 1,
     sourceRow: 0,
   },
 ];
+
+const sharedTeachingDetails: TeacherDetail[] =
+  sharedTeachingCombinations.flatMap((combination) =>
+    combination.sharedClassNames.map((className) => ({
+      teacher: combination.teacher,
+      subject: combination.subject,
+      className,
+      hours: combination.hours,
+      sourceRow: combination.sourceRow,
+    })),
+  );
 
 function time(value: string): Date {
   return new Date(`1970-01-01T${value}:00.000Z`);
@@ -3092,6 +3127,13 @@ type ClassMetadata = {
   sectionName: string;
   shortCode: string;
 };
+
+function recessAfterSession(shortCode: string): number {
+  const grade = /^(?:EB)?(\d+)/u.exec(shortCode)?.[1];
+  if (!grade) return 4;
+  const numericGrade = Number(grade);
+  return numericGrade <= 6 ? 2 : numericGrade <= 9 ? 3 : 4;
+}
 
 function classMetadata(shortCode: string): ClassMetadata {
   const ebGrade = /^EB(\d+)$/u.exec(shortCode);
@@ -3233,6 +3275,7 @@ async function clearSeedData(): Promise<void> {
   await db.constraintWeight.deleteMany();
   await db.constraintProfile.deleteMany();
   await db.classCurriculum.deleteMany();
+  await db.sharedTeachingGroup.deleteMany();
   await db.gradeCurriculum.deleteMany();
   await db.classSection.deleteMany();
   await db.room.deleteMany();
@@ -3339,9 +3382,9 @@ async function main(): Promise<void> {
     }
   }
 
-  const allTeacherDetails = [...teacherDetails, ...demoMissingDetails];
+  const allTeacherDetails = [...teacherDetails, ...sharedTeachingDetails];
   const teacherHours = new Map<string, number>();
-  for (const detail of allTeacherDetails) {
+  for (const detail of teacherDetails) {
     teacherHours.set(
       detail.teacher,
       (teacherHours.get(detail.teacher) ?? 0) + detail.hours,
@@ -3384,7 +3427,7 @@ async function main(): Promise<void> {
 
   const gradeLevelIds = new Map<string, string>();
   const allClasses = [...gradesSevenToTwelveClasses, ...gradesOneToSixClasses];
-  const metadataByClass = new Map(
+  const metadataByClass: Map<string, ClassMetadata> = new Map(
     allClasses.map((shortCode) => [shortCode, classMetadata(shortCode)]),
   );
   const uniqueGrades = [
@@ -3432,6 +3475,7 @@ async function main(): Promise<void> {
         generatedShortCode: `${metadata.gradeCode.replaceAll("_", "")}-${metadata.sectionLabel}`,
         sectionName: metadata.sectionName,
         shortCode: metadata.shortCode,
+        recessAfterSession: recessAfterSession(shortCode),
       },
     });
     classIds.set(shortCode, classSection.id);
@@ -3499,11 +3543,110 @@ async function main(): Promise<void> {
         classSectionId,
         gradeCurriculumId,
         subjectId,
-        teacherId,
+        teacherId: null,
         weeklySessions: detail.hours,
         isMainSubject: mainSubject,
         allowDoubleSession,
       },
+    });
+  }
+
+  for (const detail of allTeacherDetails) {
+    const classCode = normalizeClassCode(detail.className);
+    const classSectionId = classIds.get(classCode);
+    const subjectId = subjectIds.get(detail.subject);
+    const teacherId = teacherIds.get(detail.teacher);
+    if (!classSectionId || !subjectId || !teacherId) {
+      throw new Error(
+        `Cannot allocate row ${detail.sourceRow}: unresolved teacher, subject, or class.`,
+      );
+    }
+    await db.classCurriculum.updateMany({
+      where: {
+        schoolId: ids.school,
+        termId: ids.term,
+        classSectionId,
+        subjectId,
+        teacherId: null,
+      },
+      data: { teacherId },
+    });
+  }
+
+  for (const combination of sharedTeachingCombinations) {
+    const teacherId = teacherIds.get(combination.teacher);
+    const subjectId = subjectIds.get(combination.subject);
+    if (!teacherId || !subjectId) {
+      throw new Error(
+        `Cannot create shared group row ${combination.sourceRow}: unresolved teacher or subject.`,
+      );
+    }
+
+    const anchorClassCode = normalizeClassCode(combination.anchorClassName);
+    const sharedClassCodes = combination.sharedClassNames.map((className) =>
+      normalizeClassCode(className),
+    );
+    const memberClassCodes = [anchorClassCode, ...sharedClassCodes];
+    const memberClassIds = memberClassCodes.map((classCode) => {
+      const classSectionId = classIds.get(classCode);
+      if (!classSectionId) {
+        throw new Error(
+          `Cannot create shared group row ${combination.sourceRow}: unresolved class ${classCode}.`,
+        );
+      }
+      return classSectionId;
+    });
+
+    const memberCurricula: SeedSharedCurriculum[] =
+      await db.classCurriculum.findMany({
+        where: {
+          schoolId: ids.school,
+          termId: ids.term,
+          subjectId,
+          classSectionId: { in: memberClassIds },
+          isActive: true,
+        },
+        select: {
+          id: true,
+          classSectionId: true,
+          teacherId: true,
+          weeklySessions: true,
+          sharedTeachingGroupId: true,
+        },
+      });
+    if (memberCurricula.length !== memberClassIds.length) {
+      throw new Error(
+        `Cannot create shared group row ${combination.sourceRow}: missing matching curriculum rows.`,
+      );
+    }
+    for (const curriculum of memberCurricula) {
+      if (
+        curriculum.teacherId !== teacherId ||
+        curriculum.weeklySessions !== combination.hours ||
+        curriculum.sharedTeachingGroupId
+      ) {
+        throw new Error(
+          `Cannot create shared group row ${combination.sourceRow}: curriculum rows are not eligible.`,
+        );
+      }
+    }
+
+    const sharedGroup = await db.sharedTeachingGroup.create({
+      data: {
+        schoolId: ids.school,
+        termId: ids.term,
+        subjectId,
+        teacherId,
+        weeklySessions: combination.hours,
+      },
+    });
+    await db.classCurriculum.updateMany({
+      where: {
+        schoolId: ids.school,
+        termId: ids.term,
+        id: { in: memberCurricula.map((curriculum) => curriculum.id) },
+      },
+      data: { sharedTeachingGroupId: sharedGroup.id },
     });
   }
 
@@ -3528,6 +3671,7 @@ async function main(): Promise<void> {
     ["REPEATED_SUBJECT_DAY", 0],
     ["SUBJECT_CONSECUTIVE_PREFERENCE", 8],
     ["LATE_HEAVY_SUBJECT", 4],
+    ["MAIN_SUBJECT_LATE_SESSION", 8],
     ["DAILY_WORKLOAD_BALANCE", 2],
   ] as const) {
     await db.constraintWeight.create({
@@ -3536,7 +3680,7 @@ async function main(): Promise<void> {
   }
 
   console.log(
-    `Al Massar seed created: ${allClasses.length} classes, ${teacherIds.size} teachers, ${subjectIds.size} subjects, ${allTeacherDetails.length} class curriculum rows.`,
+    `Al Massar seed created: ${allClasses.length} classes, ${teacherIds.size} teachers, ${subjectIds.size} subjects, ${allTeacherDetails.length} class curriculum rows, ${sharedTeachingCombinations.length} shared teaching groups.`,
   );
 }
 

@@ -39,8 +39,20 @@ A period definition contains `isTeaching`. Breaks are represented as non-teachin
 ## TeachingRequirement
 
 `ClassSection.recessAfterSession` optionally overrides the school's default
-recess position for that class. A null value inherits
-`SchoolWeekConfiguration.breakAfterSession`.
+break position for that class. It marks the break between teaching sessions and
+does not reduce the class's available teaching-session count. A null value
+inherits `SchoolWeekConfiguration.breakAfterSession`. When a class override is
+set, its displayed lesson times are rebuilt from the same start time, lesson
+duration, and break duration, with later sessions shifted after that class's
+break.
+
+Solver schema version 2 snapshots remap period positions to zero-based
+teaching-session indexes. The persisted `PeriodDefinition` rows may still
+include the school-default break row for setup views, but the solver receives
+`Session 1...N` so different class break positions do not remove sessions from
+other classes. The snapshot carries the first session start time, lesson
+duration, and break duration so solver validation can detect real teacher time
+overlaps across classes with different break positions.
 
 `SharedTeachingGroup` links two or more class curriculum rows with the same
 subject and weekly session count to one teacher. Each member keeps its own

@@ -1,7 +1,7 @@
 "use client";
 
 import type { TeacherRestrictionState } from "@school-timetable/shared/teacher-restrictions";
-import { AlertTriangle, CheckCircle2, Save } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Link2, Save } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { buttonClass, inputClass } from "@/components/setup-ui";
@@ -110,22 +110,55 @@ export function TeacherWorkflowEditor({
     }
     return initial;
   });
-  const allocatedSessions = useMemo(
-    () => {
-      const countedGroups = new Set<string>();
-      return curriculum
-        .filter((item) => selectedIds.has(item.id))
-        .reduce((total, item) => {
-          const groupId = item.sharedTeachingGroupId;
-          if (groupId) {
-            if (countedGroups.has(groupId)) return total;
-            countedGroups.add(groupId);
-          }
-          return total + (sharedIds.has(item.id) ? 0 : item.weeklySessions);
-        }, 0);
-    },
-    [curriculum, selectedIds, sharedIds],
-  );
+  const sharedGroupLabels = useMemo(() => {
+    const groups = new Map<string, CurriculumItem[]>();
+    for (const item of curriculum) {
+      if (!item.sharedTeachingGroupId) continue;
+      const groupItems = groups.get(item.sharedTeachingGroupId) ?? [];
+      groupItems.push(item);
+      groups.set(item.sharedTeachingGroupId, groupItems);
+    }
+
+    return new Map(
+      [...groups.entries()].map(([groupId, items]) => [
+        groupId,
+        [...new Set(items.map((item) => item.classCode))].sort().join(" + "),
+      ]),
+    );
+  }, [curriculum]);
+  const teacherSharedGroups = useMemo(() => {
+    const groups = new Map<
+      string,
+      { label: string; subjectName: string; weeklySessions: number }
+    >();
+    for (const item of curriculum) {
+      if (item.teacherId !== teacher?.id || !item.sharedTeachingGroupId) {
+        continue;
+      }
+      groups.set(item.sharedTeachingGroupId, {
+        label:
+          sharedGroupLabels.get(item.sharedTeachingGroupId) ?? item.classCode,
+        subjectName: item.subjectName,
+        weeklySessions: item.weeklySessions,
+      });
+    }
+    return [...groups.values()].sort((left, right) =>
+      left.label.localeCompare(right.label),
+    );
+  }, [curriculum, sharedGroupLabels, teacher?.id]);
+  const allocatedSessions = useMemo(() => {
+    const countedGroups = new Set<string>();
+    return curriculum
+      .filter((item) => selectedIds.has(item.id))
+      .reduce((total, item) => {
+        const groupId = item.sharedTeachingGroupId;
+        if (groupId) {
+          if (countedGroups.has(groupId)) return total;
+          countedGroups.add(groupId);
+        }
+        return total + (sharedIds.has(item.id) ? 0 : item.weeklySessions);
+      }, 0);
+  }, [curriculum, selectedIds, sharedIds]);
   const remaining = Math.max(0, declaredSessions - allocatedSessions);
   const excess = Math.max(0, allocatedSessions - declaredSessions);
   const workloadExact = declaredSessions === allocatedSessions;
@@ -536,6 +569,28 @@ export function TeacherWorkflowEditor({
           </p>
         ) : (
           <div className="space-y-5">
+            {teacherSharedGroups.length > 0 ? (
+              <div className="border border-[#9bc8b5] bg-[#eef8f3] px-4 py-3">
+                <h3 className="flex items-center gap-2 text-sm font-semibold text-[#0b5b43]">
+                  <Link2 aria-hidden="true" size={16} />
+                  Combined classes
+                </h3>
+                <ul className="mt-2 grid gap-2 text-sm sm:grid-cols-2 xl:grid-cols-3">
+                  {teacherSharedGroups.map((group) => (
+                    <li
+                      className="border border-[#b8d8c9] bg-white px-3 py-2"
+                      key={`${group.subjectName}:${group.label}`}
+                    >
+                      <span className="block font-medium">{group.label}</span>
+                      <span className="mt-0.5 block text-xs text-[#56615c]">
+                        {group.subjectName} - {group.weeklySessions} sessions
+                        counted once
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
             {shareCandidates.length > 0 ? (
               <label className="block max-w-xl text-xs font-medium text-[#56615c]">
                 Combine unassigned classes with {anchor?.className}
@@ -545,7 +600,10 @@ export function TeacherWorkflowEditor({
                   value={[...sharedIds]}
                   onChange={(event) => {
                     const next = new Set(
-                      Array.from(event.target.selectedOptions, (option) => option.value),
+                      Array.from(
+                        event.target.selectedOptions,
+                        (option) => option.value,
+                      ),
                     );
                     setSharedIds(next);
                     setSelectedIds((current) => {
@@ -560,7 +618,8 @@ export function TeacherWorkflowEditor({
                 >
                   {shareCandidates.map((item) => (
                     <option key={item.id} value={item.id}>
-                      {item.className} ({item.classCode}) - {item.weeklySessions} sessions
+                      {item.className} ({item.classCode}) -{" "}
+                      {item.weeklySessions} sessions
                     </option>
                   ))}
                 </select>
@@ -583,6 +642,9 @@ export function TeacherWorkflowEditor({
                         item.teacherId && item.teacherId !== teacher?.id,
                       );
                       const reassigned = reassignedIds.has(item.id);
+                      const sharedGroupLabel = item.sharedTeachingGroupId
+                        ? sharedGroupLabels.get(item.sharedTeachingGroupId)
+                        : null;
                       return (
                         <div
                           className={`flex min-h-16 items-center gap-3 border-r border-b border-[#dce1dc] px-4 py-3 ${
@@ -623,6 +685,12 @@ export function TeacherWorkflowEditor({
                               sessions
                             </span>
                           </span>
+                          {sharedGroupLabel ? (
+                            <span className="inline-flex items-center gap-1 border border-[#9bc8b5] bg-[#eef8f3] px-2 py-1 text-xs font-semibold text-[#0b5b43]">
+                              <Link2 aria-hidden="true" size={12} />
+                              Combined: {sharedGroupLabel}
+                            </span>
+                          ) : null}
                           {initiallyOwnedByOther && !reassigned ? (
                             <button
                               className="border border-[#9ba59f] bg-white px-2 py-1.5 text-xs font-semibold text-[#36413c]"

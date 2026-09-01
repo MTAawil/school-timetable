@@ -135,4 +135,56 @@ describe("supervisor setup domain", () => {
       },
     ]);
   });
+
+  it("moves later class session times when the break position is overridden", () => {
+    const periods = buildSchoolPeriods(
+      {
+        workingDayCount: 5,
+        sessionsPerDay: 4,
+        sessionDurationMinutes: 50,
+        firstSessionStartMinutes: 480,
+        breakAfterSession: 2,
+        breakDurationMinutes: 20,
+      },
+      3,
+    );
+
+    expect(periods).toEqual([
+      {
+        periodIndex: 0,
+        name: "Session 1",
+        startsAtMinutes: 480,
+        endsAtMinutes: 530,
+        isTeaching: true,
+      },
+      {
+        periodIndex: 1,
+        name: "Session 2",
+        startsAtMinutes: 530,
+        endsAtMinutes: 580,
+        isTeaching: true,
+      },
+      {
+        periodIndex: 2,
+        name: "Session 3",
+        startsAtMinutes: 580,
+        endsAtMinutes: 630,
+        isTeaching: true,
+      },
+      {
+        periodIndex: 3,
+        name: "Break",
+        startsAtMinutes: 630,
+        endsAtMinutes: 650,
+        isTeaching: false,
+      },
+      {
+        periodIndex: 4,
+        name: "Session 4",
+        startsAtMinutes: 650,
+        endsAtMinutes: 700,
+        isTeaching: true,
+      },
+    ]);
+  });
 });

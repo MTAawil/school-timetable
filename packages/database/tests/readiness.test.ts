@@ -163,6 +163,7 @@ function buildSupervisorSnapshot(
       workingDayCount: 5,
       sessionsPerDay: 8,
       sessionDurationMinutes: 45,
+      firstSessionStartMinutes: 450,
       breakAfterSession: 4,
       breakDurationMinutes: 20,
     },
@@ -247,6 +248,7 @@ describe("supervisor readiness", () => {
           workingDayCount: 0,
           sessionsPerDay: 0,
           sessionDurationMinutes: 0,
+          firstSessionStartMinutes: 0,
           breakAfterSession: 0,
           breakDurationMinutes: 0,
         },
@@ -318,6 +320,40 @@ describe("supervisor readiness", () => {
         required: 5,
         available: 6,
       }),
+    );
+  });
+
+  it("counts shared teaching groups once for teacher workload", () => {
+    const snapshot = buildSupervisorSnapshot();
+    snapshot.classSections.push({
+      id: "g7-b",
+      name: "G7 B",
+      shortCode: "G7-B",
+      maxLessonsPerDay: null,
+      recessAfterSession: null,
+    });
+    snapshot.requirements.push({
+      id: "g7-b:math",
+      classSectionId: "g7-b",
+      subjectId: "math",
+      teacherId: "teacher",
+      sharedTeachingGroupId: "shared-math",
+      weeklySessions: 6,
+      isMainSubject: true,
+      allowDoubleSession: true,
+      fixedSlots: [],
+      forbiddenSlots: [],
+    });
+    const firstRequirement = snapshot.requirements[0];
+    if (!firstRequirement)
+      throw new Error("A curriculum requirement is required.");
+    snapshot.requirements[0] = {
+      ...firstRequirement,
+      sharedTeachingGroupId: "shared-math",
+    };
+
+    expect(validateReadiness(snapshot).issues).not.toContainEqual(
+      expect.objectContaining({ code: "TEACHER_WORKLOAD_MISMATCH" }),
     );
   });
 });

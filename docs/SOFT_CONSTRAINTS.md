@@ -14,6 +14,7 @@ components below.
 | `SUBJECT_SPREAD` | Weekly occurrences minus distinct occupied days, summed per teaching requirement. | 10 |
 | `REPEATED_SUBJECT_DAY` | Weekly occurrences minus distinct occupied days, independently weighted as the same-day repetition cost. | 8 |
 | `LATE_HEAVY_SUBJECT` | For an early subject, the zero-based teaching-period rank; for a late subject, the reversed rank; neutral subjects cost zero. Applied per occupied period. | 4 |
+| `MAIN_SUBJECT_LATE_SESSION` | One per occupied schema-v2 main-subject teaching session after the first four teaching sessions of the day. | 8 |
 | `DAILY_WORKLOAD_BALANCE` | For each teacher and working day: `abs(dayPeriods * workingDayCount - weeklyPeriods)`. | 2 |
 
 The CP-SAT model minimizes these weighted terms directly. After solving, an
