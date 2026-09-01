@@ -182,6 +182,7 @@ export function CurriculumMatrix({
                             }
                             aria-label={`${classSection.name} ${subject.name} weekly sessions`}
                             required
+                            suppressHydrationWarning
                           />
                         </td>
                         <td className="px-4 py-3 text-[#66706b]">
@@ -206,6 +207,7 @@ export function CurriculumMatrix({
                               }))
                             }
                             aria-label={`${classSection.name} ${subject.name} main subject`}
+                            suppressHydrationWarning
                           />
                         </td>
                         <td className="px-4 py-3 text-center">
@@ -222,6 +224,7 @@ export function CurriculumMatrix({
                               }))
                             }
                             aria-label={`${classSection.name} ${subject.name} optional double`}
+                            suppressHydrationWarning
                           />
                         </td>
                       </tr>
@@ -237,6 +240,7 @@ export function CurriculumMatrix({
         className={`${buttonClass} disabled:cursor-not-allowed disabled:bg-[#8a928e]`}
         type="submit"
         disabled={!validation.isValid}
+        suppressHydrationWarning
       >
         <Save aria-hidden="true" className="mr-2" size={16} />
         Save curriculum

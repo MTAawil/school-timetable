@@ -104,7 +104,11 @@ export default async function SubjectsPage({
           </div>
           {missingStarterCount > 0 ? (
             <form action={installStarterSubjects}>
-              <button className={buttonClass} type="submit">
+              <button
+                className={buttonClass}
+                type="submit"
+                suppressHydrationWarning
+              >
                 <BookPlus aria-hidden="true" className="mr-2" size={16} />
                 Add starter subjects
               </button>
@@ -133,6 +137,7 @@ export default async function SubjectsPage({
                           type="hidden"
                           name="subjectId"
                           value={subject.id}
+                          suppressHydrationWarning
                         />
                         <input
                           className={inputClass}
@@ -140,6 +145,7 @@ export default async function SubjectsPage({
                           defaultValue={subject.name}
                           maxLength={100}
                           required
+                          suppressHydrationWarning
                         />
                       </td>
                       <td className="px-4 py-2">
@@ -150,6 +156,7 @@ export default async function SubjectsPage({
                           maxLength={24}
                           pattern="[A-Za-z0-9_]+"
                           required
+                          suppressHydrationWarning
                         />
                       </td>
                       <td className="px-4 py-3 text-center">
@@ -159,6 +166,7 @@ export default async function SubjectsPage({
                           type="checkbox"
                           defaultChecked={subject.isActive}
                           aria-label={`${subject.name} active`}
+                          suppressHydrationWarning
                         />
                       </td>
                     </tr>
@@ -166,7 +174,11 @@ export default async function SubjectsPage({
                 </tbody>
               </table>
             </div>
-            <button className={buttonClass} type="submit">
+            <button
+              className={buttonClass}
+              type="submit"
+              suppressHydrationWarning
+            >
               <Save aria-hidden="true" className="mr-2" size={16} />
               Save catalogue
             </button>
@@ -189,6 +201,7 @@ export default async function SubjectsPage({
               placeholder="Subject name"
               maxLength={100}
               required
+              suppressHydrationWarning
             />
           </label>
           <label className="text-sm font-medium">
@@ -200,9 +213,14 @@ export default async function SubjectsPage({
               pattern="[A-Za-z0-9_]+"
               maxLength={24}
               required
+              suppressHydrationWarning
             />
           </label>
-          <button className={`${buttonClass} self-end`} type="submit">
+          <button
+            className={`${buttonClass} self-end`}
+            type="submit"
+            suppressHydrationWarning
+          >
             <BookPlus aria-hidden="true" className="mr-2" size={16} />
             Add subject
           </button>
