@@ -2,7 +2,10 @@
 
 import { useTransition } from "react";
 
-import { previewMove } from "@/app/(protected)/schedules/actions";
+import {
+  previewMove,
+  simulateTargetedRepair,
+} from "@/app/(protected)/schedules/actions";
 
 export function DraggableAssignment({
   assignmentId,
@@ -35,18 +38,24 @@ export function ScheduleDropCell({
   dayIndex,
   periodIndex,
   disabled = false,
+  compact = false,
+  repairTeacherId,
   children,
 }: {
   scheduleId: string;
   dayIndex?: number;
   periodIndex?: number;
   disabled?: boolean;
+  compact?: boolean;
+  repairTeacherId?: string;
   children: React.ReactNode;
 }) {
   const [pending, startTransition] = useTransition();
   return (
     <div
-      className={`min-h-20 ${pending ? "opacity-50" : ""}`}
+      className={`${compact ? "min-h-11" : "min-h-20"} ${
+        pending ? "opacity-50" : ""
+      }`}
       onDragOver={(event) => {
         if (!disabled) event.preventDefault();
       }}
@@ -66,7 +75,16 @@ export function ScheduleDropCell({
           formData.set("periodIndex", String(periodIndex));
         }
         startTransition(async () => {
-          await previewMove(formData);
+          if (
+            repairTeacherId &&
+            dayIndex !== undefined &&
+            periodIndex !== undefined
+          ) {
+            formData.set("teacherId", repairTeacherId);
+            await simulateTargetedRepair(formData);
+          } else {
+            await previewMove(formData);
+          }
         });
       }}
     >

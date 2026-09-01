@@ -81,6 +81,7 @@ model School {
   terms                  AcademicTerm[]
   teachers               Teacher[]
   subjects               Subject[]
+  teacherSubjects        TeacherSubject[]
   gradeLevels            GradeLevel[]
   gradeCurricula         GradeCurriculum[]
   classCurricula         ClassCurriculum[]
@@ -229,6 +230,7 @@ model Teacher {
   requirements           TeachingRequirement[]
   classCurricula         ClassCurriculum[]
   assignments            ScheduleAssignment[]
+  teacherSubjects        TeacherSubject[]
 
   @@unique([schoolId, shortCode])
   @@unique([id, schoolId])
@@ -254,10 +256,25 @@ model Subject {
   requirements                TeachingRequirement[]
   gradeCurricula              GradeCurriculum[]
   classCurricula              ClassCurriculum[]
+  teacherSubjects             TeacherSubject[]
 
   @@unique([schoolId, shortCode])
   @@unique([id, schoolId])
   @@index([schoolId, isActive])
+}
+
+model TeacherSubject {
+  id        String   @id @default(uuid()) @db.Uuid
+  schoolId  String   @db.Uuid
+  teacherId String   @db.Uuid
+  subjectId String   @db.Uuid
+  createdAt DateTime @default(now())
+  school    School   @relation(fields: [schoolId], references: [id], onDelete: Restrict)
+  teacher   Teacher  @relation(fields: [teacherId, schoolId], references: [id, schoolId], onDelete: Cascade)
+  subject   Subject  @relation(fields: [subjectId, schoolId], references: [id, schoolId], onDelete: Cascade)
+
+  @@unique([schoolId, teacherId, subjectId])
+  @@index([schoolId, subjectId])
 }
 
 model Room {
@@ -591,6 +608,9 @@ model Schedule {
   generationJobId         String?                @db.Uuid
   generationAlternativeId String?                @unique @db.Uuid
   parentScheduleId        String?                @db.Uuid
+  draftFamilyId           String                 @default(uuid()) @db.Uuid
+  isSavedDraft            Boolean                @default(true)
+  savedAt                 DateTime?
   name                    String
   version                 Int
   status                  ScheduleStatus         @default(DRAFT)
@@ -612,6 +632,7 @@ model Schedule {
   @@unique([id, schoolId, termId])
   @@unique([generationAlternativeId, schoolId])
   @@index([schoolId, termId, status])
+  @@index([schoolId, termId, draftFamilyId, isSavedDraft])
   @@index([parentScheduleId])
 }
 

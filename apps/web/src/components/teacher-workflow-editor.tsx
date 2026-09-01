@@ -2,6 +2,7 @@
 
 import type { TeacherRestrictionState } from "@school-timetable/shared/teacher-restrictions";
 import { AlertTriangle, CheckCircle2, Save } from "lucide-react";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import { buttonClass, inputClass } from "@/components/setup-ui";
@@ -21,11 +22,11 @@ type CurriculumItem = {
 type TeacherValue = {
   id: string;
   name: string;
-  shortCode: string;
   employmentType: "FULL_TIME" | "PART_TIME";
   weeklyTeachingSessions: number;
   maxLessonsPerDay: number | null;
   maxConsecutiveLessons: number | null;
+  declaredSubjectIds: string[];
 };
 
 type Restriction = {
@@ -39,6 +40,11 @@ const cycleStates: TeacherRestrictionState[] = [
   "PREFERRED",
   "UNAVAILABLE",
 ];
+
+const classOrder = new Intl.Collator("en", {
+  numeric: true,
+  sensitivity: "base",
+});
 
 const statePresentation: Record<
   TeacherRestrictionState,
@@ -73,17 +79,23 @@ function nextState(current: TeacherRestrictionState): TeacherRestrictionState {
 export function TeacherWorkflowEditor({
   teacher,
   curriculum,
+  subjects,
   days,
   periods,
   restrictions,
   action,
+  cancelHref,
+  showCoverage = true,
 }: {
   teacher?: TeacherValue;
   curriculum: CurriculumItem[];
+  subjects: { id: string; name: string; code: string }[];
   days: { dayIndex: number; name: string }[];
   periods: { periodIndex: number; name: string; isTeaching: boolean }[];
   restrictions: Restriction[];
   action: (formData: FormData) => Promise<void>;
+  cancelHref?: string;
+  showCoverage?: boolean;
 }) {
   const [declaredSessions, setDeclaredSessions] = useState(
     teacher?.weeklyTeachingSessions ?? 1,
@@ -91,8 +103,11 @@ export function TeacherWorkflowEditor({
   const initiallyAssigned = curriculum.filter(
     (item) => item.teacherId === teacher?.id,
   );
+  const [declaredSubjectIds, setDeclaredSubjectIds] = useState(
+    () => new Set(teacher?.declaredSubjectIds ?? []),
+  );
   const [teachingSubjectId, setTeachingSubjectId] = useState(
-    initiallyAssigned[0]?.subjectId ?? "",
+    teacher?.declaredSubjectIds[0] ?? "",
   );
   const [selectedIds, setSelectedIds] = useState(
     () => new Set(initiallyAssigned.map((item) => item.id)),
@@ -118,14 +133,9 @@ export function TeacherWorkflowEditor({
   const remaining = Math.max(0, declaredSessions - allocatedSessions);
   const excess = Math.max(0, allocatedSessions - declaredSessions);
   const workloadExact = declaredSessions === allocatedSessions;
-  const subjects = Array.from(
-    new Map(
-      curriculum.map((item) => [
-        item.subjectId,
-        { id: item.subjectId, name: item.subjectName, code: item.subjectCode },
-      ]),
-    ).values(),
-  ).sort((left, right) => left.name.localeCompare(right.name));
+  const declaredSubjects = subjects.filter((subject) =>
+    declaredSubjectIds.has(subject.id),
+  );
   const subjectCoverage = subjects.map((subject) => {
     const items = curriculum.filter((item) => item.subjectId === subject.id);
     const requiredSessions = items.reduce(
@@ -163,7 +173,9 @@ export function TeacherWorkflowEditor({
 
       <div
         aria-label="Teacher coverage by subject"
-        className="border border-[#dce1dc] bg-white"
+        className={`border border-[#dce1dc] bg-white ${
+          showCoverage ? "" : "hidden"
+        }`}
         role="region"
       >
         <div className="border-b border-[#dce1dc] px-4 py-3">
@@ -369,17 +381,6 @@ export function TeacherWorkflowEditor({
             />
           </label>
           <label className="text-xs font-medium text-[#56615c]">
-            Code
-            <input
-              className={`${inputClass} mt-1.5`}
-              defaultValue={teacher?.shortCode}
-              maxLength={12}
-              name="shortCode"
-              pattern="[A-Za-z0-9_]+"
-              required
-            />
-          </label>
-          <label className="text-xs font-medium text-[#56615c]">
             Employment
             <select
               className={`${inputClass} mt-1.5`}
@@ -431,6 +432,72 @@ export function TeacherWorkflowEditor({
             />
           </label>
         </div>
+        <fieldset className="border border-[#dce1dc] bg-white p-4">
+          <legend className="px-1 text-sm font-semibold">
+            Teaching subjects
+          </legend>
+          <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+            {subjects.map((subject) => (
+              <label
+                className="flex min-h-11 items-center gap-3 border border-[#dce1dc] px-3 py-2 text-sm"
+                key={subject.id}
+              >
+                <input
+                  checked={declaredSubjectIds.has(subject.id)}
+                  name="subjectId"
+                  onChange={(event) => {
+                    const checked = event.target.checked;
+                    setDeclaredSubjectIds((current) => {
+                      const next = new Set(current);
+                      if (checked) next.add(subject.id);
+                      else next.delete(subject.id);
+                      return next;
+                    });
+                    if (checked && !teachingSubjectId) {
+                      setTeachingSubjectId(subject.id);
+                    } else if (!checked && teachingSubjectId === subject.id) {
+                      const replacement = subjects.find(
+                        (candidate) =>
+                          candidate.id !== subject.id &&
+                          declaredSubjectIds.has(candidate.id),
+                      );
+                      setTeachingSubjectId(replacement?.id ?? "");
+                    }
+                    if (!checked) {
+                      const removedIds = new Set(
+                        curriculum
+                          .filter((item) => item.subjectId === subject.id)
+                          .map((item) => item.id),
+                      );
+                      setSelectedIds(
+                        (current) =>
+                          new Set(
+                            [...current].filter((id) => !removedIds.has(id)),
+                          ),
+                      );
+                      setReassignedIds(
+                        (current) =>
+                          new Set(
+                            [...current].filter((id) => !removedIds.has(id)),
+                          ),
+                      );
+                    }
+                  }}
+                  type="checkbox"
+                  value={subject.id}
+                />
+                <span>
+                  {subject.name} ({subject.code})
+                </span>
+              </label>
+            ))}
+          </div>
+          {declaredSubjectIds.size === 0 ? (
+            <p className="mt-3 text-sm font-medium text-[#8b2119]">
+              Select at least one subject this teacher can teach.
+            </p>
+          ) : null}
+        </fieldset>
       </section>
 
       <section className="space-y-4" aria-labelledby="teaching-heading">
@@ -452,7 +519,7 @@ export function TeacherWorkflowEditor({
             value={teachingSubjectId}
           >
             <option value="">Select subject</option>
-            {subjects.map((subject) => (
+            {declaredSubjects.map((subject) => (
               <option key={subject.id} value={subject.id}>
                 {subject.name} ({subject.code})
               </option>
@@ -509,94 +576,104 @@ export function TeacherWorkflowEditor({
             Select a teaching subject to see its classes.
           </p>
         ) : (
-          <div className="space-y-5">
-            {[...grouped.entries()].map(([key, items]) => {
-              const first = items[0];
-              if (!first) return null;
-              return (
-                <fieldset key={key}>
-                  <legend className="mb-2 font-semibold">
-                    {first.className}
-                    <span className="ml-2 text-xs font-normal text-[#66706b]">
-                      {first.classCode}
-                    </span>
-                  </legend>
-                  <div className="grid border-l border-t border-[#dce1dc] bg-white md:grid-cols-2">
-                    {items.map((item) => {
-                      const initiallyOwnedByOther = Boolean(
-                        item.teacherId && item.teacherId !== teacher?.id,
-                      );
-                      const reassigned = reassignedIds.has(item.id);
-                      return (
-                        <div
-                          className={`flex min-h-16 items-center gap-3 border-r border-b border-[#dce1dc] px-4 py-3 ${
-                            initiallyOwnedByOther && !reassigned
-                              ? "bg-[#f3f4f3] text-[#7b837f]"
-                              : ""
-                          }`}
-                          key={item.id}
-                        >
-                          <input
-                            aria-label={`${item.className} ${item.subjectName}`}
-                            checked={selectedIds.has(item.id)}
-                            disabled={initiallyOwnedByOther && !reassigned}
-                            onChange={(event) =>
-                              setSelectedIds((current) => {
-                                const next = new Set(current);
-                                if (event.target.checked) next.add(item.id);
-                                else {
-                                  next.delete(item.id);
-                                  setReassignedIds((confirmed) => {
-                                    const remaining = new Set(confirmed);
-                                    remaining.delete(item.id);
-                                    return remaining;
-                                  });
-                                }
-                                return next;
-                              })
-                            }
-                            type="checkbox"
-                            value={item.id}
-                          />
-                          <span className="min-w-0 flex-1">
-                            <span className="block font-medium">
-                              {item.subjectName}
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {[...grouped.entries()]
+              .sort(([, leftItems], [, rightItems]) =>
+                classOrder.compare(
+                  leftItems[0]?.classCode ?? "",
+                  rightItems[0]?.classCode ?? "",
+                ),
+              )
+              .map(([key, items]) => {
+                const first = items[0];
+                if (!first) return null;
+                return (
+                  <fieldset
+                    className="min-w-0 border border-[#dce1dc] bg-white"
+                    key={key}
+                  >
+                    <legend className="ml-3 px-1 text-sm font-semibold">
+                      {first.className}
+                      <span className="ml-2 text-xs font-normal text-[#66706b]">
+                        {first.classCode}
+                      </span>
+                    </legend>
+                    <div>
+                      {items.map((item) => {
+                        const initiallyOwnedByOther = Boolean(
+                          item.teacherId && item.teacherId !== teacher?.id,
+                        );
+                        const reassigned = reassignedIds.has(item.id);
+                        return (
+                          <div
+                            className={`flex min-h-14 items-center gap-3 px-3 py-2 ${
+                              initiallyOwnedByOther && !reassigned
+                                ? "bg-[#f3f4f3] text-[#7b837f]"
+                                : ""
+                            }`}
+                            key={item.id}
+                          >
+                            <input
+                              aria-label={`${item.className} ${item.subjectName}`}
+                              checked={selectedIds.has(item.id)}
+                              disabled={initiallyOwnedByOther && !reassigned}
+                              onChange={(event) =>
+                                setSelectedIds((current) => {
+                                  const next = new Set(current);
+                                  if (event.target.checked) next.add(item.id);
+                                  else {
+                                    next.delete(item.id);
+                                    setReassignedIds((confirmed) => {
+                                      const remaining = new Set(confirmed);
+                                      remaining.delete(item.id);
+                                      return remaining;
+                                    });
+                                  }
+                                  return next;
+                                })
+                              }
+                              type="checkbox"
+                              value={item.id}
+                            />
+                            <span className="min-w-0 flex-1">
+                              <span className="block font-medium">
+                                {item.subjectName}
+                              </span>
+                              <span className="block text-xs text-[#66706b]">
+                                {item.subjectCode} · {item.weeklySessions}{" "}
+                                sessions
+                              </span>
                             </span>
-                            <span className="block text-xs text-[#66706b]">
-                              {item.subjectCode} · {item.weeklySessions}{" "}
-                              sessions
-                            </span>
-                          </span>
-                          {initiallyOwnedByOther && !reassigned ? (
-                            <button
-                              className="border border-[#9ba59f] bg-white px-2 py-1.5 text-xs font-semibold text-[#36413c]"
-                              onClick={() => {
-                                if (
-                                  !window.confirm(
-                                    `Reassign ${item.className} ${item.subjectName} from ${item.teacherName ?? "the current teacher"}?`,
-                                  )
-                                ) {
-                                  return;
-                                }
-                                setReassignedIds((current) =>
-                                  new Set(current).add(item.id),
-                                );
-                                setSelectedIds((current) =>
-                                  new Set(current).add(item.id),
-                                );
-                              }}
-                              type="button"
-                            >
-                              Reassign from {item.teacherName}
-                            </button>
-                          ) : null}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </fieldset>
-              );
-            })}
+                            {initiallyOwnedByOther && !reassigned ? (
+                              <button
+                                className="border border-[#9ba59f] bg-white px-2 py-1.5 text-xs font-semibold text-[#36413c]"
+                                onClick={() => {
+                                  if (
+                                    !window.confirm(
+                                      `Reassign ${item.className} ${item.subjectName} from ${item.teacherName ?? "the current teacher"}?`,
+                                    )
+                                  ) {
+                                    return;
+                                  }
+                                  setReassignedIds((current) =>
+                                    new Set(current).add(item.id),
+                                  );
+                                  setSelectedIds((current) =>
+                                    new Set(current).add(item.id),
+                                  );
+                                }}
+                                type="button"
+                              >
+                                Reassign from {item.teacherName}
+                              </button>
+                            ) : null}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </fieldset>
+                );
+              })}
           </div>
         )}
       </section>
@@ -695,16 +772,29 @@ export function TeacherWorkflowEditor({
         )}
       </section>
 
-      <button
-        className={buttonClass}
-        disabled={
-          !workloadExact || curriculum.length === 0 || !teachingSubjectId
-        }
-        type="submit"
-      >
-        <Save aria-hidden="true" className="mr-2" size={16} />
-        {teacher ? "Save teacher" : "Add teacher"}
-      </button>
+      <div className="sticky bottom-0 z-10 flex justify-end gap-3 border-t border-[#dce1dc] bg-white px-4 py-3 shadow-[0_-4px_12px_rgba(31,45,38,0.08)]">
+        {cancelHref ? (
+          <Link
+            className="inline-flex h-10 items-center justify-center border border-[#9ba59f] bg-white px-4 text-sm font-semibold hover:bg-[#f0f2ef]"
+            href={cancelHref}
+          >
+            Cancel
+          </Link>
+        ) : null}
+        <button
+          className={buttonClass}
+          disabled={
+            !workloadExact ||
+            curriculum.length === 0 ||
+            declaredSubjectIds.size === 0 ||
+            !teachingSubjectId
+          }
+          type="submit"
+        >
+          <Save aria-hidden="true" className="mr-2" size={16} />
+          {teacher ? "Save teacher" : "Add teacher"}
+        </button>
+      </div>
     </form>
   );
 }

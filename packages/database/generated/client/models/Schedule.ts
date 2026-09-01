@@ -41,6 +41,9 @@ export type ScheduleMinAggregateOutputType = {
   generationJobId: string | null
   generationAlternativeId: string | null
   parentScheduleId: string | null
+  draftFamilyId: string | null
+  isSavedDraft: boolean | null
+  savedAt: Date | null
   name: string | null
   version: number | null
   status: $Enums.ScheduleStatus | null
@@ -57,6 +60,9 @@ export type ScheduleMaxAggregateOutputType = {
   generationJobId: string | null
   generationAlternativeId: string | null
   parentScheduleId: string | null
+  draftFamilyId: string | null
+  isSavedDraft: boolean | null
+  savedAt: Date | null
   name: string | null
   version: number | null
   status: $Enums.ScheduleStatus | null
@@ -73,6 +79,9 @@ export type ScheduleCountAggregateOutputType = {
   generationJobId: number
   generationAlternativeId: number
   parentScheduleId: number
+  draftFamilyId: number
+  isSavedDraft: number
+  savedAt: number
   name: number
   version: number
   status: number
@@ -100,6 +109,9 @@ export type ScheduleMinAggregateInputType = {
   generationJobId?: true
   generationAlternativeId?: true
   parentScheduleId?: true
+  draftFamilyId?: true
+  isSavedDraft?: true
+  savedAt?: true
   name?: true
   version?: true
   status?: true
@@ -116,6 +128,9 @@ export type ScheduleMaxAggregateInputType = {
   generationJobId?: true
   generationAlternativeId?: true
   parentScheduleId?: true
+  draftFamilyId?: true
+  isSavedDraft?: true
+  savedAt?: true
   name?: true
   version?: true
   status?: true
@@ -132,6 +147,9 @@ export type ScheduleCountAggregateInputType = {
   generationJobId?: true
   generationAlternativeId?: true
   parentScheduleId?: true
+  draftFamilyId?: true
+  isSavedDraft?: true
+  savedAt?: true
   name?: true
   version?: true
   status?: true
@@ -236,6 +254,9 @@ export type ScheduleGroupByOutputType = {
   generationJobId: string | null
   generationAlternativeId: string | null
   parentScheduleId: string | null
+  draftFamilyId: string
+  isSavedDraft: boolean
+  savedAt: Date | null
   name: string
   version: number
   status: $Enums.ScheduleStatus
@@ -276,6 +297,9 @@ export type ScheduleWhereInput = {
   generationJobId?: Prisma.UuidNullableFilter<"Schedule"> | string | null
   generationAlternativeId?: Prisma.UuidNullableFilter<"Schedule"> | string | null
   parentScheduleId?: Prisma.UuidNullableFilter<"Schedule"> | string | null
+  draftFamilyId?: Prisma.UuidFilter<"Schedule"> | string
+  isSavedDraft?: Prisma.BoolFilter<"Schedule"> | boolean
+  savedAt?: Prisma.DateTimeNullableFilter<"Schedule"> | Date | string | null
   name?: Prisma.StringFilter<"Schedule"> | string
   version?: Prisma.IntFilter<"Schedule"> | number
   status?: Prisma.EnumScheduleStatusFilter<"Schedule"> | $Enums.ScheduleStatus
@@ -301,6 +325,9 @@ export type ScheduleOrderByWithRelationInput = {
   generationJobId?: Prisma.SortOrderInput | Prisma.SortOrder
   generationAlternativeId?: Prisma.SortOrderInput | Prisma.SortOrder
   parentScheduleId?: Prisma.SortOrderInput | Prisma.SortOrder
+  draftFamilyId?: Prisma.SortOrder
+  isSavedDraft?: Prisma.SortOrder
+  savedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   name?: Prisma.SortOrder
   version?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -332,6 +359,9 @@ export type ScheduleWhereUniqueInput = Prisma.AtLeast<{
   termId?: Prisma.UuidFilter<"Schedule"> | string
   generationJobId?: Prisma.UuidNullableFilter<"Schedule"> | string | null
   parentScheduleId?: Prisma.UuidNullableFilter<"Schedule"> | string | null
+  draftFamilyId?: Prisma.UuidFilter<"Schedule"> | string
+  isSavedDraft?: Prisma.BoolFilter<"Schedule"> | boolean
+  savedAt?: Prisma.DateTimeNullableFilter<"Schedule"> | Date | string | null
   name?: Prisma.StringFilter<"Schedule"> | string
   version?: Prisma.IntFilter<"Schedule"> | number
   status?: Prisma.EnumScheduleStatusFilter<"Schedule"> | $Enums.ScheduleStatus
@@ -357,6 +387,9 @@ export type ScheduleOrderByWithAggregationInput = {
   generationJobId?: Prisma.SortOrderInput | Prisma.SortOrder
   generationAlternativeId?: Prisma.SortOrderInput | Prisma.SortOrder
   parentScheduleId?: Prisma.SortOrderInput | Prisma.SortOrder
+  draftFamilyId?: Prisma.SortOrder
+  isSavedDraft?: Prisma.SortOrder
+  savedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   name?: Prisma.SortOrder
   version?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -382,6 +415,9 @@ export type ScheduleScalarWhereWithAggregatesInput = {
   generationJobId?: Prisma.UuidNullableWithAggregatesFilter<"Schedule"> | string | null
   generationAlternativeId?: Prisma.UuidNullableWithAggregatesFilter<"Schedule"> | string | null
   parentScheduleId?: Prisma.UuidNullableWithAggregatesFilter<"Schedule"> | string | null
+  draftFamilyId?: Prisma.UuidWithAggregatesFilter<"Schedule"> | string
+  isSavedDraft?: Prisma.BoolWithAggregatesFilter<"Schedule"> | boolean
+  savedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Schedule"> | Date | string | null
   name?: Prisma.StringWithAggregatesFilter<"Schedule"> | string
   version?: Prisma.IntWithAggregatesFilter<"Schedule"> | number
   status?: Prisma.EnumScheduleStatusWithAggregatesFilter<"Schedule"> | $Enums.ScheduleStatus
@@ -394,6 +430,9 @@ export type ScheduleScalarWhereWithAggregatesInput = {
 
 export type ScheduleCreateInput = {
   id?: string
+  draftFamilyId?: string
+  isSavedDraft?: boolean
+  savedAt?: Date | string | null
   name: string
   version: number
   status?: $Enums.ScheduleStatus
@@ -419,6 +458,9 @@ export type ScheduleUncheckedCreateInput = {
   generationJobId?: string | null
   generationAlternativeId?: string | null
   parentScheduleId?: string | null
+  draftFamilyId?: string
+  isSavedDraft?: boolean
+  savedAt?: Date | string | null
   name: string
   version: number
   status?: $Enums.ScheduleStatus
@@ -434,6 +476,9 @@ export type ScheduleUncheckedCreateInput = {
 
 export type ScheduleUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  draftFamilyId?: Prisma.StringFieldUpdateOperationsInput | string
+  isSavedDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  savedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumScheduleStatusFieldUpdateOperationsInput | $Enums.ScheduleStatus
@@ -459,6 +504,9 @@ export type ScheduleUncheckedUpdateInput = {
   generationJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   generationAlternativeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentScheduleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  draftFamilyId?: Prisma.StringFieldUpdateOperationsInput | string
+  isSavedDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  savedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumScheduleStatusFieldUpdateOperationsInput | $Enums.ScheduleStatus
@@ -479,6 +527,9 @@ export type ScheduleCreateManyInput = {
   generationJobId?: string | null
   generationAlternativeId?: string | null
   parentScheduleId?: string | null
+  draftFamilyId?: string
+  isSavedDraft?: boolean
+  savedAt?: Date | string | null
   name: string
   version: number
   status?: $Enums.ScheduleStatus
@@ -491,6 +542,9 @@ export type ScheduleCreateManyInput = {
 
 export type ScheduleUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  draftFamilyId?: Prisma.StringFieldUpdateOperationsInput | string
+  isSavedDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  savedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumScheduleStatusFieldUpdateOperationsInput | $Enums.ScheduleStatus
@@ -508,6 +562,9 @@ export type ScheduleUncheckedUpdateManyInput = {
   generationJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   generationAlternativeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentScheduleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  draftFamilyId?: Prisma.StringFieldUpdateOperationsInput | string
+  isSavedDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  savedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumScheduleStatusFieldUpdateOperationsInput | $Enums.ScheduleStatus
@@ -557,6 +614,9 @@ export type ScheduleCountOrderByAggregateInput = {
   generationJobId?: Prisma.SortOrder
   generationAlternativeId?: Prisma.SortOrder
   parentScheduleId?: Prisma.SortOrder
+  draftFamilyId?: Prisma.SortOrder
+  isSavedDraft?: Prisma.SortOrder
+  savedAt?: Prisma.SortOrder
   name?: Prisma.SortOrder
   version?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -578,6 +638,9 @@ export type ScheduleMaxOrderByAggregateInput = {
   generationJobId?: Prisma.SortOrder
   generationAlternativeId?: Prisma.SortOrder
   parentScheduleId?: Prisma.SortOrder
+  draftFamilyId?: Prisma.SortOrder
+  isSavedDraft?: Prisma.SortOrder
+  savedAt?: Prisma.SortOrder
   name?: Prisma.SortOrder
   version?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -594,6 +657,9 @@ export type ScheduleMinOrderByAggregateInput = {
   generationJobId?: Prisma.SortOrder
   generationAlternativeId?: Prisma.SortOrder
   parentScheduleId?: Prisma.SortOrder
+  draftFamilyId?: Prisma.SortOrder
+  isSavedDraft?: Prisma.SortOrder
+  savedAt?: Prisma.SortOrder
   name?: Prisma.SortOrder
   version?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -864,6 +930,9 @@ export type ScheduleUpdateOneWithoutAuditLogsNestedInput = {
 
 export type ScheduleCreateWithoutSchoolInput = {
   id?: string
+  draftFamilyId?: string
+  isSavedDraft?: boolean
+  savedAt?: Date | string | null
   name: string
   version: number
   status?: $Enums.ScheduleStatus
@@ -887,6 +956,9 @@ export type ScheduleUncheckedCreateWithoutSchoolInput = {
   generationJobId?: string | null
   generationAlternativeId?: string | null
   parentScheduleId?: string | null
+  draftFamilyId?: string
+  isSavedDraft?: boolean
+  savedAt?: Date | string | null
   name: string
   version: number
   status?: $Enums.ScheduleStatus
@@ -936,6 +1008,9 @@ export type ScheduleScalarWhereInput = {
   generationJobId?: Prisma.UuidNullableFilter<"Schedule"> | string | null
   generationAlternativeId?: Prisma.UuidNullableFilter<"Schedule"> | string | null
   parentScheduleId?: Prisma.UuidNullableFilter<"Schedule"> | string | null
+  draftFamilyId?: Prisma.UuidFilter<"Schedule"> | string
+  isSavedDraft?: Prisma.BoolFilter<"Schedule"> | boolean
+  savedAt?: Prisma.DateTimeNullableFilter<"Schedule"> | Date | string | null
   name?: Prisma.StringFilter<"Schedule"> | string
   version?: Prisma.IntFilter<"Schedule"> | number
   status?: Prisma.EnumScheduleStatusFilter<"Schedule"> | $Enums.ScheduleStatus
@@ -948,6 +1023,9 @@ export type ScheduleScalarWhereInput = {
 
 export type ScheduleCreateWithoutTermInput = {
   id?: string
+  draftFamilyId?: string
+  isSavedDraft?: boolean
+  savedAt?: Date | string | null
   name: string
   version: number
   status?: $Enums.ScheduleStatus
@@ -970,6 +1048,9 @@ export type ScheduleUncheckedCreateWithoutTermInput = {
   generationJobId?: string | null
   generationAlternativeId?: string | null
   parentScheduleId?: string | null
+  draftFamilyId?: string
+  isSavedDraft?: boolean
+  savedAt?: Date | string | null
   name: string
   version: number
   status?: $Enums.ScheduleStatus
@@ -1011,6 +1092,9 @@ export type ScheduleUpdateManyWithWhereWithoutTermInput = {
 
 export type ScheduleCreateWithoutGenerationJobInput = {
   id?: string
+  draftFamilyId?: string
+  isSavedDraft?: boolean
+  savedAt?: Date | string | null
   name: string
   version: number
   status?: $Enums.ScheduleStatus
@@ -1034,6 +1118,9 @@ export type ScheduleUncheckedCreateWithoutGenerationJobInput = {
   termId: string
   generationAlternativeId?: string | null
   parentScheduleId?: string | null
+  draftFamilyId?: string
+  isSavedDraft?: boolean
+  savedAt?: Date | string | null
   name: string
   version: number
   status?: $Enums.ScheduleStatus
@@ -1075,6 +1162,9 @@ export type ScheduleUpdateManyWithWhereWithoutGenerationJobInput = {
 
 export type ScheduleCreateWithoutGenerationAlternativeInput = {
   id?: string
+  draftFamilyId?: string
+  isSavedDraft?: boolean
+  savedAt?: Date | string | null
   name: string
   version: number
   status?: $Enums.ScheduleStatus
@@ -1097,6 +1187,9 @@ export type ScheduleUncheckedCreateWithoutGenerationAlternativeInput = {
   termId: string
   generationJobId?: string | null
   parentScheduleId?: string | null
+  draftFamilyId?: string
+  isSavedDraft?: boolean
+  savedAt?: Date | string | null
   name: string
   version: number
   status?: $Enums.ScheduleStatus
@@ -1128,6 +1221,9 @@ export type ScheduleUpdateToOneWithWhereWithoutGenerationAlternativeInput = {
 
 export type ScheduleUpdateWithoutGenerationAlternativeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  draftFamilyId?: Prisma.StringFieldUpdateOperationsInput | string
+  isSavedDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  savedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumScheduleStatusFieldUpdateOperationsInput | $Enums.ScheduleStatus
@@ -1150,6 +1246,9 @@ export type ScheduleUncheckedUpdateWithoutGenerationAlternativeInput = {
   termId?: Prisma.StringFieldUpdateOperationsInput | string
   generationJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentScheduleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  draftFamilyId?: Prisma.StringFieldUpdateOperationsInput | string
+  isSavedDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  savedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumScheduleStatusFieldUpdateOperationsInput | $Enums.ScheduleStatus
@@ -1165,6 +1264,9 @@ export type ScheduleUncheckedUpdateWithoutGenerationAlternativeInput = {
 
 export type ScheduleCreateWithoutDerivedSchedulesInput = {
   id?: string
+  draftFamilyId?: string
+  isSavedDraft?: boolean
+  savedAt?: Date | string | null
   name: string
   version: number
   status?: $Enums.ScheduleStatus
@@ -1189,6 +1291,9 @@ export type ScheduleUncheckedCreateWithoutDerivedSchedulesInput = {
   generationJobId?: string | null
   generationAlternativeId?: string | null
   parentScheduleId?: string | null
+  draftFamilyId?: string
+  isSavedDraft?: boolean
+  savedAt?: Date | string | null
   name: string
   version: number
   status?: $Enums.ScheduleStatus
@@ -1208,6 +1313,9 @@ export type ScheduleCreateOrConnectWithoutDerivedSchedulesInput = {
 
 export type ScheduleCreateWithoutParentScheduleInput = {
   id?: string
+  draftFamilyId?: string
+  isSavedDraft?: boolean
+  savedAt?: Date | string | null
   name: string
   version: number
   status?: $Enums.ScheduleStatus
@@ -1231,6 +1339,9 @@ export type ScheduleUncheckedCreateWithoutParentScheduleInput = {
   termId: string
   generationJobId?: string | null
   generationAlternativeId?: string | null
+  draftFamilyId?: string
+  isSavedDraft?: boolean
+  savedAt?: Date | string | null
   name: string
   version: number
   status?: $Enums.ScheduleStatus
@@ -1267,6 +1378,9 @@ export type ScheduleUpdateToOneWithWhereWithoutDerivedSchedulesInput = {
 
 export type ScheduleUpdateWithoutDerivedSchedulesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  draftFamilyId?: Prisma.StringFieldUpdateOperationsInput | string
+  isSavedDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  savedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumScheduleStatusFieldUpdateOperationsInput | $Enums.ScheduleStatus
@@ -1291,6 +1405,9 @@ export type ScheduleUncheckedUpdateWithoutDerivedSchedulesInput = {
   generationJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   generationAlternativeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentScheduleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  draftFamilyId?: Prisma.StringFieldUpdateOperationsInput | string
+  isSavedDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  savedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumScheduleStatusFieldUpdateOperationsInput | $Enums.ScheduleStatus
@@ -1321,6 +1438,9 @@ export type ScheduleUpdateManyWithWhereWithoutParentScheduleInput = {
 
 export type ScheduleCreateWithoutAssignmentsInput = {
   id?: string
+  draftFamilyId?: string
+  isSavedDraft?: boolean
+  savedAt?: Date | string | null
   name: string
   version: number
   status?: $Enums.ScheduleStatus
@@ -1345,6 +1465,9 @@ export type ScheduleUncheckedCreateWithoutAssignmentsInput = {
   generationJobId?: string | null
   generationAlternativeId?: string | null
   parentScheduleId?: string | null
+  draftFamilyId?: string
+  isSavedDraft?: boolean
+  savedAt?: Date | string | null
   name: string
   version: number
   status?: $Enums.ScheduleStatus
@@ -1375,6 +1498,9 @@ export type ScheduleUpdateToOneWithWhereWithoutAssignmentsInput = {
 
 export type ScheduleUpdateWithoutAssignmentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  draftFamilyId?: Prisma.StringFieldUpdateOperationsInput | string
+  isSavedDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  savedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumScheduleStatusFieldUpdateOperationsInput | $Enums.ScheduleStatus
@@ -1399,6 +1525,9 @@ export type ScheduleUncheckedUpdateWithoutAssignmentsInput = {
   generationJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   generationAlternativeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentScheduleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  draftFamilyId?: Prisma.StringFieldUpdateOperationsInput | string
+  isSavedDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  savedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumScheduleStatusFieldUpdateOperationsInput | $Enums.ScheduleStatus
@@ -1413,6 +1542,9 @@ export type ScheduleUncheckedUpdateWithoutAssignmentsInput = {
 
 export type ScheduleCreateWithoutAuditLogsInput = {
   id?: string
+  draftFamilyId?: string
+  isSavedDraft?: boolean
+  savedAt?: Date | string | null
   name: string
   version: number
   status?: $Enums.ScheduleStatus
@@ -1437,6 +1569,9 @@ export type ScheduleUncheckedCreateWithoutAuditLogsInput = {
   generationJobId?: string | null
   generationAlternativeId?: string | null
   parentScheduleId?: string | null
+  draftFamilyId?: string
+  isSavedDraft?: boolean
+  savedAt?: Date | string | null
   name: string
   version: number
   status?: $Enums.ScheduleStatus
@@ -1467,6 +1602,9 @@ export type ScheduleUpdateToOneWithWhereWithoutAuditLogsInput = {
 
 export type ScheduleUpdateWithoutAuditLogsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  draftFamilyId?: Prisma.StringFieldUpdateOperationsInput | string
+  isSavedDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  savedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumScheduleStatusFieldUpdateOperationsInput | $Enums.ScheduleStatus
@@ -1491,6 +1629,9 @@ export type ScheduleUncheckedUpdateWithoutAuditLogsInput = {
   generationJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   generationAlternativeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentScheduleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  draftFamilyId?: Prisma.StringFieldUpdateOperationsInput | string
+  isSavedDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  savedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumScheduleStatusFieldUpdateOperationsInput | $Enums.ScheduleStatus
@@ -1509,6 +1650,9 @@ export type ScheduleCreateManySchoolInput = {
   generationJobId?: string | null
   generationAlternativeId?: string | null
   parentScheduleId?: string | null
+  draftFamilyId?: string
+  isSavedDraft?: boolean
+  savedAt?: Date | string | null
   name: string
   version: number
   status?: $Enums.ScheduleStatus
@@ -1521,6 +1665,9 @@ export type ScheduleCreateManySchoolInput = {
 
 export type ScheduleUpdateWithoutSchoolInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  draftFamilyId?: Prisma.StringFieldUpdateOperationsInput | string
+  isSavedDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  savedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumScheduleStatusFieldUpdateOperationsInput | $Enums.ScheduleStatus
@@ -1544,6 +1691,9 @@ export type ScheduleUncheckedUpdateWithoutSchoolInput = {
   generationJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   generationAlternativeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentScheduleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  draftFamilyId?: Prisma.StringFieldUpdateOperationsInput | string
+  isSavedDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  savedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumScheduleStatusFieldUpdateOperationsInput | $Enums.ScheduleStatus
@@ -1563,6 +1713,9 @@ export type ScheduleUncheckedUpdateManyWithoutSchoolInput = {
   generationJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   generationAlternativeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentScheduleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  draftFamilyId?: Prisma.StringFieldUpdateOperationsInput | string
+  isSavedDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  savedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumScheduleStatusFieldUpdateOperationsInput | $Enums.ScheduleStatus
@@ -1578,6 +1731,9 @@ export type ScheduleCreateManyTermInput = {
   generationJobId?: string | null
   generationAlternativeId?: string | null
   parentScheduleId?: string | null
+  draftFamilyId?: string
+  isSavedDraft?: boolean
+  savedAt?: Date | string | null
   name: string
   version: number
   status?: $Enums.ScheduleStatus
@@ -1590,6 +1746,9 @@ export type ScheduleCreateManyTermInput = {
 
 export type ScheduleUpdateWithoutTermInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  draftFamilyId?: Prisma.StringFieldUpdateOperationsInput | string
+  isSavedDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  savedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumScheduleStatusFieldUpdateOperationsInput | $Enums.ScheduleStatus
@@ -1612,6 +1771,9 @@ export type ScheduleUncheckedUpdateWithoutTermInput = {
   generationJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   generationAlternativeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentScheduleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  draftFamilyId?: Prisma.StringFieldUpdateOperationsInput | string
+  isSavedDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  savedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumScheduleStatusFieldUpdateOperationsInput | $Enums.ScheduleStatus
@@ -1630,6 +1792,9 @@ export type ScheduleUncheckedUpdateManyWithoutTermInput = {
   generationJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   generationAlternativeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentScheduleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  draftFamilyId?: Prisma.StringFieldUpdateOperationsInput | string
+  isSavedDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  savedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumScheduleStatusFieldUpdateOperationsInput | $Enums.ScheduleStatus
@@ -1646,6 +1811,9 @@ export type ScheduleCreateManyGenerationJobInput = {
   termId: string
   generationAlternativeId?: string | null
   parentScheduleId?: string | null
+  draftFamilyId?: string
+  isSavedDraft?: boolean
+  savedAt?: Date | string | null
   name: string
   version: number
   status?: $Enums.ScheduleStatus
@@ -1658,6 +1826,9 @@ export type ScheduleCreateManyGenerationJobInput = {
 
 export type ScheduleUpdateWithoutGenerationJobInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  draftFamilyId?: Prisma.StringFieldUpdateOperationsInput | string
+  isSavedDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  savedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumScheduleStatusFieldUpdateOperationsInput | $Enums.ScheduleStatus
@@ -1681,6 +1852,9 @@ export type ScheduleUncheckedUpdateWithoutGenerationJobInput = {
   termId?: Prisma.StringFieldUpdateOperationsInput | string
   generationAlternativeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentScheduleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  draftFamilyId?: Prisma.StringFieldUpdateOperationsInput | string
+  isSavedDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  savedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumScheduleStatusFieldUpdateOperationsInput | $Enums.ScheduleStatus
@@ -1700,6 +1874,9 @@ export type ScheduleUncheckedUpdateManyWithoutGenerationJobInput = {
   termId?: Prisma.StringFieldUpdateOperationsInput | string
   generationAlternativeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   parentScheduleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  draftFamilyId?: Prisma.StringFieldUpdateOperationsInput | string
+  isSavedDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  savedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumScheduleStatusFieldUpdateOperationsInput | $Enums.ScheduleStatus
@@ -1716,6 +1893,9 @@ export type ScheduleCreateManyParentScheduleInput = {
   termId: string
   generationJobId?: string | null
   generationAlternativeId?: string | null
+  draftFamilyId?: string
+  isSavedDraft?: boolean
+  savedAt?: Date | string | null
   name: string
   version: number
   status?: $Enums.ScheduleStatus
@@ -1728,6 +1908,9 @@ export type ScheduleCreateManyParentScheduleInput = {
 
 export type ScheduleUpdateWithoutParentScheduleInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  draftFamilyId?: Prisma.StringFieldUpdateOperationsInput | string
+  isSavedDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  savedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumScheduleStatusFieldUpdateOperationsInput | $Enums.ScheduleStatus
@@ -1751,6 +1934,9 @@ export type ScheduleUncheckedUpdateWithoutParentScheduleInput = {
   termId?: Prisma.StringFieldUpdateOperationsInput | string
   generationJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   generationAlternativeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  draftFamilyId?: Prisma.StringFieldUpdateOperationsInput | string
+  isSavedDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  savedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumScheduleStatusFieldUpdateOperationsInput | $Enums.ScheduleStatus
@@ -1770,6 +1956,9 @@ export type ScheduleUncheckedUpdateManyWithoutParentScheduleInput = {
   termId?: Prisma.StringFieldUpdateOperationsInput | string
   generationJobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   generationAlternativeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  draftFamilyId?: Prisma.StringFieldUpdateOperationsInput | string
+  isSavedDraft?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  savedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumScheduleStatusFieldUpdateOperationsInput | $Enums.ScheduleStatus
@@ -1836,6 +2025,9 @@ export type ScheduleSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   generationJobId?: boolean
   generationAlternativeId?: boolean
   parentScheduleId?: boolean
+  draftFamilyId?: boolean
+  isSavedDraft?: boolean
+  savedAt?: boolean
   name?: boolean
   version?: boolean
   status?: boolean
@@ -1862,6 +2054,9 @@ export type ScheduleSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   generationJobId?: boolean
   generationAlternativeId?: boolean
   parentScheduleId?: boolean
+  draftFamilyId?: boolean
+  isSavedDraft?: boolean
+  savedAt?: boolean
   name?: boolean
   version?: boolean
   status?: boolean
@@ -1884,6 +2079,9 @@ export type ScheduleSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   generationJobId?: boolean
   generationAlternativeId?: boolean
   parentScheduleId?: boolean
+  draftFamilyId?: boolean
+  isSavedDraft?: boolean
+  savedAt?: boolean
   name?: boolean
   version?: boolean
   status?: boolean
@@ -1906,6 +2104,9 @@ export type ScheduleSelectScalar = {
   generationJobId?: boolean
   generationAlternativeId?: boolean
   parentScheduleId?: boolean
+  draftFamilyId?: boolean
+  isSavedDraft?: boolean
+  savedAt?: boolean
   name?: boolean
   version?: boolean
   status?: boolean
@@ -1916,7 +2117,7 @@ export type ScheduleSelectScalar = {
   updatedAt?: boolean
 }
 
-export type ScheduleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "termId" | "generationJobId" | "generationAlternativeId" | "parentScheduleId" | "name" | "version" | "status" | "inputSnapshot" | "inputFingerprint" | "publishedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["schedule"]>
+export type ScheduleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "termId" | "generationJobId" | "generationAlternativeId" | "parentScheduleId" | "draftFamilyId" | "isSavedDraft" | "savedAt" | "name" | "version" | "status" | "inputSnapshot" | "inputFingerprint" | "publishedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["schedule"]>
 export type ScheduleInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
   term?: boolean | Prisma.AcademicTermDefaultArgs<ExtArgs>
@@ -1962,6 +2163,9 @@ export type $SchedulePayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     generationJobId: string | null
     generationAlternativeId: string | null
     parentScheduleId: string | null
+    draftFamilyId: string
+    isSavedDraft: boolean
+    savedAt: Date | null
     name: string
     version: number
     status: $Enums.ScheduleStatus
@@ -2407,6 +2611,9 @@ export interface ScheduleFieldRefs {
   readonly generationJobId: Prisma.FieldRef<"Schedule", 'String'>
   readonly generationAlternativeId: Prisma.FieldRef<"Schedule", 'String'>
   readonly parentScheduleId: Prisma.FieldRef<"Schedule", 'String'>
+  readonly draftFamilyId: Prisma.FieldRef<"Schedule", 'String'>
+  readonly isSavedDraft: Prisma.FieldRef<"Schedule", 'Boolean'>
+  readonly savedAt: Prisma.FieldRef<"Schedule", 'DateTime'>
   readonly name: Prisma.FieldRef<"Schedule", 'String'>
   readonly version: Prisma.FieldRef<"Schedule", 'Int'>
   readonly status: Prisma.FieldRef<"Schedule", 'ScheduleStatus'>

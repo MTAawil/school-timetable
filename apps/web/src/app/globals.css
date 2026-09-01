@@ -37,8 +37,14 @@ body {
 }
 
 @media print {
+  @page {
+    size: landscape;
+    margin: 10mm;
+  }
+
   body {
     background: white;
+    color: #111;
   }
 
   nav,
@@ -50,5 +56,29 @@ body {
 
   table {
     break-inside: avoid;
+  }
+
+  .schedule-table-wrap {
+    overflow: visible !important;
+    border-color: #777 !important;
+  }
+
+  .schedule-table {
+    width: 100% !important;
+    min-width: 0 !important;
+    font-size: 9pt !important;
+  }
+
+  .schedule-table th,
+  .schedule-table td {
+    height: auto !important;
+    min-height: 0 !important;
+    border-color: #999 !important;
+    padding: 4px !important;
+  }
+
+  .schedule-resource-summary {
+    border-color: #777 !important;
+    padding: 8px 0 !important;
   }
 }

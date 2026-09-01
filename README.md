@@ -4,6 +4,30 @@ A single-school weekly timetable application. The repository separates the
 Next.js administration application from the database-independent Python
 optimization service.
 
+The Al Masar curriculum-only setup can be loaded into an isolated migrated
+database with `pnpm prisma:seed:al-masar`. It creates the school week, 13 grade
+classes, subjects, and 35-session curricula without creating teachers.
+
+Three alternative Al Masar staffing fixtures can then be loaded:
+
+```bash
+pnpm prisma:seed:al-masar:teachers:1
+pnpm prisma:seed:al-masar:teachers:2
+pnpm prisma:seed:al-masar:teachers:3
+```
+
+- Scenario 1 is balanced: 24 teachers, with 10 full-time and 14 part-time.
+- Scenario 2 is full-time-heavy: 22 teachers, with 17 full-time and 5
+  part-time.
+- Scenario 3 is specialist-heavy: 32 teachers, with 7 full-time and 25
+  part-time.
+
+Each scenario replaces only teacher setup data when no schedule history exists.
+It preserves curriculum, assigns all 455 class sessions exactly, declares each
+teacher's actual subjects, and adds realistic hard and soft availability.
+Validate the loaded fixture against readiness and the live solver with
+`pnpm --filter @school-timetable/web validate:al-masar-scenario`.
+
 For a non-technical explanation of what the software does and how a school uses
 it, read [`USER_GUIDE.md`](USER_GUIDE.md).
 

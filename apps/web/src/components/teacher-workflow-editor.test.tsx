@@ -8,6 +8,7 @@ describe("TeacherWorkflowEditor", () => {
     const markup = renderToStaticMarkup(
       <TeacherWorkflowEditor
         action={async () => undefined}
+        subjects={[{ id: "subject-art", name: "Art", code: "ART" }]}
         curriculum={[
           {
             id: "curriculum-art",
@@ -38,6 +39,11 @@ describe("TeacherWorkflowEditor", () => {
     const markup = renderToStaticMarkup(
       <TeacherWorkflowEditor
         action={async () => undefined}
+        subjects={[
+          { id: "subject-math", name: "Mathematics", code: "MATH" },
+          { id: "subject-english", name: "English", code: "ENG" },
+          { id: "subject-science", name: "Science", code: "SCI" },
+        ]}
         curriculum={[
           {
             id: "curriculum-math",
@@ -93,11 +99,11 @@ describe("TeacherWorkflowEditor", () => {
         teacher={{
           id: "teacher-1",
           name: "Rawan",
-          shortCode: "RW",
           employmentType: "FULL_TIME",
           weeklyTeachingSessions: 7,
           maxLessonsPerDay: null,
           maxConsecutiveLessons: null,
+          declaredSubjectIds: ["subject-math", "subject-science"],
         }}
       />,
     );
@@ -120,6 +126,15 @@ describe("TeacherWorkflowEditor", () => {
     );
     expect(markup).not.toContain('value="curriculum-english"');
     expect(markup).not.toContain("Reassign from Nour");
+    expect(markup).toContain(
+      'name="subjectId" checked="" value="subject-math"',
+    );
+    expect(markup).toContain(
+      'name="subjectId" checked="" value="subject-science"',
+    );
+    expect(markup).not.toContain(
+      '<option value="subject-english">English (ENG)</option>',
+    );
     expect(markup).toContain('name="state:0:0"');
     expect(markup).toContain('value="UNAVAILABLE"');
     expect(markup).toContain("Monday, Session 1: Unavailable");
@@ -130,6 +145,7 @@ describe("TeacherWorkflowEditor", () => {
     const markup = renderToStaticMarkup(
       <TeacherWorkflowEditor
         action={async () => undefined}
+        subjects={[{ id: "subject-history", name: "History", code: "HIS" }]}
         curriculum={[
           {
             id: "curriculum-history",
@@ -149,11 +165,11 @@ describe("TeacherWorkflowEditor", () => {
         teacher={{
           id: "teacher-rawad",
           name: "Rawad",
-          shortCode: "RAW",
           employmentType: "FULL_TIME",
           weeklyTeachingSessions: 21,
           maxLessonsPerDay: null,
           maxConsecutiveLessons: null,
+          declaredSubjectIds: ["subject-history"],
         }}
       />,
     );

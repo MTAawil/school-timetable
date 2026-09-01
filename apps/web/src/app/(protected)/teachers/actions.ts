@@ -9,16 +9,10 @@ import { z } from "zod";
 
 import { verifySession } from "@/lib/auth/dal";
 import { getActiveTerm, optionalInteger, optionalText } from "@/lib/setup";
+import { createTeacherCode } from "@/lib/teacher-code";
 
 const teacherSchema = z.object({
   name: z.string().trim().min(2).max(100),
-  shortCode: z
-    .string()
-    .trim()
-    .min(1)
-    .max(12)
-    .toUpperCase()
-    .regex(/^[A-Z0-9_]+$/),
   employmentType: z.enum(["FULL_TIME", "PART_TIME"]),
   weeklyTeachingSessions: z.number().int().positive().max(100),
   maxLessonsPerDay: z.number().int().positive().max(20).nullable(),
@@ -37,7 +31,6 @@ export async function saveTeacherWorkflow(formData: FormData): Promise<void> {
   const term = await getActiveTerm(user.schoolId);
   const input = teacherSchema.parse({
     name: formData.get("name"),
-    shortCode: formData.get("shortCode"),
     employmentType: formData.get("employmentType"),
     weeklyTeachingSessions: Number(formData.get("weeklyTeachingSessions")),
     maxLessonsPerDay: optionalInteger(formData.get("maxLessonsPerDay")),
@@ -52,6 +45,10 @@ export async function saveTeacherWorkflow(formData: FormData): Promise<void> {
   const selectedCurriculumIds = z
     .array(z.uuid())
     .parse(formData.getAll("classCurriculumId"));
+  const declaredSubjectIds = z
+    .array(z.uuid())
+    .min(1)
+    .parse(formData.getAll("subjectId"));
   const confirmedReassignmentIds = z
     .array(z.uuid())
     .parse(formData.getAll("reassignCurriculumId"));
@@ -59,54 +56,77 @@ export async function saveTeacherWorkflow(formData: FormData): Promise<void> {
     .array(z.string().regex(/^\d+:\d+$/))
     .parse(formData.getAll("restrictionSlot"));
   const db = getDatabase();
-  const [configuration, days, periods, curriculum, existingTeacher] =
-    await Promise.all([
-      db.schoolWeekConfiguration.findFirst({
-        where: { schoolId: user.schoolId, termId: term.id },
-      }),
-      db.dayDefinition.findMany({
-        where: { schoolId: user.schoolId, termId: term.id, isWorking: true },
-        select: { dayIndex: true },
-      }),
-      db.periodDefinition.findMany({
-        where: {
-          schoolId: user.schoolId,
-          termId: term.id,
-          isTeaching: true,
-        },
-        select: { periodIndex: true },
-      }),
-      db.classCurriculum.findMany({
-        where: {
-          schoolId: user.schoolId,
-          termId: term.id,
-          isActive: true,
-          classSection: { isActive: true, deletedAt: null },
-        },
-        select: {
-          id: true,
-          subjectId: true,
-          teacherId: true,
-          weeklySessions: true,
-        },
-      }),
-      teacherId
-        ? db.teacher.findFirst({
-            where: {
-              id: teacherId,
-              schoolId: user.schoolId,
-              isActive: true,
-              deletedAt: null,
-            },
-          })
-        : null,
-    ]);
+  const [
+    configuration,
+    days,
+    periods,
+    curriculum,
+    availableSubjects,
+    existingTeacher,
+    existingTeacherCodes,
+  ] = await Promise.all([
+    db.schoolWeekConfiguration.findFirst({
+      where: { schoolId: user.schoolId, termId: term.id },
+    }),
+    db.dayDefinition.findMany({
+      where: { schoolId: user.schoolId, termId: term.id, isWorking: true },
+      select: { dayIndex: true },
+    }),
+    db.periodDefinition.findMany({
+      where: {
+        schoolId: user.schoolId,
+        termId: term.id,
+        isTeaching: true,
+      },
+      select: { periodIndex: true },
+    }),
+    db.classCurriculum.findMany({
+      where: {
+        schoolId: user.schoolId,
+        termId: term.id,
+        isActive: true,
+        classSection: { isActive: true, deletedAt: null },
+      },
+      select: {
+        id: true,
+        subjectId: true,
+        teacherId: true,
+        weeklySessions: true,
+      },
+    }),
+    db.subject.findMany({
+      where: {
+        schoolId: user.schoolId,
+        isActive: true,
+        deletedAt: null,
+        id: { in: declaredSubjectIds },
+      },
+      select: { id: true },
+    }),
+    teacherId
+      ? db.teacher.findFirst({
+          where: {
+            id: teacherId,
+            schoolId: user.schoolId,
+            isActive: true,
+            deletedAt: null,
+          },
+        })
+      : null,
+    db.teacher.findMany({
+      where: { schoolId: user.schoolId },
+      select: { shortCode: true },
+    }),
+  ]);
 
   if (!configuration) {
     throw new Error("SCHOOL_WEEK_INCOMPLETE");
   }
   if (teacherId && !existingTeacher) {
     throw new Error("TEACHER_NOT_FOUND");
+  }
+  if (availableSubjects.length !== new Set(declaredSubjectIds).size) {
+    throw new Error("TEACHER_SUBJECT_INVALID");
   }
   const limitSchema = z
     .number()
@@ -116,6 +136,15 @@ export async function saveTeacherWorkflow(formData: FormData): Promise<void> {
     .nullable();
   limitSchema.parse(input.maxLessonsPerDay);
   limitSchema.parse(input.maxConsecutiveLessons);
+  const declaredSubjectIdSet = new Set(declaredSubjectIds);
+  const selectedCurriculum = curriculum.filter((item) =>
+    selectedCurriculumIds.includes(item.id),
+  );
+  if (
+    selectedCurriculum.some((item) => !declaredSubjectIdSet.has(item.subjectId))
+  ) {
+    throw new Error("TEACHER_CURRICULUM_SUBJECT_NOT_DECLARED");
+  }
 
   const allocationValidation = validateTeacherWorkflowAllocation(
     teacherId,
@@ -188,8 +217,26 @@ export async function saveTeacherWorkflow(formData: FormData): Promise<void> {
             data: input,
           })
         : await transaction.teacher.create({
-            data: { schoolId: user.schoolId, ...input },
+            data: {
+              schoolId: user.schoolId,
+              ...input,
+              shortCode: createTeacherCode(
+                input.name,
+                existingTeacherCodes.map((item) => item.shortCode),
+              ),
+            },
           });
+
+      await transaction.teacherSubject.deleteMany({
+        where: { schoolId: user.schoolId, teacherId: teacher.id },
+      });
+      await transaction.teacherSubject.createMany({
+        data: declaredSubjectIds.map((subjectId) => ({
+          schoolId: user.schoolId,
+          teacherId: teacher.id,
+          subjectId,
+        })),
+      });
 
       if (teacherId) {
         await transaction.classCurriculum.updateMany({
@@ -255,7 +302,6 @@ export async function saveTeacherProfile(formData: FormData): Promise<void> {
   const user = await verifySession();
   const input = teacherSchema.parse({
     name: formData.get("name"),
-    shortCode: formData.get("shortCode"),
     employmentType: formData.get("employmentType"),
     weeklyTeachingSessions: Number(formData.get("weeklyTeachingSessions")),
     maxLessonsPerDay: optionalInteger(formData.get("maxLessonsPerDay")),
@@ -279,8 +325,19 @@ export async function saveTeacherProfile(formData: FormData): Promise<void> {
       throw new Error("TEACHER_NOT_FOUND");
     }
   } else {
+    const existingCodes = await db.teacher.findMany({
+      where: { schoolId: user.schoolId },
+      select: { shortCode: true },
+    });
     await db.teacher.create({
-      data: { schoolId: user.schoolId, ...input },
+      data: {
+        schoolId: user.schoolId,
+        ...input,
+        shortCode: createTeacherCode(
+          input.name,
+          existingCodes.map((teacher) => teacher.shortCode),
+        ),
+      },
     });
   }
 

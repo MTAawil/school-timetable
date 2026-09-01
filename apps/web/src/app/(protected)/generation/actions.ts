@@ -153,6 +153,8 @@ export async function openAlternativeAsDraft(
         name: `Generated alternative ${String(alternative.rank)}`,
         version: (latest?.version ?? 0) + 1,
         status: "DRAFT",
+        isSavedDraft: true,
+        savedAt: new Date(),
         inputSnapshot: jsonValue(scheduleSnapshot),
         inputFingerprint: fingerprintSnapshot(scheduleSnapshot),
       },

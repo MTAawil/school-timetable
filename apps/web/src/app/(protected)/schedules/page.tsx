@@ -10,7 +10,11 @@ export default async function SchedulesPage() {
   const user = await verifySession();
   const term = await getActiveTerm(user.schoolId);
   const schedules = await getDatabase().schedule.findMany({
-    where: { schoolId: user.schoolId, termId: term.id },
+    where: {
+      schoolId: user.schoolId,
+      termId: term.id,
+      OR: [{ status: { not: "DRAFT" } }, { isSavedDraft: true }],
+    },
     include: { _count: { select: { assignments: true } } },
     orderBy: { version: "desc" },
   });
@@ -18,10 +22,10 @@ export default async function SchedulesPage() {
     <div className="space-y-7">
       <PageHeading
         title="Timetables"
-        description={`Draft and published schedule versions for ${term.name}.`}
+        description={`Saved working drafts, copies, and published timetables for ${term.name}. Internal edit history stays hidden.`}
       />
       <EntityTable
-        headers={["Version", "Name", "Status", "Assignments", "Updated"]}
+        headers={["Timetable", "Status", "Assignments", "Saved"]}
         emptyMessage="Open a generated alternative as a draft to begin editing."
         rows={schedules.map((schedule) => [
           <Link
@@ -29,12 +33,11 @@ export default async function SchedulesPage() {
             href={`/schedules/${schedule.id}`}
             key={schedule.id}
           >
-            Version {schedule.version}
+            {schedule.name}
           </Link>,
-          schedule.name,
           schedule.status.toLowerCase(),
           schedule._count.assignments,
-          schedule.updatedAt.toLocaleString(),
+          (schedule.savedAt ?? schedule.updatedAt).toLocaleString(),
         ])}
       />
     </div>

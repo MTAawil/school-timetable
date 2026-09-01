@@ -1,11 +1,12 @@
 import { getDatabase } from "@school-timetable/database";
 import { summarizeTeacherWorkloads } from "@school-timetable/shared/teacher-allocation";
-import { Check, Pencil, Plus, Users } from "lucide-react";
+import { Check, Pencil, Plus, Users, X } from "lucide-react";
 import Link from "next/link";
 
 import { saveTeacherWorkflow } from "@/app/(protected)/teachers/actions";
 import { buttonClass, PageHeading } from "@/components/setup-ui";
 import { TeacherWorkflowEditor } from "@/components/teacher-workflow-editor";
+import { TeacherCoverageOverview } from "@/components/teacher-coverage-overview";
 import { WorkflowNextAction } from "@/components/workflow-next-action";
 import { verifySession } from "@/lib/auth/dal";
 import { getActiveTerm } from "@/lib/setup";
@@ -28,9 +29,10 @@ export default async function TeachersPage({
   const term = await getActiveTerm(user.schoolId);
   const db = getDatabase();
   const params = await searchParams;
-  const [teachers, curriculum, days, periods] = await Promise.all([
+  const [teachers, curriculum, subjects, days, periods] = await Promise.all([
     db.teacher.findMany({
       where: { schoolId: user.schoolId, isActive: true, deletedAt: null },
+      include: { teacherSubjects: { include: { subject: true } } },
       orderBy: { name: "asc" },
     }),
     db.classCurriculum.findMany({
@@ -46,6 +48,10 @@ export default async function TeachersPage({
         { subject: { name: "asc" } },
       ],
     }),
+    db.subject.findMany({
+      where: { schoolId: user.schoolId, isActive: true, deletedAt: null },
+      orderBy: { name: "asc" },
+    }),
     db.dayDefinition.findMany({
       where: { schoolId: user.schoolId, termId: term.id, isWorking: true },
       orderBy: { dayIndex: "asc" },
@@ -58,8 +64,8 @@ export default async function TeachersPage({
   const selectedTeacher =
     params.teacher === "new"
       ? undefined
-      : (teachers.find((teacher) => teacher.id === params.teacher) ??
-        teachers[0]);
+      : teachers.find((teacher) => teacher.id === params.teacher);
+  const editorOpen = params.teacher === "new" || Boolean(selectedTeacher);
   const restrictions = selectedTeacher
     ? await db.availabilityRule.findMany({
         where: {
@@ -110,6 +116,18 @@ export default async function TeachersPage({
         </div>
       ) : null}
 
+      <TeacherCoverageOverview
+        curriculum={curriculum.map((item) => ({
+          id: item.id,
+          subjectId: item.subjectId,
+          subjectName: item.subject.name,
+          subjectCode: item.subject.shortCode,
+          className: item.classSection.sectionName,
+          weeklySessions: item.weeklySessions,
+          teacherId: item.teacherId,
+        }))}
+      />
+
       <section className="space-y-4" aria-labelledby="teacher-list-heading">
         <div className="flex flex-wrap items-center gap-3 border-b border-[#dce1dc] pb-3">
           <Users aria-hidden="true" className="text-[#0e6b4f]" size={20} />
@@ -141,6 +159,7 @@ export default async function TeachersPage({
                 <tr>
                   <th className="px-4 py-3 font-semibold">Teacher</th>
                   <th className="px-4 py-3 font-semibold">Employment</th>
+                  <th className="px-4 py-3 font-semibold">Subjects</th>
                   <th className="px-4 py-3 text-center font-semibold">
                     Declared
                   </th>
@@ -165,6 +184,12 @@ export default async function TeachersPage({
                         {teacher.employmentType === "FULL_TIME"
                           ? "Full time"
                           : "Part time"}
+                      </td>
+                      <td className="px-4 py-3">
+                        {teacher.teacherSubjects
+                          .map(({ subject }) => subject.shortCode)
+                          .sort()
+                          .join(", ") || "Not declared"}
                       </td>
                       <td className="px-4 py-3 text-center">
                         {summary?.declaredWeeklySessions ?? 0}
@@ -193,7 +218,7 @@ export default async function TeachersPage({
                               ? "w-9 border-[#9ba59f] bg-white hover:bg-[#f0f2ef]"
                               : "border-[#c85c53] bg-[#fff1ef] text-[#8b2119] hover:bg-[#f8d8d4]"
                           }`}
-                          href={`/teachers?teacher=${teacher.id}#teacher-editor`}
+                          href={`/teachers?teacher=${teacher.id}`}
                           title={
                             summary?.status === "EXACT"
                               ? "Edit teacher"
@@ -215,90 +240,124 @@ export default async function TeachersPage({
         )}
       </section>
 
-      <section
-        className="scroll-mt-6 space-y-4"
-        id="teacher-editor"
-        aria-labelledby="teacher-editor-heading"
-      >
-        <div className="border-b border-[#dce1dc] pb-3">
-          <h2 id="teacher-editor-heading" className="font-semibold">
-            {selectedTeacher ? `Edit ${selectedTeacher.name}` : "Add teacher"}
-          </h2>
-          <p className="mt-1 text-sm text-[#66706b]">
-            Finish all three sections before saving this teacher.
-          </p>
-        </div>
-        {params.issue === "capacity" && selectedTeacher ? (
-          <div
-            className="border border-[#c85c53] bg-[#fff1ef] p-4 text-sm text-[#6f302a]"
-            role="alert"
-          >
-            <p className="font-semibold">
-              {selectedTeacher.name} can be scheduled in only{" "}
-              {params.available ?? "0"} slots but must teach{" "}
-              {params.required ?? "0"} sessions.
-            </p>
-            <p className="mt-2 leading-6">
-              This is availability capacity, not allocated curriculum. Review
-              Maximum sessions per day, Maximum consecutive sessions, and the
-              red Unavailable cells below. {selectedTeacher.name} currently has
-              a consecutive limit of{" "}
-              {selectedTeacher.maxConsecutiveLessons ?? "none"}; increasing that
-              limit provides more usable slots if the current restriction was
-              not intentional.
-            </p>
-          </div>
-        ) : null}
-        <TeacherWorkflowEditor
-          action={saveTeacherWorkflow}
-          curriculum={curriculum.map((item) => ({
-            id: item.id,
-            subjectId: item.subjectId,
-            className: item.classSection.sectionName,
-            classCode: item.classSection.shortCode,
-            subjectName: item.subject.name,
-            subjectCode: item.subject.shortCode,
-            weeklySessions: item.weeklySessions,
-            teacherId: item.teacherId,
-            teacherName: item.teacher?.name ?? null,
-          }))}
-          days={days.map((day) => ({
-            dayIndex: day.dayIndex,
-            name: day.name,
-          }))}
-          periods={periods.map((period) => ({
-            periodIndex: period.periodIndex,
-            name: period.name,
-            isTeaching: period.isTeaching,
-          }))}
-          restrictions={restrictions.flatMap((rule) =>
-            rule.state === "AVAILABLE"
-              ? []
-              : [
-                  {
-                    dayIndex: rule.dayIndex,
-                    periodIndex: rule.periodIndex,
-                    state: rule.state,
-                  },
-                ],
-          )}
-          key={selectedTeacher?.id ?? "new"}
-          teacher={
-            selectedTeacher
-              ? {
-                  id: selectedTeacher.id,
-                  name: selectedTeacher.name,
-                  shortCode: selectedTeacher.shortCode,
-                  employmentType: selectedTeacher.employmentType,
-                  weeklyTeachingSessions:
-                    selectedTeacher.weeklyTeachingSessions,
-                  maxLessonsPerDay: selectedTeacher.maxLessonsPerDay,
-                  maxConsecutiveLessons: selectedTeacher.maxConsecutiveLessons,
+      {editorOpen ? (
+        <div
+          aria-labelledby="teacher-editor-heading"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6"
+          role="dialog"
+        >
+          <Link
+            aria-label="Close teacher editor"
+            className="absolute inset-0 bg-black/45"
+            href="/teachers"
+          />
+          <section className="relative flex max-h-[calc(100vh-1.5rem)] w-full max-w-7xl flex-col overflow-hidden border border-[#aeb7b1] bg-[#f8f9f7] shadow-2xl sm:max-h-[calc(100vh-3rem)]">
+            <div className="flex items-start gap-4 border-b border-[#dce1dc] bg-white px-5 py-4">
+              <div>
+                <h2 id="teacher-editor-heading" className="font-semibold">
+                  {selectedTeacher
+                    ? `Edit ${selectedTeacher.name}`
+                    : "Add teacher"}
+                </h2>
+                <p className="mt-1 text-sm text-[#66706b]">
+                  Finish all three sections before saving this teacher.
+                </p>
+              </div>
+              <Link
+                aria-label="Close teacher editor"
+                className="ml-auto inline-flex h-9 w-9 shrink-0 items-center justify-center border border-[#aeb7b1] bg-white hover:bg-[#f0f2ef]"
+                href="/teachers"
+                title="Cancel"
+              >
+                <X aria-hidden="true" size={18} />
+              </Link>
+            </div>
+            <div className="overflow-y-auto px-5 py-5">
+              {params.issue === "capacity" && selectedTeacher ? (
+                <div
+                  className="border border-[#c85c53] bg-[#fff1ef] p-4 text-sm text-[#6f302a]"
+                  role="alert"
+                >
+                  <p className="font-semibold">
+                    {selectedTeacher.name} can be scheduled in only{" "}
+                    {params.available ?? "0"} slots but must teach{" "}
+                    {params.required ?? "0"} sessions.
+                  </p>
+                  <p className="mt-2 leading-6">
+                    This is availability capacity, not allocated curriculum.
+                    Review Maximum sessions per day, Maximum consecutive
+                    sessions, and the red Unavailable cells below.{" "}
+                    {selectedTeacher.name} currently has a consecutive limit of{" "}
+                    {selectedTeacher.maxConsecutiveLessons ?? "none"};
+                    increasing that limit provides more usable slots if the
+                    current restriction was not intentional.
+                  </p>
+                </div>
+              ) : null}
+              <TeacherWorkflowEditor
+                action={saveTeacherWorkflow}
+                curriculum={curriculum.map((item) => ({
+                  id: item.id,
+                  subjectId: item.subjectId,
+                  className: item.classSection.sectionName,
+                  classCode: item.classSection.shortCode,
+                  subjectName: item.subject.name,
+                  subjectCode: item.subject.shortCode,
+                  weeklySessions: item.weeklySessions,
+                  teacherId: item.teacherId,
+                  teacherName: item.teacher?.name ?? null,
+                }))}
+                subjects={subjects.map((subject) => ({
+                  id: subject.id,
+                  name: subject.name,
+                  code: subject.shortCode,
+                }))}
+                days={days.map((day) => ({
+                  dayIndex: day.dayIndex,
+                  name: day.name,
+                }))}
+                periods={periods.map((period) => ({
+                  periodIndex: period.periodIndex,
+                  name: period.name,
+                  isTeaching: period.isTeaching,
+                }))}
+                restrictions={restrictions.flatMap((rule) =>
+                  rule.state === "AVAILABLE"
+                    ? []
+                    : [
+                        {
+                          dayIndex: rule.dayIndex,
+                          periodIndex: rule.periodIndex,
+                          state: rule.state,
+                        },
+                      ],
+                )}
+                showCoverage={false}
+                cancelHref="/teachers"
+                key={selectedTeacher?.id ?? "new"}
+                teacher={
+                  selectedTeacher
+                    ? {
+                        id: selectedTeacher.id,
+                        name: selectedTeacher.name,
+                        employmentType: selectedTeacher.employmentType,
+                        weeklyTeachingSessions:
+                          selectedTeacher.weeklyTeachingSessions,
+                        maxLessonsPerDay: selectedTeacher.maxLessonsPerDay,
+                        maxConsecutiveLessons:
+                          selectedTeacher.maxConsecutiveLessons,
+                        declaredSubjectIds: selectedTeacher.teacherSubjects.map(
+                          ({ subjectId }) => subjectId,
+                        ),
+                      }
+                    : undefined
                 }
-              : undefined
-          }
-        />
-      </section>
+              />
+            </div>
+          </section>
+        </div>
+      ) : null}
 
       <WorkflowNextAction
         description="Continue after every class-subject is assigned and every teacher workload is exact."

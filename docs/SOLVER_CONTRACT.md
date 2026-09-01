@@ -80,6 +80,10 @@ Prefer quality first. Alternative 2 and later should differ meaningfully from ea
 - `movedAssignments` reports requirement IDs and before/after positions.
 - Every regenerated result passes the same independent hard-constraint
   validator as a normal generation result.
+- A targeted repair is a regeneration request with the selected assignment
+  added to `lockedAssignments` at its requested destination. Existing real
+  locks remain present, existing placements remain hints, and the application
+  ranks returned alternatives by movement count before named quality penalty.
 
 ## Diagnostics
 

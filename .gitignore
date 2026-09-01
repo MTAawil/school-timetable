@@ -23,6 +23,12 @@ backups/
 *.log
 .npm-cache/
 .logs/
+.runtime/
+.tmp/
+
+# Generated OCR and visual-audit artifacts
+audit*.png
+*_ocr.xlsx
 
 # Editors and operating systems
 .idea/

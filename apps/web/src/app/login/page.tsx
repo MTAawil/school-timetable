@@ -1,3 +1,4 @@
+import { getDatabase } from "@school-timetable/database";
 import { redirect } from "next/navigation";
 
 import { readSession } from "@/lib/auth/session";
@@ -5,8 +6,22 @@ import { readSession } from "@/lib/auth/session";
 import { LoginForm } from "./login-form";
 
 export default async function LoginPage() {
-  if (await readSession()) {
-    redirect("/dashboard");
+  const session = await readSession();
+  if (session) {
+    const user = await getDatabase().user.findFirst({
+      where: {
+        id: session.userId,
+        schoolId: session.schoolId,
+        role: "ADMIN",
+        isActive: true,
+        deletedAt: null,
+      },
+      select: { id: true },
+    });
+
+    if (user) {
+      redirect("/dashboard");
+    }
   }
 
   return (

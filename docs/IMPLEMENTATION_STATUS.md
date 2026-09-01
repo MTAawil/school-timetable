@@ -868,3 +868,98 @@ local-development values only.
   end-to-end release workflow.
 - Remaining work is post-MVP: multi-school operation, teacher accounts, billing,
   attendance, and other explicitly excluded product areas.
+
+### 2026-07-30 - Teacher timetable discoverability
+
+- Replaced the hidden resource dropdown on schedule versions with direct,
+  named links for every teacher, class, and room timetable.
+- Added guidance on the whole-school view pointing administrators to the
+  individual teacher schedules.
+- Added focused component coverage for teacher timetable navigation.
+
+### 2026-07-30 - Guided schedule moves
+
+- Replaced the rendered Assignment editor with session-first controls in the
+  timetable grid.
+- Added an inline lock or unlock action beside each draft session.
+- Added a guided popup that evaluates valid direct moves and relevant swaps
+  through the existing hard-constraint validator, ranks results by soft
+  penalty difference, and applies only the administrator's selected option.
+- Removed unassign from the normal editing flow and hide the unassigned tray
+  unless a schedule actually contains unplaced required lessons.
+
+### 2026-07-30 - Resource timetable presentation
+
+- Reduced row height, cell padding, and minimum table width for class and
+  teacher timetables while retaining the detailed whole-school layout.
+- Removed redundant teacher names from teacher cells and class names from class
+  cells; the complementary class or teacher remains visible.
+- Added the selected teacher's declared weekly sessions, employment type,
+  daily and consecutive limits, and availability-rule counts above the
+  timetable.
+- Relabeled browser printing as Save as PDF and added a landscape print layout
+  with compact borders, resource headings, and editing controls removed.
+
+### 2026-07-30 - Working draft lifecycle
+
+- Added schedule draft families that separate visible saved drafts from hidden
+  immutable edit revisions.
+- Move, swap, lock, and regeneration revisions remain recoverable through
+  Undo/Redo without appearing as separate timetable rows.
+- Added Save to promote the current pending revision as the family's working
+  draft and Save as copy to create a separately named family.
+- Publishing promotes the current revision and preserves publication history.
+- Migrated existing revision chains without deleting schedules, assignments, or
+  audit history.
+
+### 2026-07-30 - Targeted drag repair
+
+- Teacher timetable drops now force the selected session into the requested
+  period and run a whole-school local repair through the solver.
+- Real locked sessions remain hard-fixed while the solver minimizes disruption
+  from the current timetable.
+- Repair results prefer one to three additional movements, never offer more
+  than five, and return at most three ranked alternatives.
+- The confirmation dialog lists every affected class, subject, teacher, and
+  old/new position before creating a pending schedule revision.
+
+### 2026-07-30 - Teacher subject declarations
+
+- Added explicit, normalized subject declarations to teacher setup.
+- Existing declarations are backfilled from current curriculum allocations.
+- Teacher subject filters now contain only the subjects declared for that
+  teacher, and server-side saving rejects undeclared subject allocations.
+
+### 2026-07-30 - Teacher workflow modal
+
+- Add teacher and Edit teacher now open the complete workflow in a wide,
+  independently scrollable modal while keeping the teacher list in context.
+- Added explicit close and cancel controls plus a sticky save action bar.
+
+### 2026-07-30 - Automatic teacher codes
+
+- Removed manual teacher-code entry from the teacher workflow.
+- New teachers receive a server-generated, school-unique code derived from
+  their name; existing codes remain stable when teachers are edited.
+
+### 2026-07-30 - Al Masar school setup seed
+
+- Added a reusable curriculum-only seed for Al Masar School.
+- The seed reproduces the manual five-day, seven-session week and creates 13
+  classes whose curricula each total exactly 35 weekly sessions.
+- Teacher records, subject declarations, and class allocations remain empty
+  for the next data-entry stage.
+
+### 2026-07-30 - Al Masar teacher scenarios
+
+- Added three deterministic staffing seeds: balanced (24 teachers),
+  full-time-heavy (22), and specialist-heavy (32).
+- Full-time workloads remain between 21 and 25 sessions; part-time workloads
+  remain at least 10 sessions. Every declared workload exactly matches its
+  indivisible class-subject allocations.
+- Preserved common teacher continuity for English Grades 1-3 and 4-6, Arabic
+  Grades 1-3, and Arabic Grades 4-7.
+- Added realistic maximum daily/consecutive limits, limited full-time
+  restrictions, late-window part-timers, and soft compactness preferences.
+- All three scenarios pass application readiness and produce a complete
+  455-assignment timetable through the live CP-SAT solver.

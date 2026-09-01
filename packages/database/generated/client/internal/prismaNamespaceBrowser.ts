@@ -59,6 +59,7 @@ export const ModelName = {
   Slot: 'Slot',
   Teacher: 'Teacher',
   Subject: 'Subject',
+  TeacherSubject: 'TeacherSubject',
   Room: 'Room',
   ClassSection: 'ClassSection',
   GradeLevel: 'GradeLevel',
@@ -224,6 +225,17 @@ export const SubjectScalarFieldEnum = {
 } as const
 
 export type SubjectScalarFieldEnum = (typeof SubjectScalarFieldEnum)[keyof typeof SubjectScalarFieldEnum]
+
+
+export const TeacherSubjectScalarFieldEnum = {
+  id: 'id',
+  schoolId: 'schoolId',
+  teacherId: 'teacherId',
+  subjectId: 'subjectId',
+  createdAt: 'createdAt'
+} as const
+
+export type TeacherSubjectScalarFieldEnum = (typeof TeacherSubjectScalarFieldEnum)[keyof typeof TeacherSubjectScalarFieldEnum]
 
 
 export const RoomScalarFieldEnum = {
@@ -488,6 +500,9 @@ export const ScheduleScalarFieldEnum = {
   generationJobId: 'generationJobId',
   generationAlternativeId: 'generationAlternativeId',
   parentScheduleId: 'parentScheduleId',
+  draftFamilyId: 'draftFamilyId',
+  isSavedDraft: 'isSavedDraft',
+  savedAt: 'savedAt',
   name: 'name',
   version: 'version',
   status: 'status',

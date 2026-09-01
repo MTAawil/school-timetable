@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "validate:al-masar-scenario": "tsx scripts/validate-al-masar-scenario.ts"
   },
   "dependencies": {
     "@school-timetable/database": "workspace:*",

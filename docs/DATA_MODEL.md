@@ -65,7 +65,12 @@ Do not mutate a published schedule in place.
 
 - A generated alternative is immutable.
 - Opening an alternative for editing creates a `DRAFT` schedule.
-- Manual changes update only the draft and append audit events.
+- Manual changes create immutable internal revisions and append audit events.
+- Revisions in one editable line share a `draftFamilyId`.
+- `isSavedDraft` identifies the single working draft shown in the timetable
+  list for that family; pending and undo/redo revisions remain hidden there.
+- Save promotes the current internal revision as the visible working draft.
+- Save as copy creates a separately named draft family.
 - Publishing archives the previous published version for the same term or marks it historical.
 - Regeneration creates a derived draft linked with `parentScheduleId`.
 
@@ -204,6 +209,11 @@ referenced historical schedules.
 Retain existing fields and add:
 
 - weeklyTeachingSessions, non-negative integer during setup
+- declared teaching subjects through `TeacherSubject`
+
+`TeacherSubject` is the normalized, school-scoped capability relation between
+a teacher and every subject they may teach. Teacher class allocation may only
+select `ClassCurriculum` rows whose subject is declared for that teacher.
 
 New teachers must declare a positive value before generation. The stored value
 defaults to zero only so historical teachers and incomplete setup drafts remain

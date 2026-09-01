@@ -405,6 +405,7 @@ export const ModelName = {
   Slot: 'Slot',
   Teacher: 'Teacher',
   Subject: 'Subject',
+  TeacherSubject: 'TeacherSubject',
   Room: 'Room',
   ClassSection: 'ClassSection',
   GradeLevel: 'GradeLevel',
@@ -438,7 +439,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "school" | "user" | "academicTerm" | "dayDefinition" | "periodDefinition" | "slot" | "teacher" | "subject" | "room" | "classSection" | "gradeLevel" | "schoolWeekConfiguration" | "gradeCurriculum" | "classCurriculum" | "availabilityRule" | "teachingRequirement" | "requirementFixedSlot" | "requirementForbiddenSlot" | "constraintProfile" | "constraintWeight" | "generationJob" | "generationAlternative" | "generationDiagnostic" | "schedule" | "scheduleAssignment" | "auditLog"
+    modelProps: "school" | "user" | "academicTerm" | "dayDefinition" | "periodDefinition" | "slot" | "teacher" | "subject" | "teacherSubject" | "room" | "classSection" | "gradeLevel" | "schoolWeekConfiguration" | "gradeCurriculum" | "classCurriculum" | "availabilityRule" | "teachingRequirement" | "requirementFixedSlot" | "requirementForbiddenSlot" | "constraintProfile" | "constraintWeight" | "generationJob" | "generationAlternative" | "generationDiagnostic" | "schedule" | "scheduleAssignment" | "auditLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1031,6 +1032,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.SubjectCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.SubjectCountAggregateOutputType> | number
+        }
+      }
+    }
+    TeacherSubject: {
+      payload: Prisma.$TeacherSubjectPayload<ExtArgs>
+      fields: Prisma.TeacherSubjectFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TeacherSubjectFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherSubjectPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TeacherSubjectFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherSubjectPayload>
+        }
+        findFirst: {
+          args: Prisma.TeacherSubjectFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherSubjectPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TeacherSubjectFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherSubjectPayload>
+        }
+        findMany: {
+          args: Prisma.TeacherSubjectFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherSubjectPayload>[]
+        }
+        create: {
+          args: Prisma.TeacherSubjectCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherSubjectPayload>
+        }
+        createMany: {
+          args: Prisma.TeacherSubjectCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TeacherSubjectCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherSubjectPayload>[]
+        }
+        delete: {
+          args: Prisma.TeacherSubjectDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherSubjectPayload>
+        }
+        update: {
+          args: Prisma.TeacherSubjectUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherSubjectPayload>
+        }
+        deleteMany: {
+          args: Prisma.TeacherSubjectDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TeacherSubjectUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TeacherSubjectUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherSubjectPayload>[]
+        }
+        upsert: {
+          args: Prisma.TeacherSubjectUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeacherSubjectPayload>
+        }
+        aggregate: {
+          args: Prisma.TeacherSubjectAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTeacherSubject>
+        }
+        groupBy: {
+          args: Prisma.TeacherSubjectGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TeacherSubjectGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TeacherSubjectCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TeacherSubjectCountAggregateOutputType> | number
         }
       }
     }
@@ -2536,6 +2611,17 @@ export const SubjectScalarFieldEnum = {
 export type SubjectScalarFieldEnum = (typeof SubjectScalarFieldEnum)[keyof typeof SubjectScalarFieldEnum]
 
 
+export const TeacherSubjectScalarFieldEnum = {
+  id: 'id',
+  schoolId: 'schoolId',
+  teacherId: 'teacherId',
+  subjectId: 'subjectId',
+  createdAt: 'createdAt'
+} as const
+
+export type TeacherSubjectScalarFieldEnum = (typeof TeacherSubjectScalarFieldEnum)[keyof typeof TeacherSubjectScalarFieldEnum]
+
+
 export const RoomScalarFieldEnum = {
   id: 'id',
   schoolId: 'schoolId',
@@ -2798,6 +2884,9 @@ export const ScheduleScalarFieldEnum = {
   generationJobId: 'generationJobId',
   generationAlternativeId: 'generationAlternativeId',
   parentScheduleId: 'parentScheduleId',
+  draftFamilyId: 'draftFamilyId',
+  isSavedDraft: 'isSavedDraft',
+  savedAt: 'savedAt',
   name: 'name',
   version: 'version',
   status: 'status',
@@ -3276,6 +3365,7 @@ export type GlobalOmitConfig = {
   slot?: Prisma.SlotOmit
   teacher?: Prisma.TeacherOmit
   subject?: Prisma.SubjectOmit
+  teacherSubject?: Prisma.TeacherSubjectOmit
   room?: Prisma.RoomOmit
   classSection?: Prisma.ClassSectionOmit
   gradeLevel?: Prisma.GradeLevelOmit
