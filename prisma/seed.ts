@@ -91,7 +91,7 @@ const partTimeAvailabilityByTeacher = {
     Monday: [1, 2, 3, 4, 5, 6],
     Tuesday: [1, 2, 3, 4, 5, 6],
     Thursday: [1, 2, 3, 4, 5, 6],
-    Friday: [1, 2],
+    Friday: [1, 2, 3],
   },
   "منى وهبي": {
     Monday: [1, 2, 3, 4, 5, 6],
