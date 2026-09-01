@@ -19,6 +19,9 @@ from app.models import (
 from app.scoring import SOFT_CONSTRAINT_CODES, score_assignments
 from app.validator import validate_assignments
 
+MAX_STRUCTURAL_DIAGNOSTICS = 5
+MAX_DIAGNOSTIC_REQUIREMENTS = 12
+
 
 @dataclass(frozen=True)
 class Choice:
@@ -946,6 +949,268 @@ def _moved_assignments(before: list[Assignment], after: list[Assignment]) -> lis
     return moved
 
 
+def _shared_group_diagnostics(request: SolveRequest) -> list[dict[str, object]]:
+    if request.schema_version != 2:
+        return []
+
+    requirements_by_group: dict[str, list[Requirement]] = defaultdict(list)
+    for requirement in request.requirements:
+        if requirement.shared_teaching_group_id:
+            requirements_by_group[requirement.shared_teaching_group_id].append(requirement)
+
+    class_sections = {item.id: item for item in request.class_sections}
+    subjects = {item.id: item for item in request.subjects}
+    diagnostics: list[dict[str, object]] = []
+    for group_id, requirements in sorted(requirements_by_group.items()):
+        if len(requirements) < 2:
+            diagnostics.append(
+                {
+                    "code": "SHARED_GROUP_TOO_SMALL",
+                    "summary": "A shared teaching group has fewer than two members.",
+                    "sharedTeachingGroupId": group_id,
+                }
+            )
+            continue
+
+        common_positions: set[tuple[int, int, str | None]] | None = None
+        for requirement in requirements:
+            positions = {
+                (choice.day, choice.period, choice.room_id)
+                for choice in compatible_choices(request, requirement, 0)
+                if all(
+                    class_session_interval(
+                        request,
+                        requirement.class_section_id,
+                        choice.period,
+                        choice.duration,
+                    )
+                    == class_session_interval(
+                        request,
+                        other.class_section_id,
+                        choice.period,
+                        choice.duration,
+                    )
+                    for other in requirements
+                )
+            }
+            common_positions = (
+                positions if common_positions is None else common_positions & positions
+            )
+
+        required = requirements[0].occurrence_count
+        available = len(common_positions or set())
+        if available < required:
+            class_names = [class_sections[item.class_section_id].name for item in requirements]
+            subject_name = subjects[requirements[0].subject_id].name
+            diagnostics.append(
+                {
+                    "code": "SHARED_GROUP_PLACEMENT_SHORTAGE",
+                    "summary": (
+                        f"{subject_name} shared group for {', '.join(class_names)} "
+                        f"needs {required} synchronized sessions but has {available} "
+                        "common valid positions."
+                    ),
+                    "sharedTeachingGroupId": group_id,
+                    "required": required,
+                    "available": available,
+                    "classSectionIds": [item.class_section_id for item in requirements],
+                    "requirementIds": [item.id for item in requirements],
+                }
+            )
+    return diagnostics
+
+
+def _resource_packing_diagnostic(
+    request: SolveRequest,
+    *,
+    resource_type: Literal["TEACHER", "CLASS_SECTION"],
+    resource_id: str,
+    requirements: list[Requirement],
+) -> dict[str, object] | None:
+    model = cp_model.CpModel()
+    variables: dict[Choice, cp_model.IntVar] = {}
+    starts_by_requirement_day: dict[tuple[str, int], list[cp_model.IntVar]] = defaultdict(list)
+    starts_by_requirement: dict[str, list[cp_model.IntVar]] = defaultdict(list)
+    occupied_by_position: dict[tuple[int, int], list[cp_model.IntVar]] = defaultdict(list)
+    teacher_events: list[tuple[Choice, Requirement, cp_model.IntVar, tuple[int, int]]] = []
+    days = [day.index for day in request.calendar.days if day.is_working]
+
+    for requirement in requirements:
+        choices = compatible_choices(request, requirement, 0)
+        for choice in choices:
+            variable = model.new_bool_var(
+                f"pack_{resource_type}_{resource_id}_{requirement.id}_{choice.day}_{choice.period}"
+            )
+            variables[choice] = variable
+            starts_by_requirement[requirement.id].append(variable)
+            starts_by_requirement_day[(requirement.id, choice.day)].append(variable)
+            for offset in range(choice.duration):
+                occupied_by_position[(choice.day, choice.period + offset)].append(variable)
+            if resource_type == "TEACHER":
+                teacher_events.append(
+                    (
+                        choice,
+                        requirement,
+                        variable,
+                        class_session_interval(
+                            request,
+                            requirement.class_section_id,
+                            choice.period,
+                            choice.duration,
+                        ),
+                    )
+                )
+
+        model.add(sum(starts_by_requirement[requirement.id]) == requirement.occurrence_count)
+        for day in days:
+            starts = starts_by_requirement_day.get((requirement.id, day), [])
+            if starts:
+                model.add(sum(starts) <= requirement.daily_occurrence_limit)
+        used_days: list[cp_model.IntVar] = []
+        for day in days:
+            starts = starts_by_requirement_day.get((requirement.id, day), [])
+            if not starts:
+                continue
+            used = model.new_bool_var(f"pack_used_{requirement.id}_{day}")
+            model.add(sum(starts) >= used)
+            model.add(sum(starts) <= requirement.daily_occurrence_limit * used)
+            used_days.append(used)
+        model.add(sum(used_days) >= requirement.distinct_day_minimum)
+
+    for position_variables in occupied_by_position.values():
+        if len(position_variables) > 1:
+            model.add(sum(position_variables) <= 1)
+
+    if resource_type == "TEACHER":
+        for index, left_event in enumerate(teacher_events):
+            for right_event in teacher_events[index + 1 :]:
+                left_choice, left_requirement, left_variable, left_interval = left_event
+                right_choice, right_requirement, right_variable, right_interval = right_event
+                same_shared_event = (
+                    left_requirement.shared_teaching_group_id is not None
+                    and left_requirement.shared_teaching_group_id
+                    == right_requirement.shared_teaching_group_id
+                    and left_choice.period == right_choice.period
+                    and left_choice.room_id == right_choice.room_id
+                    and left_interval == right_interval
+                )
+                if not same_shared_event and intervals_overlap(left_interval, right_interval):
+                    model.add(left_variable + right_variable <= 1)
+
+    solver = cp_model.CpSolver()
+    solver.parameters.max_time_in_seconds = 2
+    solver.parameters.num_search_workers = 1
+    status = solver.solve(model)
+    if status in (cp_model.FEASIBLE, cp_model.OPTIMAL):
+        return None
+    if status != cp_model.INFEASIBLE:
+        return None
+
+    teachers = {item.id: item for item in request.teachers}
+    class_sections = {item.id: item for item in request.class_sections}
+    subjects = {item.id: item for item in request.subjects}
+    if resource_type == "TEACHER":
+        resource_name = teachers[resource_id].name
+        code = "TEACHER_PACKING_CONFLICT"
+    else:
+        resource_name = class_sections[resource_id].name
+        code = "CLASS_PACKING_CONFLICT"
+
+    demand = sum(requirement.occurrence_count for requirement in requirements)
+    requirement_details = [
+        {
+            "requirementId": requirement.id,
+            "classSectionId": requirement.class_section_id,
+            "className": class_sections[requirement.class_section_id].name,
+            "subjectId": requirement.subject_id,
+            "subjectName": subjects[requirement.subject_id].name,
+            "teacherId": requirement.teacher_id,
+            "teacherName": teachers[requirement.teacher_id].name,
+            "weeklySessions": requirement.occurrence_count,
+            "dailyLimit": requirement.daily_occurrence_limit,
+            "distinctDayMinimum": requirement.distinct_day_minimum,
+            "compatibleStarts": len(compatible_choices(request, requirement, 0)),
+        }
+        for requirement in requirements
+    ]
+    return {
+        "code": code,
+        "summary": (
+            f"{resource_name} cannot pack {demand} required sessions into the "
+            "current hard availability, real-time collision, daily limit, and "
+            "distinct-day rules."
+        ),
+        "resourceType": resource_type,
+        "resourceId": resource_id,
+        "resourceName": resource_name,
+        "required": demand,
+        "requirements": requirement_details[:MAX_DIAGNOSTIC_REQUIREMENTS],
+        "requirementCount": len(requirement_details),
+    }
+
+
+def _packing_diagnostics(request: SolveRequest) -> list[dict[str, object]]:
+    diagnostics: list[dict[str, object]] = []
+    requirements_by_teacher: dict[str, list[Requirement]] = defaultdict(list)
+    requirements_by_class: dict[str, list[Requirement]] = defaultdict(list)
+    teachers = {teacher.id: teacher for teacher in request.teachers}
+    constrained_teacher_ids = {
+        rule.entity_id
+        for rule in request.availability
+        if rule.entity_type == "TEACHER" and rule.state == "UNAVAILABLE"
+    }
+    shared_requirements: dict[str, list[str]] = defaultdict(list)
+    for requirement in request.requirements:
+        if requirement.shared_teaching_group_id:
+            shared_requirements[requirement.shared_teaching_group_id].append(requirement.id)
+    shared_representatives = {
+        requirement_ids[0] for requirement_ids in shared_requirements.values() if requirement_ids
+    }
+
+    for requirement in request.requirements:
+        teacher = teachers[requirement.teacher_id]
+        if (
+            teacher.employment_type == "PART_TIME"
+            and requirement.teacher_id in constrained_teacher_ids
+            and (
+                not requirement.shared_teaching_group_id or requirement.id in shared_representatives
+            )
+        ):
+            requirements_by_teacher[requirement.teacher_id].append(requirement)
+        requirements_by_class[requirement.class_section_id].append(requirement)
+
+    sorted_teacher_items = sorted(
+        requirements_by_teacher.items(),
+        key=lambda item: (
+            teachers[item[0]].employment_type != "PART_TIME",
+            teachers[item[0]].name,
+        ),
+    )
+    for teacher_id, requirements in sorted_teacher_items:
+        diagnostic = _resource_packing_diagnostic(
+            request,
+            resource_type="TEACHER",
+            resource_id=teacher_id,
+            requirements=requirements,
+        )
+        if diagnostic:
+            diagnostics.append(diagnostic)
+        if len(diagnostics) >= MAX_STRUCTURAL_DIAGNOSTICS:
+            return diagnostics
+    for class_section_id, requirements in sorted(requirements_by_class.items()):
+        diagnostic = _resource_packing_diagnostic(
+            request,
+            resource_type="CLASS_SECTION",
+            resource_id=class_section_id,
+            requirements=requirements,
+        )
+        if diagnostic:
+            diagnostics.append(diagnostic)
+        if len(diagnostics) >= MAX_STRUCTURAL_DIAGNOSTICS:
+            return diagnostics
+    return diagnostics
+
+
 def _diagnose_infeasibility(request: SolveRequest) -> list[dict[str, object]]:
     diagnostics: list[dict[str, object]] = []
     choices_by_occurrence: dict[tuple[str, int], list[Choice]] = {}
@@ -979,6 +1244,10 @@ def _diagnose_infeasibility(request: SolveRequest) -> list[dict[str, object]]:
                 "errors": locked_errors,
             }
         ]
+
+    structural_diagnostics = _shared_group_diagnostics(request) + _packing_diagnostics(request)
+    if structural_diagnostics:
+        return structural_diagnostics[:MAX_STRUCTURAL_DIAGNOSTICS]
 
     diagnostic_model = cp_model.CpModel()
     variables: dict[Choice, cp_model.IntVar] = {}

@@ -876,6 +876,9 @@ local-development values only.
 - Added deterministic infeasibility diagnostics for empty assignment domains
   and conflicting locks, followed by a separate minimum-collision relaxation
   model for grouped resource diagnostics.
+- Extended infeasibility diagnostics with named shared-group placement
+  shortages and focused teacher/class packing conflicts before the generic
+  grouped fallback.
 - Kept diagnostic relaxation output separate from selectable alternatives.
 - Added fully validated publication with automatic archival of the previous
   published term version and immutable published schedules.

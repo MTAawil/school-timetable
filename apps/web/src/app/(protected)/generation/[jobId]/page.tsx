@@ -29,6 +29,24 @@ const diagnosticDetailsSchema = z.object({
       }),
     )
     .optional(),
+  resourceType: z.enum(["CLASS_SECTION", "TEACHER"]).optional(),
+  resourceName: z.string().optional(),
+  required: z.number().int().nonnegative().optional(),
+  requirementCount: z.number().int().nonnegative().optional(),
+  requirements: z
+    .array(
+      z.object({
+        requirementId: z.string(),
+        className: z.string(),
+        subjectName: z.string(),
+        teacherName: z.string(),
+        weeklySessions: z.number().int().nonnegative(),
+        dailyLimit: z.number().int().positive(),
+        distinctDayMinimum: z.number().int().positive(),
+        compatibleStarts: z.number().int().nonnegative(),
+      }),
+    )
+    .optional(),
 });
 
 export default async function GenerationResultPage({
@@ -202,6 +220,69 @@ export default async function GenerationResultPage({
                     );
                   })}
                 </ul>
+              ) : null}
+              {diagnostic.details.success &&
+              diagnostic.details.data.requirements?.length ? (
+                <div className="mt-3 overflow-x-auto border border-[#e7eae7]">
+                  <table className="w-full min-w-[760px] border-collapse text-left text-xs">
+                    <thead className="bg-[#f8f1ef] font-semibold text-[#66706b]">
+                      <tr>
+                        <th className="border-b border-[#e7eae7] px-3 py-2">
+                          Class
+                        </th>
+                        <th className="border-b border-[#e7eae7] px-3 py-2">
+                          Subject
+                        </th>
+                        <th className="border-b border-[#e7eae7] px-3 py-2">
+                          Teacher
+                        </th>
+                        <th className="border-b border-[#e7eae7] px-3 py-2">
+                          Sessions
+                        </th>
+                        <th className="border-b border-[#e7eae7] px-3 py-2">
+                          Daily limit
+                        </th>
+                        <th className="border-b border-[#e7eae7] px-3 py-2">
+                          Valid starts
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#e7eae7]">
+                      {diagnostic.details.data.requirements.map(
+                        (requirement) => (
+                          <tr key={requirement.requirementId}>
+                            <td className="px-3 py-2">
+                              {requirement.className}
+                            </td>
+                            <td className="px-3 py-2">
+                              {requirement.subjectName}
+                            </td>
+                            <td className="px-3 py-2">
+                              {requirement.teacherName}
+                            </td>
+                            <td className="px-3 py-2">
+                              {requirement.weeklySessions}
+                            </td>
+                            <td className="px-3 py-2">
+                              {requirement.dailyLimit}
+                            </td>
+                            <td className="px-3 py-2">
+                              {requirement.compatibleStarts}
+                            </td>
+                          </tr>
+                        ),
+                      )}
+                    </tbody>
+                  </table>
+                  {diagnostic.details.data.requirementCount &&
+                  diagnostic.details.data.requirementCount >
+                    diagnostic.details.data.requirements.length ? (
+                    <p className="border-t border-[#e7eae7] px-3 py-2 text-xs text-[#66706b]">
+                      Showing {diagnostic.details.data.requirements.length} of{" "}
+                      {diagnostic.details.data.requirementCount} rows.
+                    </p>
+                  ) : null}
+                </div>
               ) : null}
             </div>
           ))}

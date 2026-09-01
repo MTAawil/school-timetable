@@ -86,9 +86,11 @@ Prefer quality first. Alternative 2 and later should differ meaningfully from ea
 Diagnostics run in this order:
 
 1. Deterministic empty-domain and locked-assignment checks.
-2. A separate CP-SAT relaxation that minimizes teacher, class, and room
+2. Deterministic shared-group placement checks and focused CP-SAT packing
+   checks for teacher and class-section demand.
+3. A separate CP-SAT relaxation that minimizes teacher, class, and room
    occupancy overflow.
-3. A stable grouped hard-constraint diagnostic when collision relaxation alone
+4. A stable grouped hard-constraint diagnostic when collision relaxation alone
    cannot isolate the cause.
 
 Diagnostic relaxation is never a valid production schedule. Diagnostic results

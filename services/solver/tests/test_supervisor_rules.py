@@ -144,6 +144,57 @@ def test_solver_prefers_main_subject_before_fifth_session_when_possible() -> Non
     assert response.alternatives[0].assignments[0].period_index < 4
 
 
+def test_infeasible_teacher_packing_diagnostic_names_resource() -> None:
+    payload = supervisor_request(
+        weekly_sessions=2,
+        is_main_subject=False,
+        allow_double_session=False,
+        sessions_per_day=2,
+    ).model_dump(by_alias=True)
+    payload["classSections"].append(
+        {
+            "id": "G8-A",
+            "name": "G8-A",
+            "shortCode": "G8-A",
+            "maxLessonsPerDay": 2,
+        }
+    )
+    payload["requirements"].append(
+        {
+            "id": "G8-A:MATH",
+            "classSectionId": "G8-A",
+            "subjectId": "MATH",
+            "teacherId": "teacher",
+            "weeklySessions": 1,
+            "isMainSubject": False,
+            "allowDoubleSession": False,
+            "fixedSlots": [],
+            "forbiddenSlots": [],
+        }
+    )
+    payload["teachers"][0]["weeklyTeachingSessions"] = 3
+    payload["teachers"][0]["employmentType"] = "PART_TIME"
+    payload["availability"] = [
+        {
+            "entityType": "TEACHER",
+            "entityId": "teacher",
+            "dayIndex": day,
+            "periodIndex": period,
+            "state": "UNAVAILABLE",
+        }
+        for day in range(5)
+        for period in range(2)
+        if (day, period) not in {(0, 0), (1, 0)}
+    ]
+
+    response = solve(SolveRequest.model_validate(payload))
+
+    assert response.status == "INFEASIBLE"
+    assert response.diagnostics[0]["code"] == "TEACHER_PACKING_CONFLICT"
+    assert response.diagnostics[0]["resourceName"] == "Teacher"
+    assert response.diagnostics[0]["required"] == 3
+
+
 def test_optional_main_double_is_adjacent_and_does_not_cross_break() -> None:
     request = supervisor_request()
 
