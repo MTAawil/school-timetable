@@ -10,9 +10,14 @@ import { useMemo, useState } from "react";
 
 import { buttonClass } from "@/components/setup-ui";
 
-type Grade = { id: string; code: string; name: string };
+type ClassSection = {
+  id: string;
+  name: string;
+  shortCode: string;
+  gradeCode: string;
+};
 type Subject = { id: string; name: string; shortCode: string };
-type CellState = CurriculumCell & { gradeId: string; subjectId: string };
+type CellState = CurriculumCell & { classSectionId: string; subjectId: string };
 
 const issueLabels = {
   NON_MAIN_DAILY_CAPACITY_SHORTAGE:
@@ -24,7 +29,7 @@ const issueLabels = {
 } as const;
 
 export function CurriculumMatrix({
-  grades,
+  classSections,
   subjects,
   initialCells,
   workingDayCount,
@@ -32,7 +37,7 @@ export function CurriculumMatrix({
   sessionDurationMinutes,
   action,
 }: {
-  grades: Grade[];
+  classSections: ClassSection[];
   subjects: Subject[];
   initialCells: CellState[];
   workingDayCount: number;
@@ -42,33 +47,36 @@ export function CurriculumMatrix({
 }) {
   const [cells, setCells] = useState(() => {
     return new Map(
-      initialCells.map((cell) => [`${cell.gradeId}:${cell.subjectId}`, cell]),
+      initialCells.map((cell) => [
+        `${cell.classSectionId}:${cell.subjectId}`,
+        cell,
+      ]),
     );
   });
   const validation = useMemo(() => {
     const cellIssues = new Map<string, string>();
-    const gradeTotals = new Map<string, number>();
+    const classTotals = new Map<string, number>();
     for (const [key, cell] of cells) {
       const issue = curriculumCapacityIssue(cell, workingDayCount);
       if (issue) {
         cellIssues.set(key, issueLabels[issue]);
       }
-      gradeTotals.set(
-        cell.gradeId,
-        (gradeTotals.get(cell.gradeId) ?? 0) + cell.weeklySessions,
+      classTotals.set(
+        cell.classSectionId,
+        (classTotals.get(cell.classSectionId) ?? 0) + cell.weeklySessions,
       );
     }
     const capacity = workingDayCount * sessionsPerDay;
-    const gradeIssues = new Set(
-      [...gradeTotals]
+    const classIssues = new Set(
+      [...classTotals]
         .filter(([, total]) => total > capacity)
-        .map(([gradeId]) => gradeId),
+        .map(([classSectionId]) => classSectionId),
     );
     return {
       cellIssues,
-      gradeIssues,
+      classIssues,
       capacity,
-      isValid: cellIssues.size === 0 && gradeIssues.size === 0,
+      isValid: cellIssues.size === 0 && classIssues.size === 0,
     };
   }, [cells, sessionsPerDay, workingDayCount]);
 
@@ -88,19 +96,24 @@ export function CurriculumMatrix({
 
   return (
     <form action={action} className="space-y-6">
-      {grades.map((grade) => {
-        const gradeTotal = [...cells.values()]
-          .filter((cell) => cell.gradeId === grade.id)
+      {classSections.map((classSection) => {
+        const classTotal = [...cells.values()]
+          .filter((cell) => cell.classSectionId === classSection.id)
           .reduce((total, cell) => total + cell.weeklySessions, 0);
-        const overCapacity = validation.gradeIssues.has(grade.id);
+        const overCapacity = validation.classIssues.has(classSection.id);
         return (
-          <section key={grade.id} className="space-y-3">
+          <section key={classSection.id} className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#dce1dc] pb-2">
-              <h3 className="font-semibold">{grade.name}</h3>
+              <h3 className="font-semibold">
+                {classSection.name}
+                <span className="ml-2 text-xs font-normal text-[#66706b]">
+                  {classSection.shortCode}
+                </span>
+              </h3>
               <p
                 className={`text-sm ${overCapacity ? "font-semibold text-[#9d2e25]" : "text-[#66706b]"}`}
               >
-                {gradeTotal} / {validation.capacity} sessions
+                {classTotal} / {validation.capacity} sessions
               </p>
             </div>
             {overCapacity ? (
@@ -128,7 +141,7 @@ export function CurriculumMatrix({
                 </thead>
                 <tbody>
                   {subjects.map((subject) => {
-                    const key = `${grade.id}:${subject.id}`;
+                    const key = `${classSection.id}:${subject.id}`;
                     const cell = cells.get(key)!;
                     const issue = validation.cellIssues.get(key);
                     return (
@@ -167,7 +180,7 @@ export function CurriculumMatrix({
                                 weeklySessions: Number(event.target.value),
                               }))
                             }
-                            aria-label={`${grade.name} ${subject.name} weekly sessions`}
+                            aria-label={`${classSection.name} ${subject.name} weekly sessions`}
                             required
                           />
                         </td>
@@ -192,7 +205,7 @@ export function CurriculumMatrix({
                                   : false,
                               }))
                             }
-                            aria-label={`${grade.name} ${subject.name} main subject`}
+                            aria-label={`${classSection.name} ${subject.name} main subject`}
                           />
                         </td>
                         <td className="px-4 py-3 text-center">
@@ -208,7 +221,7 @@ export function CurriculumMatrix({
                                 allowDoubleSession: event.target.checked,
                               }))
                             }
-                            aria-label={`${grade.name} ${subject.name} optional double`}
+                            aria-label={`${classSection.name} ${subject.name} optional double`}
                           />
                         </td>
                       </tr>

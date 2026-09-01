@@ -116,17 +116,19 @@ export async function saveCurriculumMatrix(formData: FormData): Promise<void> {
   const user = await verifySession();
   const term = await getActiveTerm(user.schoolId);
   const db = getDatabase();
-  const [configuration, grades, subjects] = await Promise.all([
+  const [configuration, classSections, subjects] = await Promise.all([
     db.schoolWeekConfiguration.findFirst({
       where: { schoolId: user.schoolId, termId: term.id },
     }),
-    db.gradeLevel.findMany({
-      where: { schoolId: user.schoolId, isActive: true, deletedAt: null },
-      include: {
-        classSections: {
-          where: { termId: term.id, isActive: true, deletedAt: null },
-        },
+    db.classSection.findMany({
+      where: {
+        schoolId: user.schoolId,
+        termId: term.id,
+        isActive: true,
+        deletedAt: null,
+        gradeLevelId: { not: null },
       },
+      include: { gradeLevel: true },
     }),
     db.subject.findMany({
       where: { schoolId: user.schoolId, isActive: true, deletedAt: null },
@@ -136,9 +138,12 @@ export async function saveCurriculumMatrix(formData: FormData): Promise<void> {
     throw new Error("SCHOOL_WEEK_INCOMPLETE");
   }
 
-  const requested = grades.flatMap((grade) =>
+  const requested = classSections.flatMap((classSection) =>
     subjects.map((subject) => {
-      const key = `${grade.id}:${subject.id}`;
+      if (!classSection.gradeLevelId || !classSection.gradeLevel) {
+        throw new Error("CLASS_SECTION_GRADE_INCOMPLETE");
+      }
+      const key = `${classSection.id}:${subject.id}`;
       const weeklySessions = z
         .number()
         .int()
@@ -153,10 +158,12 @@ export async function saveCurriculumMatrix(formData: FormData): Promise<void> {
         configuration.workingDayCount,
       );
       if (issue) {
-        throw new Error(`${issue}:${grade.code}:${subject.shortCode}`);
+        throw new Error(
+          `${issue}:${classSection.shortCode}:${subject.shortCode}`,
+        );
       }
       return {
-        grade,
+        classSection,
         subject,
         weeklySessions,
         isMainSubject,
@@ -165,52 +172,115 @@ export async function saveCurriculumMatrix(formData: FormData): Promise<void> {
     }),
   );
 
-  for (const grade of grades) {
-    const gradeTotal = requested
-      .filter((item) => item.grade.id === grade.id)
+  for (const classSection of classSections) {
+    const classTotal = requested
+      .filter((item) => item.classSection.id === classSection.id)
       .reduce((total, item) => total + item.weeklySessions, 0);
     const capacity =
       configuration.workingDayCount * configuration.sessionsPerDay;
-    if (gradeTotal > capacity) {
+    if (classTotal > capacity) {
       throw new Error(
-        `CURRICULUM_EXCEEDS_CLASS_CAPACITY:${grade.code}:${String(gradeTotal)}:${String(capacity)}`,
+        `CURRICULUM_EXCEEDS_CLASS_CAPACITY:${classSection.shortCode}:${String(classTotal)}:${String(capacity)}`,
       );
     }
   }
 
   await db.$transaction(async (transaction) => {
+    const templates = new Map<
+      string,
+      {
+        gradeLevelId: string;
+        subjectId: string;
+        weeklySessions: number;
+        isMainSubject: boolean;
+        allowDoubleSession: boolean;
+      }
+    >();
     for (const item of requested) {
+      if (item.weeklySessions === 0) continue;
+      const key = `${item.classSection.gradeLevelId}:${item.subject.id}`;
+      const existing = templates.get(key);
+      templates.set(key, {
+        gradeLevelId: item.classSection.gradeLevelId!,
+        subjectId: item.subject.id,
+        weeklySessions: Math.max(
+          existing?.weeklySessions ?? 0,
+          item.weeklySessions,
+        ),
+        isMainSubject: Boolean(existing?.isMainSubject) || item.isMainSubject,
+        allowDoubleSession:
+          Boolean(existing?.allowDoubleSession) || item.allowDoubleSession,
+      });
+    }
+
+    const templateIds = new Map<string, string>();
+    for (const [key, template] of templates) {
       const where = {
         schoolId_termId_gradeLevelId_subjectId: {
           schoolId: user.schoolId,
           termId: term.id,
-          gradeLevelId: item.grade.id,
-          subjectId: item.subject.id,
+          gradeLevelId: template.gradeLevelId,
+          subjectId: template.subjectId,
         },
       };
-      const existing = await transaction.gradeCurriculum.findUnique({ where });
-
-      if (item.weeklySessions === 0) {
-        if (!existing) {
-          continue;
-        }
-        await transaction.classCurriculum.deleteMany({
-          where: { gradeCurriculumId: existing.id, teacherId: null },
-        });
-        await transaction.classCurriculum.updateMany({
-          where: { gradeCurriculumId: existing.id, teacherId: { not: null } },
-          data: { isActive: false },
-        });
-        await transaction.gradeCurriculum.update({
-          where: { id: existing.id },
-          data: { isActive: false },
-        });
-        continue;
-      }
-
       const gradeCurriculum = await transaction.gradeCurriculum.upsert({
         where,
         update: {
+          weeklySessions: template.weeklySessions,
+          isMainSubject: template.isMainSubject,
+          allowDoubleSession: template.allowDoubleSession,
+          isActive: true,
+        },
+        create: {
+          schoolId: user.schoolId,
+          termId: term.id,
+          gradeLevelId: template.gradeLevelId,
+          subjectId: template.subjectId,
+          weeklySessions: template.weeklySessions,
+          isMainSubject: template.isMainSubject,
+          allowDoubleSession: template.allowDoubleSession,
+        },
+      });
+      templateIds.set(key, gradeCurriculum.id);
+    }
+
+    for (const item of requested) {
+      const where = {
+        schoolId_termId_classSectionId_subjectId: {
+          schoolId: user.schoolId,
+          termId: term.id,
+          classSectionId: item.classSection.id,
+          subjectId: item.subject.id,
+        },
+      };
+      const existing = await transaction.classCurriculum.findUnique({ where });
+
+      if (item.weeklySessions === 0) {
+        if (!existing) continue;
+        if (existing.teacherId) {
+          await transaction.classCurriculum.update({
+            where: { id: existing.id },
+            data: { isActive: false },
+          });
+        } else {
+          await transaction.classCurriculum.delete({
+            where: { id: existing.id },
+          });
+        }
+        continue;
+      }
+
+      const gradeCurriculumId = templateIds.get(
+        `${item.classSection.gradeLevelId}:${item.subject.id}`,
+      );
+      if (!gradeCurriculumId) {
+        throw new Error("GRADE_CURRICULUM_TEMPLATE_MISSING");
+      }
+
+      await transaction.classCurriculum.upsert({
+        where,
+        update: {
+          gradeCurriculumId,
           weeklySessions: item.weeklySessions,
           isMainSubject: item.isMainSubject,
           allowDoubleSession: item.allowDoubleSession,
@@ -219,43 +289,34 @@ export async function saveCurriculumMatrix(formData: FormData): Promise<void> {
         create: {
           schoolId: user.schoolId,
           termId: term.id,
-          gradeLevelId: item.grade.id,
+          classSectionId: item.classSection.id,
+          gradeCurriculumId,
           subjectId: item.subject.id,
           weeklySessions: item.weeklySessions,
           isMainSubject: item.isMainSubject,
           allowDoubleSession: item.allowDoubleSession,
         },
       });
+    }
 
-      for (const classSection of item.grade.classSections) {
-        await transaction.classCurriculum.upsert({
-          where: {
-            schoolId_termId_classSectionId_subjectId: {
-              schoolId: user.schoolId,
-              termId: term.id,
-              classSectionId: classSection.id,
-              subjectId: item.subject.id,
-            },
-          },
-          update: {
-            gradeCurriculumId: gradeCurriculum.id,
-            weeklySessions: item.weeklySessions,
-            isMainSubject: item.isMainSubject,
-            allowDoubleSession: item.allowDoubleSession,
-            isActive: true,
-          },
-          create: {
-            schoolId: user.schoolId,
-            termId: term.id,
-            classSectionId: classSection.id,
-            gradeCurriculumId: gradeCurriculum.id,
-            subjectId: item.subject.id,
-            weeklySessions: item.weeklySessions,
-            isMainSubject: item.isMainSubject,
-            allowDoubleSession: item.allowDoubleSession,
-          },
-        });
-      }
+    const submittedGradeSubjectKeys = new Set(
+      requested.map(
+        (item) => `${item.classSection.gradeLevelId}:${item.subject.id}`,
+      ),
+    );
+    for (const key of submittedGradeSubjectKeys) {
+      if (templateIds.has(key)) continue;
+      const [gradeLevelId, subjectId] = key.split(":");
+      if (!gradeLevelId || !subjectId) continue;
+      await transaction.gradeCurriculum.updateMany({
+        where: {
+          schoolId: user.schoolId,
+          termId: term.id,
+          gradeLevelId,
+          subjectId,
+        },
+        data: { isActive: false },
+      });
     }
   });
 

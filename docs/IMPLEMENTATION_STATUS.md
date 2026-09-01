@@ -16,6 +16,17 @@ progress.
   45 curriculum rows, and 8 generation jobs before removing the temporary
   database.
 
+### 2026-09-01 - Al Massar class-level curriculum correction
+
+- Excel-derived Al Massar data showed that sections inside the same grade can
+  have different weekly curriculum sessions.
+- Update the supervisor curriculum workflow so `ClassCurriculum` is the editable
+  source of truth after sections are created.
+- Keep `GradeCurriculum` as a grade-subject template/default row only; do not
+  weaken readiness or solver constraints.
+- Adapt the Al Massar seed to populate the normal class-level curriculum and
+  teacher allocation flow before rerunning generation.
+
 ## Decisions
 
 - Build a single-school MVP before adding any multi-school or billing behavior.

@@ -25,26 +25,41 @@ export default async function SubjectsPage({
   const user = await verifySession();
   const term = await getActiveTerm(user.schoolId);
   const db = getDatabase();
-  const [configuration, grades, subjects, curriculum] = await Promise.all([
-    db.schoolWeekConfiguration.findFirst({
-      where: { schoolId: user.schoolId, termId: term.id },
-    }),
-    db.gradeLevel.findMany({
-      where: { schoolId: user.schoolId, isActive: true, deletedAt: null },
-      orderBy: { displayOrder: "asc" },
-    }),
-    db.subject.findMany({
-      where: { schoolId: user.schoolId, deletedAt: null },
-      orderBy: [{ isActive: "desc" }, { name: "asc" }],
-    }),
-    db.gradeCurriculum.findMany({
-      where: { schoolId: user.schoolId, termId: term.id, isActive: true },
-    }),
-  ]);
+  const [configuration, classSections, subjects, curriculum] =
+    await Promise.all([
+      db.schoolWeekConfiguration.findFirst({
+        where: { schoolId: user.schoolId, termId: term.id },
+      }),
+      db.classSection.findMany({
+        where: {
+          schoolId: user.schoolId,
+          termId: term.id,
+          isActive: true,
+          deletedAt: null,
+          gradeLevelId: { not: null },
+        },
+        include: { gradeLevel: true },
+        orderBy: [
+          { gradeLevel: { displayOrder: "asc" } },
+          { sectionLabel: "asc" },
+          { shortCode: "asc" },
+        ],
+      }),
+      db.subject.findMany({
+        where: { schoolId: user.schoolId, deletedAt: null },
+        orderBy: [{ isActive: "desc" }, { name: "asc" }],
+      }),
+      db.classCurriculum.findMany({
+        where: { schoolId: user.schoolId, termId: term.id, isActive: true },
+      }),
+    ]);
   const params = await searchParams;
   const activeSubjects = subjects.filter((subject) => subject.isActive);
   const curriculumByCell = new Map(
-    curriculum.map((item) => [`${item.gradeLevelId}:${item.subjectId}`, item]),
+    curriculum.map((item) => [
+      `${item.classSectionId}:${item.subjectId}`,
+      item,
+    ]),
   );
   const installedCodes = new Set(subjects.map((subject) => subject.shortCode));
   const missingStarterCount = starterSubjects.filter(
@@ -55,7 +70,7 @@ export default async function SubjectsPage({
     <div className="space-y-8">
       <PageHeading
         title="Subjects and curriculum"
-        description={`Define what every grade studies during ${term.name}.`}
+        description={`Define what every class studies during ${term.name}.`}
       />
 
       {params.saved ? (
@@ -65,7 +80,7 @@ export default async function SubjectsPage({
         >
           <Check aria-hidden="true" size={17} />
           {params.saved === "curriculum"
-            ? "Curriculum saved and copied to every active class."
+            ? "Class curriculum saved."
             : "Subject catalogue saved."}
         </div>
       ) : null}
@@ -209,9 +224,9 @@ export default async function SubjectsPage({
           <p className="border border-[#e0c78f] bg-[#fff9e9] px-4 py-3 text-sm text-[#6e5314]">
             Save the school week before entering curriculum.
           </p>
-        ) : grades.length === 0 ? (
+        ) : classSections.length === 0 ? (
           <p className="border border-[#e0c78f] bg-[#fff9e9] px-4 py-3 text-sm text-[#6e5314]">
-            Add at least one grade section in School Setup.
+            Add at least one class section in School Setup.
           </p>
         ) : activeSubjects.length === 0 ? (
           <p className="border border-[#e0c78f] bg-[#fff9e9] px-4 py-3 text-sm text-[#6e5314]">
@@ -219,22 +234,36 @@ export default async function SubjectsPage({
           </p>
         ) : (
           <CurriculumMatrix
-            grades={grades.map(({ id, code, name }) => ({ id, code, name }))}
+            classSections={classSections.flatMap((classSection) =>
+              classSection.gradeLevel
+                ? [
+                    {
+                      id: classSection.id,
+                      name: classSection.sectionName,
+                      shortCode: classSection.shortCode,
+                      gradeCode: classSection.gradeLevel.code,
+                    },
+                  ]
+                : [],
+            )}
             subjects={activeSubjects.map(({ id, name, shortCode }) => ({
               id,
               name,
               shortCode,
             }))}
-            initialCells={grades.flatMap((grade) =>
+            initialCells={classSections.flatMap((classSection) =>
               activeSubjects.map((subject) => {
                 const existing = curriculumByCell.get(
-                  `${grade.id}:${subject.id}`,
+                  `${classSection.id}:${subject.id}`,
                 );
                 const isMainSubject =
                   existing?.isMainSubject ??
-                  defaultMainSubject(grade.code, subject.shortCode);
+                  defaultMainSubject(
+                    classSection.gradeLevel?.code ?? "",
+                    subject.shortCode,
+                  );
                 return {
-                  gradeId: grade.id,
+                  classSectionId: classSection.id,
                   subjectId: subject.id,
                   weeklySessions: existing?.weeklySessions ?? 0,
                   isMainSubject,
@@ -251,7 +280,7 @@ export default async function SubjectsPage({
         )}
       </section>
       <WorkflowNextAction
-        description="Continue after every active grade has its weekly subject sessions."
+        description="Continue after every active class has its weekly subject sessions."
         href="/teachers"
         label="Continue to teachers"
       />

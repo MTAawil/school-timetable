@@ -144,7 +144,7 @@ label remain stable.
 
 ### GradeCurriculum
 
-One curriculum template row per grade-subject:
+One curriculum template/default row per grade-subject:
 
 - id
 - schoolId
@@ -166,7 +166,7 @@ Required uniqueness:
 
 ### ClassCurriculum
 
-Materialized curriculum ownership for one active section:
+Editable curriculum ownership for one active section:
 
 - id
 - schoolId
@@ -187,9 +187,12 @@ Required uniqueness:
 - `(schoolId, termId, classSectionId, subjectId)`
 
 This entity replaces the setup meaning of `TeachingRequirement`. It is created
-or synchronized from `GradeCurriculum` for every section. The teacher remains
-nullable until allocation is complete, but readiness and solver snapshot
-creation require exactly one teacher.
+for every active class-section and subject combination that the supervisor
+enters. `GradeCurriculum` remains a template/default row used to group
+class-section curriculum by grade, but individual sections may differ in
+weekly sessions, main-subject status, and double-session eligibility. The
+teacher remains nullable until allocation is complete, but readiness and solver
+snapshot creation require exactly one teacher.
 
 Curriculum totals are not duplicated in a separate teacher-allocation table.
 Assigning `teacherId` to `ClassCurriculum` expresses the one-teacher ownership
