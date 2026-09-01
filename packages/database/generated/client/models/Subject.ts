@@ -292,6 +292,7 @@ export type SubjectWhereInput = {
   requirements?: Prisma.TeachingRequirementListRelationFilter
   gradeCurricula?: Prisma.GradeCurriculumListRelationFilter
   classCurricula?: Prisma.ClassCurriculumListRelationFilter
+  sharedTeachingGroups?: Prisma.SharedTeachingGroupListRelationFilter
 }
 
 export type SubjectOrderByWithRelationInput = {
@@ -313,6 +314,7 @@ export type SubjectOrderByWithRelationInput = {
   requirements?: Prisma.TeachingRequirementOrderByRelationAggregateInput
   gradeCurricula?: Prisma.GradeCurriculumOrderByRelationAggregateInput
   classCurricula?: Prisma.ClassCurriculumOrderByRelationAggregateInput
+  sharedTeachingGroups?: Prisma.SharedTeachingGroupOrderByRelationAggregateInput
 }
 
 export type SubjectWhereUniqueInput = Prisma.AtLeast<{
@@ -339,6 +341,7 @@ export type SubjectWhereUniqueInput = Prisma.AtLeast<{
   requirements?: Prisma.TeachingRequirementListRelationFilter
   gradeCurricula?: Prisma.GradeCurriculumListRelationFilter
   classCurricula?: Prisma.ClassCurriculumListRelationFilter
+  sharedTeachingGroups?: Prisma.SharedTeachingGroupListRelationFilter
 }, "id" | "schoolId_shortCode" | "id_schoolId">
 
 export type SubjectOrderByWithAggregationInput = {
@@ -401,6 +404,7 @@ export type SubjectCreateInput = {
   requirements?: Prisma.TeachingRequirementCreateNestedManyWithoutSubjectInput
   gradeCurricula?: Prisma.GradeCurriculumCreateNestedManyWithoutSubjectInput
   classCurricula?: Prisma.ClassCurriculumCreateNestedManyWithoutSubjectInput
+  sharedTeachingGroups?: Prisma.SharedTeachingGroupCreateNestedManyWithoutSubjectInput
 }
 
 export type SubjectUncheckedCreateInput = {
@@ -421,6 +425,7 @@ export type SubjectUncheckedCreateInput = {
   requirements?: Prisma.TeachingRequirementUncheckedCreateNestedManyWithoutSubjectInput
   gradeCurricula?: Prisma.GradeCurriculumUncheckedCreateNestedManyWithoutSubjectInput
   classCurricula?: Prisma.ClassCurriculumUncheckedCreateNestedManyWithoutSubjectInput
+  sharedTeachingGroups?: Prisma.SharedTeachingGroupUncheckedCreateNestedManyWithoutSubjectInput
 }
 
 export type SubjectUpdateInput = {
@@ -441,6 +446,7 @@ export type SubjectUpdateInput = {
   requirements?: Prisma.TeachingRequirementUpdateManyWithoutSubjectNestedInput
   gradeCurricula?: Prisma.GradeCurriculumUpdateManyWithoutSubjectNestedInput
   classCurricula?: Prisma.ClassCurriculumUpdateManyWithoutSubjectNestedInput
+  sharedTeachingGroups?: Prisma.SharedTeachingGroupUpdateManyWithoutSubjectNestedInput
 }
 
 export type SubjectUncheckedUpdateInput = {
@@ -461,6 +467,7 @@ export type SubjectUncheckedUpdateInput = {
   requirements?: Prisma.TeachingRequirementUncheckedUpdateManyWithoutSubjectNestedInput
   gradeCurricula?: Prisma.GradeCurriculumUncheckedUpdateManyWithoutSubjectNestedInput
   classCurricula?: Prisma.ClassCurriculumUncheckedUpdateManyWithoutSubjectNestedInput
+  sharedTeachingGroups?: Prisma.SharedTeachingGroupUncheckedUpdateManyWithoutSubjectNestedInput
 }
 
 export type SubjectCreateManyInput = {
@@ -675,6 +682,20 @@ export type SubjectUpdateOneRequiredWithoutClassCurriculaNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.SubjectUpdateToOneWithWhereWithoutClassCurriculaInput, Prisma.SubjectUpdateWithoutClassCurriculaInput>, Prisma.SubjectUncheckedUpdateWithoutClassCurriculaInput>
 }
 
+export type SubjectCreateNestedOneWithoutSharedTeachingGroupsInput = {
+  create?: Prisma.XOR<Prisma.SubjectCreateWithoutSharedTeachingGroupsInput, Prisma.SubjectUncheckedCreateWithoutSharedTeachingGroupsInput>
+  connectOrCreate?: Prisma.SubjectCreateOrConnectWithoutSharedTeachingGroupsInput
+  connect?: Prisma.SubjectWhereUniqueInput
+}
+
+export type SubjectUpdateOneRequiredWithoutSharedTeachingGroupsNestedInput = {
+  create?: Prisma.XOR<Prisma.SubjectCreateWithoutSharedTeachingGroupsInput, Prisma.SubjectUncheckedCreateWithoutSharedTeachingGroupsInput>
+  connectOrCreate?: Prisma.SubjectCreateOrConnectWithoutSharedTeachingGroupsInput
+  upsert?: Prisma.SubjectUpsertWithoutSharedTeachingGroupsInput
+  connect?: Prisma.SubjectWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SubjectUpdateToOneWithWhereWithoutSharedTeachingGroupsInput, Prisma.SubjectUpdateWithoutSharedTeachingGroupsInput>, Prisma.SubjectUncheckedUpdateWithoutSharedTeachingGroupsInput>
+}
+
 export type SubjectCreateNestedOneWithoutRequirementsInput = {
   create?: Prisma.XOR<Prisma.SubjectCreateWithoutRequirementsInput, Prisma.SubjectUncheckedCreateWithoutRequirementsInput>
   connectOrCreate?: Prisma.SubjectCreateOrConnectWithoutRequirementsInput
@@ -706,6 +727,7 @@ export type SubjectCreateWithoutSchoolInput = {
   requirements?: Prisma.TeachingRequirementCreateNestedManyWithoutSubjectInput
   gradeCurricula?: Prisma.GradeCurriculumCreateNestedManyWithoutSubjectInput
   classCurricula?: Prisma.ClassCurriculumCreateNestedManyWithoutSubjectInput
+  sharedTeachingGroups?: Prisma.SharedTeachingGroupCreateNestedManyWithoutSubjectInput
 }
 
 export type SubjectUncheckedCreateWithoutSchoolInput = {
@@ -725,6 +747,7 @@ export type SubjectUncheckedCreateWithoutSchoolInput = {
   requirements?: Prisma.TeachingRequirementUncheckedCreateNestedManyWithoutSubjectInput
   gradeCurricula?: Prisma.GradeCurriculumUncheckedCreateNestedManyWithoutSubjectInput
   classCurricula?: Prisma.ClassCurriculumUncheckedCreateNestedManyWithoutSubjectInput
+  sharedTeachingGroups?: Prisma.SharedTeachingGroupUncheckedCreateNestedManyWithoutSubjectInput
 }
 
 export type SubjectCreateOrConnectWithoutSchoolInput = {
@@ -790,6 +813,7 @@ export type SubjectCreateWithoutGradeCurriculaInput = {
   school: Prisma.SchoolCreateNestedOneWithoutSubjectsInput
   requirements?: Prisma.TeachingRequirementCreateNestedManyWithoutSubjectInput
   classCurricula?: Prisma.ClassCurriculumCreateNestedManyWithoutSubjectInput
+  sharedTeachingGroups?: Prisma.SharedTeachingGroupCreateNestedManyWithoutSubjectInput
 }
 
 export type SubjectUncheckedCreateWithoutGradeCurriculaInput = {
@@ -809,6 +833,7 @@ export type SubjectUncheckedCreateWithoutGradeCurriculaInput = {
   deletedAt?: Date | string | null
   requirements?: Prisma.TeachingRequirementUncheckedCreateNestedManyWithoutSubjectInput
   classCurricula?: Prisma.ClassCurriculumUncheckedCreateNestedManyWithoutSubjectInput
+  sharedTeachingGroups?: Prisma.SharedTeachingGroupUncheckedCreateNestedManyWithoutSubjectInput
 }
 
 export type SubjectCreateOrConnectWithoutGradeCurriculaInput = {
@@ -844,6 +869,7 @@ export type SubjectUpdateWithoutGradeCurriculaInput = {
   school?: Prisma.SchoolUpdateOneRequiredWithoutSubjectsNestedInput
   requirements?: Prisma.TeachingRequirementUpdateManyWithoutSubjectNestedInput
   classCurricula?: Prisma.ClassCurriculumUpdateManyWithoutSubjectNestedInput
+  sharedTeachingGroups?: Prisma.SharedTeachingGroupUpdateManyWithoutSubjectNestedInput
 }
 
 export type SubjectUncheckedUpdateWithoutGradeCurriculaInput = {
@@ -863,6 +889,7 @@ export type SubjectUncheckedUpdateWithoutGradeCurriculaInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   requirements?: Prisma.TeachingRequirementUncheckedUpdateManyWithoutSubjectNestedInput
   classCurricula?: Prisma.ClassCurriculumUncheckedUpdateManyWithoutSubjectNestedInput
+  sharedTeachingGroups?: Prisma.SharedTeachingGroupUncheckedUpdateManyWithoutSubjectNestedInput
 }
 
 export type SubjectCreateWithoutClassCurriculaInput = {
@@ -882,6 +909,7 @@ export type SubjectCreateWithoutClassCurriculaInput = {
   school: Prisma.SchoolCreateNestedOneWithoutSubjectsInput
   requirements?: Prisma.TeachingRequirementCreateNestedManyWithoutSubjectInput
   gradeCurricula?: Prisma.GradeCurriculumCreateNestedManyWithoutSubjectInput
+  sharedTeachingGroups?: Prisma.SharedTeachingGroupCreateNestedManyWithoutSubjectInput
 }
 
 export type SubjectUncheckedCreateWithoutClassCurriculaInput = {
@@ -901,6 +929,7 @@ export type SubjectUncheckedCreateWithoutClassCurriculaInput = {
   deletedAt?: Date | string | null
   requirements?: Prisma.TeachingRequirementUncheckedCreateNestedManyWithoutSubjectInput
   gradeCurricula?: Prisma.GradeCurriculumUncheckedCreateNestedManyWithoutSubjectInput
+  sharedTeachingGroups?: Prisma.SharedTeachingGroupUncheckedCreateNestedManyWithoutSubjectInput
 }
 
 export type SubjectCreateOrConnectWithoutClassCurriculaInput = {
@@ -936,6 +965,7 @@ export type SubjectUpdateWithoutClassCurriculaInput = {
   school?: Prisma.SchoolUpdateOneRequiredWithoutSubjectsNestedInput
   requirements?: Prisma.TeachingRequirementUpdateManyWithoutSubjectNestedInput
   gradeCurricula?: Prisma.GradeCurriculumUpdateManyWithoutSubjectNestedInput
+  sharedTeachingGroups?: Prisma.SharedTeachingGroupUpdateManyWithoutSubjectNestedInput
 }
 
 export type SubjectUncheckedUpdateWithoutClassCurriculaInput = {
@@ -955,6 +985,103 @@ export type SubjectUncheckedUpdateWithoutClassCurriculaInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   requirements?: Prisma.TeachingRequirementUncheckedUpdateManyWithoutSubjectNestedInput
   gradeCurricula?: Prisma.GradeCurriculumUncheckedUpdateManyWithoutSubjectNestedInput
+  sharedTeachingGroups?: Prisma.SharedTeachingGroupUncheckedUpdateManyWithoutSubjectNestedInput
+}
+
+export type SubjectCreateWithoutSharedTeachingGroupsInput = {
+  id?: string
+  name: string
+  shortCode: string
+  category?: string | null
+  preferredTimeBand?: $Enums.PreferredTimeBand
+  defaultRoomType?: $Enums.RoomType | null
+  defaultMaxSessionsPerDay?: number | null
+  consecutivePeriodsAllowed?: boolean
+  consecutivePeriodsPreferred?: boolean
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  school: Prisma.SchoolCreateNestedOneWithoutSubjectsInput
+  requirements?: Prisma.TeachingRequirementCreateNestedManyWithoutSubjectInput
+  gradeCurricula?: Prisma.GradeCurriculumCreateNestedManyWithoutSubjectInput
+  classCurricula?: Prisma.ClassCurriculumCreateNestedManyWithoutSubjectInput
+}
+
+export type SubjectUncheckedCreateWithoutSharedTeachingGroupsInput = {
+  id?: string
+  schoolId: string
+  name: string
+  shortCode: string
+  category?: string | null
+  preferredTimeBand?: $Enums.PreferredTimeBand
+  defaultRoomType?: $Enums.RoomType | null
+  defaultMaxSessionsPerDay?: number | null
+  consecutivePeriodsAllowed?: boolean
+  consecutivePeriodsPreferred?: boolean
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  requirements?: Prisma.TeachingRequirementUncheckedCreateNestedManyWithoutSubjectInput
+  gradeCurricula?: Prisma.GradeCurriculumUncheckedCreateNestedManyWithoutSubjectInput
+  classCurricula?: Prisma.ClassCurriculumUncheckedCreateNestedManyWithoutSubjectInput
+}
+
+export type SubjectCreateOrConnectWithoutSharedTeachingGroupsInput = {
+  where: Prisma.SubjectWhereUniqueInput
+  create: Prisma.XOR<Prisma.SubjectCreateWithoutSharedTeachingGroupsInput, Prisma.SubjectUncheckedCreateWithoutSharedTeachingGroupsInput>
+}
+
+export type SubjectUpsertWithoutSharedTeachingGroupsInput = {
+  update: Prisma.XOR<Prisma.SubjectUpdateWithoutSharedTeachingGroupsInput, Prisma.SubjectUncheckedUpdateWithoutSharedTeachingGroupsInput>
+  create: Prisma.XOR<Prisma.SubjectCreateWithoutSharedTeachingGroupsInput, Prisma.SubjectUncheckedCreateWithoutSharedTeachingGroupsInput>
+  where?: Prisma.SubjectWhereInput
+}
+
+export type SubjectUpdateToOneWithWhereWithoutSharedTeachingGroupsInput = {
+  where?: Prisma.SubjectWhereInput
+  data: Prisma.XOR<Prisma.SubjectUpdateWithoutSharedTeachingGroupsInput, Prisma.SubjectUncheckedUpdateWithoutSharedTeachingGroupsInput>
+}
+
+export type SubjectUpdateWithoutSharedTeachingGroupsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  shortCode?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  preferredTimeBand?: Prisma.EnumPreferredTimeBandFieldUpdateOperationsInput | $Enums.PreferredTimeBand
+  defaultRoomType?: Prisma.NullableEnumRoomTypeFieldUpdateOperationsInput | $Enums.RoomType | null
+  defaultMaxSessionsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  consecutivePeriodsAllowed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  consecutivePeriodsPreferred?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  school?: Prisma.SchoolUpdateOneRequiredWithoutSubjectsNestedInput
+  requirements?: Prisma.TeachingRequirementUpdateManyWithoutSubjectNestedInput
+  gradeCurricula?: Prisma.GradeCurriculumUpdateManyWithoutSubjectNestedInput
+  classCurricula?: Prisma.ClassCurriculumUpdateManyWithoutSubjectNestedInput
+}
+
+export type SubjectUncheckedUpdateWithoutSharedTeachingGroupsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  schoolId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  shortCode?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  preferredTimeBand?: Prisma.EnumPreferredTimeBandFieldUpdateOperationsInput | $Enums.PreferredTimeBand
+  defaultRoomType?: Prisma.NullableEnumRoomTypeFieldUpdateOperationsInput | $Enums.RoomType | null
+  defaultMaxSessionsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  consecutivePeriodsAllowed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  consecutivePeriodsPreferred?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  requirements?: Prisma.TeachingRequirementUncheckedUpdateManyWithoutSubjectNestedInput
+  gradeCurricula?: Prisma.GradeCurriculumUncheckedUpdateManyWithoutSubjectNestedInput
+  classCurricula?: Prisma.ClassCurriculumUncheckedUpdateManyWithoutSubjectNestedInput
 }
 
 export type SubjectCreateWithoutRequirementsInput = {
@@ -974,6 +1101,7 @@ export type SubjectCreateWithoutRequirementsInput = {
   school: Prisma.SchoolCreateNestedOneWithoutSubjectsInput
   gradeCurricula?: Prisma.GradeCurriculumCreateNestedManyWithoutSubjectInput
   classCurricula?: Prisma.ClassCurriculumCreateNestedManyWithoutSubjectInput
+  sharedTeachingGroups?: Prisma.SharedTeachingGroupCreateNestedManyWithoutSubjectInput
 }
 
 export type SubjectUncheckedCreateWithoutRequirementsInput = {
@@ -993,6 +1121,7 @@ export type SubjectUncheckedCreateWithoutRequirementsInput = {
   deletedAt?: Date | string | null
   gradeCurricula?: Prisma.GradeCurriculumUncheckedCreateNestedManyWithoutSubjectInput
   classCurricula?: Prisma.ClassCurriculumUncheckedCreateNestedManyWithoutSubjectInput
+  sharedTeachingGroups?: Prisma.SharedTeachingGroupUncheckedCreateNestedManyWithoutSubjectInput
 }
 
 export type SubjectCreateOrConnectWithoutRequirementsInput = {
@@ -1028,6 +1157,7 @@ export type SubjectUpdateWithoutRequirementsInput = {
   school?: Prisma.SchoolUpdateOneRequiredWithoutSubjectsNestedInput
   gradeCurricula?: Prisma.GradeCurriculumUpdateManyWithoutSubjectNestedInput
   classCurricula?: Prisma.ClassCurriculumUpdateManyWithoutSubjectNestedInput
+  sharedTeachingGroups?: Prisma.SharedTeachingGroupUpdateManyWithoutSubjectNestedInput
 }
 
 export type SubjectUncheckedUpdateWithoutRequirementsInput = {
@@ -1047,6 +1177,7 @@ export type SubjectUncheckedUpdateWithoutRequirementsInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   gradeCurricula?: Prisma.GradeCurriculumUncheckedUpdateManyWithoutSubjectNestedInput
   classCurricula?: Prisma.ClassCurriculumUncheckedUpdateManyWithoutSubjectNestedInput
+  sharedTeachingGroups?: Prisma.SharedTeachingGroupUncheckedUpdateManyWithoutSubjectNestedInput
 }
 
 export type SubjectCreateManySchoolInput = {
@@ -1082,6 +1213,7 @@ export type SubjectUpdateWithoutSchoolInput = {
   requirements?: Prisma.TeachingRequirementUpdateManyWithoutSubjectNestedInput
   gradeCurricula?: Prisma.GradeCurriculumUpdateManyWithoutSubjectNestedInput
   classCurricula?: Prisma.ClassCurriculumUpdateManyWithoutSubjectNestedInput
+  sharedTeachingGroups?: Prisma.SharedTeachingGroupUpdateManyWithoutSubjectNestedInput
 }
 
 export type SubjectUncheckedUpdateWithoutSchoolInput = {
@@ -1101,6 +1233,7 @@ export type SubjectUncheckedUpdateWithoutSchoolInput = {
   requirements?: Prisma.TeachingRequirementUncheckedUpdateManyWithoutSubjectNestedInput
   gradeCurricula?: Prisma.GradeCurriculumUncheckedUpdateManyWithoutSubjectNestedInput
   classCurricula?: Prisma.ClassCurriculumUncheckedUpdateManyWithoutSubjectNestedInput
+  sharedTeachingGroups?: Prisma.SharedTeachingGroupUncheckedUpdateManyWithoutSubjectNestedInput
 }
 
 export type SubjectUncheckedUpdateManyWithoutSchoolInput = {
@@ -1128,12 +1261,14 @@ export type SubjectCountOutputType = {
   requirements: number
   gradeCurricula: number
   classCurricula: number
+  sharedTeachingGroups: number
 }
 
 export type SubjectCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   requirements?: boolean | SubjectCountOutputTypeCountRequirementsArgs
   gradeCurricula?: boolean | SubjectCountOutputTypeCountGradeCurriculaArgs
   classCurricula?: boolean | SubjectCountOutputTypeCountClassCurriculaArgs
+  sharedTeachingGroups?: boolean | SubjectCountOutputTypeCountSharedTeachingGroupsArgs
 }
 
 /**
@@ -1167,6 +1302,13 @@ export type SubjectCountOutputTypeCountClassCurriculaArgs<ExtArgs extends runtim
   where?: Prisma.ClassCurriculumWhereInput
 }
 
+/**
+ * SubjectCountOutputType without action
+ */
+export type SubjectCountOutputTypeCountSharedTeachingGroupsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SharedTeachingGroupWhereInput
+}
+
 
 export type SubjectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1187,6 +1329,7 @@ export type SubjectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   requirements?: boolean | Prisma.Subject$requirementsArgs<ExtArgs>
   gradeCurricula?: boolean | Prisma.Subject$gradeCurriculaArgs<ExtArgs>
   classCurricula?: boolean | Prisma.Subject$classCurriculaArgs<ExtArgs>
+  sharedTeachingGroups?: boolean | Prisma.Subject$sharedTeachingGroupsArgs<ExtArgs>
   _count?: boolean | Prisma.SubjectCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["subject"]>
 
@@ -1249,6 +1392,7 @@ export type SubjectInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   requirements?: boolean | Prisma.Subject$requirementsArgs<ExtArgs>
   gradeCurricula?: boolean | Prisma.Subject$gradeCurriculaArgs<ExtArgs>
   classCurricula?: boolean | Prisma.Subject$classCurriculaArgs<ExtArgs>
+  sharedTeachingGroups?: boolean | Prisma.Subject$sharedTeachingGroupsArgs<ExtArgs>
   _count?: boolean | Prisma.SubjectCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type SubjectIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1265,6 +1409,7 @@ export type $SubjectPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     requirements: Prisma.$TeachingRequirementPayload<ExtArgs>[]
     gradeCurricula: Prisma.$GradeCurriculumPayload<ExtArgs>[]
     classCurricula: Prisma.$ClassCurriculumPayload<ExtArgs>[]
+    sharedTeachingGroups: Prisma.$SharedTeachingGroupPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1679,6 +1824,7 @@ export interface Prisma__SubjectClient<T, Null = never, ExtArgs extends runtime.
   requirements<T extends Prisma.Subject$requirementsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Subject$requirementsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TeachingRequirementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   gradeCurricula<T extends Prisma.Subject$gradeCurriculaArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Subject$gradeCurriculaArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GradeCurriculumPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   classCurricula<T extends Prisma.Subject$classCurriculaArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Subject$classCurriculaArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClassCurriculumPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  sharedTeachingGroups<T extends Prisma.Subject$sharedTeachingGroupsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Subject$sharedTeachingGroupsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SharedTeachingGroupPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2192,6 +2338,30 @@ export type Subject$classCurriculaArgs<ExtArgs extends runtime.Types.Extensions.
   take?: number
   skip?: number
   distinct?: Prisma.ClassCurriculumScalarFieldEnum | Prisma.ClassCurriculumScalarFieldEnum[]
+}
+
+/**
+ * Subject.sharedTeachingGroups
+ */
+export type Subject$sharedTeachingGroupsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SharedTeachingGroup
+   */
+  select?: Prisma.SharedTeachingGroupSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SharedTeachingGroup
+   */
+  omit?: Prisma.SharedTeachingGroupOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SharedTeachingGroupInclude<ExtArgs> | null
+  where?: Prisma.SharedTeachingGroupWhereInput
+  orderBy?: Prisma.SharedTeachingGroupOrderByWithRelationInput | Prisma.SharedTeachingGroupOrderByWithRelationInput[]
+  cursor?: Prisma.SharedTeachingGroupWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SharedTeachingGroupScalarFieldEnum | Prisma.SharedTeachingGroupScalarFieldEnum[]
 }
 
 /**

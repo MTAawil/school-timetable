@@ -1,7 +1,7 @@
 import { getDatabase } from "@school-timetable/database";
 import { Save } from "lucide-react";
 
-import { saveClassSection } from "@/app/(protected)/setup/actions";
+import { saveClassRecess, saveClassSection } from "@/app/(protected)/setup/actions";
 import { EntityTable } from "@/components/entity-table";
 import {
   PageHeading,
@@ -16,7 +16,7 @@ export default async function ClassesPage() {
   const user = await verifySession();
   const term = await getActiveTerm(user.schoolId);
   const db = getDatabase();
-  const [classes, teachers, rooms] = await Promise.all([
+  const [classes, teachers, rooms, week] = await Promise.all([
     db.classSection.findMany({
       where: { schoolId: user.schoolId, termId: term.id, deletedAt: null },
       include: { homeroomTeacher: true, fixedRoom: true },
@@ -29,6 +29,9 @@ export default async function ClassesPage() {
     db.room.findMany({
       where: { schoolId: user.schoolId, deletedAt: null },
       orderBy: { name: "asc" },
+    }),
+    db.schoolWeekConfiguration.findFirst({
+      where: { schoolId: user.schoolId, termId: term.id },
     }),
   ]);
   return (
@@ -89,6 +92,26 @@ export default async function ClassesPage() {
               placeholder="Max lessons/day"
               type="number"
             />
+            <select
+              className={inputClass}
+              defaultValue=""
+              name="recessAfterSession"
+              title="Class recess"
+            >
+              <option value="">
+                Default recess{week ? ` (after ${week.breakAfterSession})` : ""}
+              </option>
+              {week
+                ? Array.from(
+                    { length: Math.max(0, week.sessionsPerDay - 1) },
+                    (_, index) => index + 1,
+                  ).map((session) => (
+                    <option key={session} value={session}>
+                      Recess after session {session}
+                    </option>
+                  ))
+                : null}
+            </select>
             <button className={`${buttonClass} shrink-0`}>
               <Save size={16} className="mr-2" />
               Save
@@ -97,15 +120,58 @@ export default async function ClassesPage() {
         </form>
       </section>
       <EntityTable
-        headers={["Class", "Code", "Homeroom teacher", "Room"]}
+        headers={["Class", "Code", "Recess", "Homeroom teacher", "Room"]}
         emptyMessage="No classes yet."
         rows={classes.map((item) => [
           `Grade ${item.grade} - ${item.sectionName}`,
           item.shortCode,
+          item.recessAfterSession
+            ? `After session ${item.recessAfterSession}`
+            : week
+              ? `Default (after ${week.breakAfterSession})`
+              : "Default",
           item.homeroomTeacher?.name ?? "Not assigned",
           item.fixedRoom?.name ?? "Not assigned",
         ])}
       />
+      <section className="space-y-3" aria-labelledby="class-recess-heading">
+        <SectionHeading>Class recess overrides</SectionHeading>
+        <div className="space-y-2">
+          {classes.map((item) => (
+            <form
+              action={saveClassRecess}
+              className="flex flex-wrap items-center gap-3 border border-[#dce1dc] bg-white p-3 text-sm"
+              key={item.id}
+            >
+              <input name="classSectionId" type="hidden" value={item.id} />
+              <span className="min-w-40 font-medium">{item.shortCode}</span>
+              <select
+                className={`${inputClass} max-w-xs`}
+                defaultValue={item.recessAfterSession?.toString() ?? ""}
+                name="recessAfterSession"
+              >
+                <option value="">
+                  Default recess{week ? ` (after ${week.breakAfterSession})` : ""}
+                </option>
+                {week
+                  ? Array.from(
+                      { length: Math.max(0, week.sessionsPerDay - 1) },
+                      (_, index) => index + 1,
+                    ).map((session) => (
+                      <option key={session} value={session}>
+                        After session {session}
+                      </option>
+                    ))
+                  : null}
+              </select>
+              <button className={buttonClass} type="submit">
+                <Save aria-hidden="true" className="mr-2" size={16} />
+                Save recess
+              </button>
+            </form>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

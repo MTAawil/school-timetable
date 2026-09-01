@@ -1,5 +1,13 @@
 # Implementation Status
 
+## Feature in progress: shared teaching and class recess
+
+- [x] Add a normalized shared-teaching group for same-subject, same-weekly-session class curriculum rows.
+- [x] Add an optional per-class recess position with the school-week break as its default.
+- [x] Expose both options in the existing class and teacher setup workflows.
+- [x] Carry both rules into the immutable solver snapshot and enforce them as hard constraints.
+- [x] Add focused database, application, and solver tests; a separate seed fixture was not needed.
+
 ## Current phase
 
 Stable single-school MVP complete on `main`. Supervisor workflow redesign R7 is

@@ -7,6 +7,7 @@ export type CurriculumOwnershipInput = {
   classCurriculumId: string;
   teacherId: string | null;
   weeklySessions: number;
+  sharedTeachingGroupId?: string | null;
 };
 
 export type TeacherWorkloadSummary = {
@@ -37,9 +38,16 @@ export function summarizeTeacherWorkloads(
   curriculum: CurriculumOwnershipInput[],
 ): TeacherWorkloadSummary[] {
   return teachers.map((teacher) => {
+    const countedSharedGroups = new Set<string>();
     const allocatedWeeklySessions = curriculum
       .filter((item) => item.teacherId === teacher.teacherId)
-      .reduce((total, item) => total + item.weeklySessions, 0);
+      .reduce((total, item) => {
+        if (item.sharedTeachingGroupId) {
+          if (countedSharedGroups.has(item.sharedTeachingGroupId)) return total;
+          countedSharedGroups.add(item.sharedTeachingGroupId);
+        }
+        return total + item.weeklySessions;
+      }, 0);
     const difference = teacher.declaredWeeklySessions - allocatedWeeklySessions;
     return {
       teacherId: teacher.teacherId,
@@ -64,9 +72,11 @@ export function validateTeacherWorkflowAllocation(
   selectedCurriculumIds: string[],
   curriculum: CurriculumOwnershipInput[],
   confirmedReassignmentIds: string[] = [],
+  sharedCurriculumIds: string[] = [],
 ): TeacherWorkflowAllocationResult {
   const selectedIdSet = new Set(selectedCurriculumIds);
   const confirmedIdSet = new Set(confirmedReassignmentIds);
+  const sharedIdSet = new Set(sharedCurriculumIds);
   if (
     selectedIdSet.size !== selectedCurriculumIds.length ||
     confirmedIdSet.size !== confirmedReassignmentIds.length ||
@@ -102,7 +112,7 @@ export function validateTeacherWorkflowAllocation(
         allocatedWeeklySessions,
       };
     }
-    allocatedWeeklySessions += item.weeklySessions;
+    if (!sharedIdSet.has(id)) allocatedWeeklySessions += item.weeklySessions;
   }
   if (allocatedWeeklySessions !== declaredWeeklySessions) {
     return {

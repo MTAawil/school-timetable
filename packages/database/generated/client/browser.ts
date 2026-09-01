@@ -6,7 +6,7 @@
 /*
  * This file should be your main import to use Prisma-related types and utilities in a browser. 
  * Use it to get access to models, enums, and input types.
- *
+ * 
  * This file does not contain a `PrismaClient` class, nor several other helpers that are intended as server-side only.
  * See `client.ts` for the standard, server-side entry point.
  *
@@ -19,22 +19,22 @@ export * as $Enums from './enums'
 export * from './enums';
 /**
  * Model School
- *
+ * 
  */
 export type School = Prisma.SchoolModel
 /**
  * Model User
- *
+ * 
  */
 export type User = Prisma.UserModel
 /**
  * Model AcademicTerm
- *
+ * 
  */
 export type AcademicTerm = Prisma.AcademicTermModel
 /**
  * Model DayDefinition
- *
+ * 
  */
 export type DayDefinition = Prisma.DayDefinitionModel
 /**
@@ -69,24 +69,29 @@ export type Room = Prisma.RoomModel
 export type ClassSection = Prisma.ClassSectionModel
 /**
  * Model GradeLevel
- *
+ * 
  */
 export type GradeLevel = Prisma.GradeLevelModel
 /**
  * Model SchoolWeekConfiguration
- *
+ * 
  */
 export type SchoolWeekConfiguration = Prisma.SchoolWeekConfigurationModel
 /**
  * Model GradeCurriculum
- *
+ * 
  */
 export type GradeCurriculum = Prisma.GradeCurriculumModel
 /**
  * Model ClassCurriculum
- *
+ * 
  */
 export type ClassCurriculum = Prisma.ClassCurriculumModel
+/**
+ * Model SharedTeachingGroup
+ * 
+ */
+export type SharedTeachingGroup = Prisma.SharedTeachingGroupModel
 /**
  * Model AvailabilityRule
  * 

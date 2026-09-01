@@ -49,6 +49,7 @@ export type TeachingRequirementMinAggregateOutputType = {
   classSectionId: string | null
   subjectId: string | null
   teacherId: string | null
+  sharedTeachingGroupId: string | null
   weeklyOccurrences: number | null
   durationPeriods: number | null
   minOccurrencesPerDay: number | null
@@ -71,6 +72,7 @@ export type TeachingRequirementMaxAggregateOutputType = {
   classSectionId: string | null
   subjectId: string | null
   teacherId: string | null
+  sharedTeachingGroupId: string | null
   weeklyOccurrences: number | null
   durationPeriods: number | null
   minOccurrencesPerDay: number | null
@@ -93,6 +95,7 @@ export type TeachingRequirementCountAggregateOutputType = {
   classSectionId: number
   subjectId: number
   teacherId: number
+  sharedTeachingGroupId: number
   weeklyOccurrences: number
   durationPeriods: number
   minOccurrencesPerDay: number
@@ -133,6 +136,7 @@ export type TeachingRequirementMinAggregateInputType = {
   classSectionId?: true
   subjectId?: true
   teacherId?: true
+  sharedTeachingGroupId?: true
   weeklyOccurrences?: true
   durationPeriods?: true
   minOccurrencesPerDay?: true
@@ -155,6 +159,7 @@ export type TeachingRequirementMaxAggregateInputType = {
   classSectionId?: true
   subjectId?: true
   teacherId?: true
+  sharedTeachingGroupId?: true
   weeklyOccurrences?: true
   durationPeriods?: true
   minOccurrencesPerDay?: true
@@ -177,6 +182,7 @@ export type TeachingRequirementCountAggregateInputType = {
   classSectionId?: true
   subjectId?: true
   teacherId?: true
+  sharedTeachingGroupId?: true
   weeklyOccurrences?: true
   durationPeriods?: true
   minOccurrencesPerDay?: true
@@ -286,6 +292,7 @@ export type TeachingRequirementGroupByOutputType = {
   classSectionId: string
   subjectId: string
   teacherId: string
+  sharedTeachingGroupId: string | null
   weeklyOccurrences: number
   durationPeriods: number
   minOccurrencesPerDay: number
@@ -331,6 +338,7 @@ export type TeachingRequirementWhereInput = {
   classSectionId?: Prisma.UuidFilter<"TeachingRequirement"> | string
   subjectId?: Prisma.UuidFilter<"TeachingRequirement"> | string
   teacherId?: Prisma.UuidFilter<"TeachingRequirement"> | string
+  sharedTeachingGroupId?: Prisma.UuidNullableFilter<"TeachingRequirement"> | string | null
   weeklyOccurrences?: Prisma.IntFilter<"TeachingRequirement"> | number
   durationPeriods?: Prisma.IntFilter<"TeachingRequirement"> | number
   minOccurrencesPerDay?: Prisma.IntFilter<"TeachingRequirement"> | number
@@ -349,6 +357,7 @@ export type TeachingRequirementWhereInput = {
   classSection?: Prisma.XOR<Prisma.ClassSectionScalarRelationFilter, Prisma.ClassSectionWhereInput>
   subject?: Prisma.XOR<Prisma.SubjectScalarRelationFilter, Prisma.SubjectWhereInput>
   teacher?: Prisma.XOR<Prisma.TeacherScalarRelationFilter, Prisma.TeacherWhereInput>
+  sharedTeachingGroup?: Prisma.XOR<Prisma.SharedTeachingGroupNullableScalarRelationFilter, Prisma.SharedTeachingGroupWhereInput> | null
   requiredRoom?: Prisma.XOR<Prisma.RoomNullableScalarRelationFilter, Prisma.RoomWhereInput> | null
   fixedSlots?: Prisma.RequirementFixedSlotListRelationFilter
   forbiddenSlots?: Prisma.RequirementForbiddenSlotListRelationFilter
@@ -362,6 +371,7 @@ export type TeachingRequirementOrderByWithRelationInput = {
   classSectionId?: Prisma.SortOrder
   subjectId?: Prisma.SortOrder
   teacherId?: Prisma.SortOrder
+  sharedTeachingGroupId?: Prisma.SortOrderInput | Prisma.SortOrder
   weeklyOccurrences?: Prisma.SortOrder
   durationPeriods?: Prisma.SortOrder
   minOccurrencesPerDay?: Prisma.SortOrder
@@ -380,6 +390,7 @@ export type TeachingRequirementOrderByWithRelationInput = {
   classSection?: Prisma.ClassSectionOrderByWithRelationInput
   subject?: Prisma.SubjectOrderByWithRelationInput
   teacher?: Prisma.TeacherOrderByWithRelationInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupOrderByWithRelationInput
   requiredRoom?: Prisma.RoomOrderByWithRelationInput
   fixedSlots?: Prisma.RequirementFixedSlotOrderByRelationAggregateInput
   forbiddenSlots?: Prisma.RequirementForbiddenSlotOrderByRelationAggregateInput
@@ -396,6 +407,7 @@ export type TeachingRequirementWhereUniqueInput = Prisma.AtLeast<{
   classSectionId?: Prisma.UuidFilter<"TeachingRequirement"> | string
   subjectId?: Prisma.UuidFilter<"TeachingRequirement"> | string
   teacherId?: Prisma.UuidFilter<"TeachingRequirement"> | string
+  sharedTeachingGroupId?: Prisma.UuidNullableFilter<"TeachingRequirement"> | string | null
   weeklyOccurrences?: Prisma.IntFilter<"TeachingRequirement"> | number
   durationPeriods?: Prisma.IntFilter<"TeachingRequirement"> | number
   minOccurrencesPerDay?: Prisma.IntFilter<"TeachingRequirement"> | number
@@ -414,6 +426,7 @@ export type TeachingRequirementWhereUniqueInput = Prisma.AtLeast<{
   classSection?: Prisma.XOR<Prisma.ClassSectionScalarRelationFilter, Prisma.ClassSectionWhereInput>
   subject?: Prisma.XOR<Prisma.SubjectScalarRelationFilter, Prisma.SubjectWhereInput>
   teacher?: Prisma.XOR<Prisma.TeacherScalarRelationFilter, Prisma.TeacherWhereInput>
+  sharedTeachingGroup?: Prisma.XOR<Prisma.SharedTeachingGroupNullableScalarRelationFilter, Prisma.SharedTeachingGroupWhereInput> | null
   requiredRoom?: Prisma.XOR<Prisma.RoomNullableScalarRelationFilter, Prisma.RoomWhereInput> | null
   fixedSlots?: Prisma.RequirementFixedSlotListRelationFilter
   forbiddenSlots?: Prisma.RequirementForbiddenSlotListRelationFilter
@@ -427,6 +440,7 @@ export type TeachingRequirementOrderByWithAggregationInput = {
   classSectionId?: Prisma.SortOrder
   subjectId?: Prisma.SortOrder
   teacherId?: Prisma.SortOrder
+  sharedTeachingGroupId?: Prisma.SortOrderInput | Prisma.SortOrder
   weeklyOccurrences?: Prisma.SortOrder
   durationPeriods?: Prisma.SortOrder
   minOccurrencesPerDay?: Prisma.SortOrder
@@ -457,6 +471,7 @@ export type TeachingRequirementScalarWhereWithAggregatesInput = {
   classSectionId?: Prisma.UuidWithAggregatesFilter<"TeachingRequirement"> | string
   subjectId?: Prisma.UuidWithAggregatesFilter<"TeachingRequirement"> | string
   teacherId?: Prisma.UuidWithAggregatesFilter<"TeachingRequirement"> | string
+  sharedTeachingGroupId?: Prisma.UuidNullableWithAggregatesFilter<"TeachingRequirement"> | string | null
   weeklyOccurrences?: Prisma.IntWithAggregatesFilter<"TeachingRequirement"> | number
   durationPeriods?: Prisma.IntWithAggregatesFilter<"TeachingRequirement"> | number
   minOccurrencesPerDay?: Prisma.IntWithAggregatesFilter<"TeachingRequirement"> | number
@@ -491,6 +506,7 @@ export type TeachingRequirementCreateInput = {
   classSection: Prisma.ClassSectionCreateNestedOneWithoutRequirementsInput
   subject: Prisma.SubjectCreateNestedOneWithoutRequirementsInput
   teacher: Prisma.TeacherCreateNestedOneWithoutRequirementsInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupCreateNestedOneWithoutRequirementsInput
   requiredRoom?: Prisma.RoomCreateNestedOneWithoutRequirementsInput
   fixedSlots?: Prisma.RequirementFixedSlotCreateNestedManyWithoutRequirementInput
   forbiddenSlots?: Prisma.RequirementForbiddenSlotCreateNestedManyWithoutRequirementInput
@@ -504,6 +520,7 @@ export type TeachingRequirementUncheckedCreateInput = {
   classSectionId: string
   subjectId: string
   teacherId: string
+  sharedTeachingGroupId?: string | null
   weeklyOccurrences: number
   durationPeriods?: number
   minOccurrencesPerDay?: number
@@ -541,6 +558,7 @@ export type TeachingRequirementUpdateInput = {
   classSection?: Prisma.ClassSectionUpdateOneRequiredWithoutRequirementsNestedInput
   subject?: Prisma.SubjectUpdateOneRequiredWithoutRequirementsNestedInput
   teacher?: Prisma.TeacherUpdateOneRequiredWithoutRequirementsNestedInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupUpdateOneWithoutRequirementsNestedInput
   requiredRoom?: Prisma.RoomUpdateOneWithoutRequirementsNestedInput
   fixedSlots?: Prisma.RequirementFixedSlotUpdateManyWithoutRequirementNestedInput
   forbiddenSlots?: Prisma.RequirementForbiddenSlotUpdateManyWithoutRequirementNestedInput
@@ -554,6 +572,7 @@ export type TeachingRequirementUncheckedUpdateInput = {
   classSectionId?: Prisma.StringFieldUpdateOperationsInput | string
   subjectId?: Prisma.StringFieldUpdateOperationsInput | string
   teacherId?: Prisma.StringFieldUpdateOperationsInput | string
+  sharedTeachingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   weeklyOccurrences?: Prisma.IntFieldUpdateOperationsInput | number
   durationPeriods?: Prisma.IntFieldUpdateOperationsInput | number
   minOccurrencesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
@@ -579,6 +598,7 @@ export type TeachingRequirementCreateManyInput = {
   classSectionId: string
   subjectId: string
   teacherId: string
+  sharedTeachingGroupId?: string | null
   weeklyOccurrences: number
   durationPeriods?: number
   minOccurrencesPerDay?: number
@@ -617,6 +637,7 @@ export type TeachingRequirementUncheckedUpdateManyInput = {
   classSectionId?: Prisma.StringFieldUpdateOperationsInput | string
   subjectId?: Prisma.StringFieldUpdateOperationsInput | string
   teacherId?: Prisma.StringFieldUpdateOperationsInput | string
+  sharedTeachingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   weeklyOccurrences?: Prisma.IntFieldUpdateOperationsInput | number
   durationPeriods?: Prisma.IntFieldUpdateOperationsInput | number
   minOccurrencesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
@@ -649,6 +670,7 @@ export type TeachingRequirementCountOrderByAggregateInput = {
   classSectionId?: Prisma.SortOrder
   subjectId?: Prisma.SortOrder
   teacherId?: Prisma.SortOrder
+  sharedTeachingGroupId?: Prisma.SortOrder
   weeklyOccurrences?: Prisma.SortOrder
   durationPeriods?: Prisma.SortOrder
   minOccurrencesPerDay?: Prisma.SortOrder
@@ -679,6 +701,7 @@ export type TeachingRequirementMaxOrderByAggregateInput = {
   classSectionId?: Prisma.SortOrder
   subjectId?: Prisma.SortOrder
   teacherId?: Prisma.SortOrder
+  sharedTeachingGroupId?: Prisma.SortOrder
   weeklyOccurrences?: Prisma.SortOrder
   durationPeriods?: Prisma.SortOrder
   minOccurrencesPerDay?: Prisma.SortOrder
@@ -701,6 +724,7 @@ export type TeachingRequirementMinOrderByAggregateInput = {
   classSectionId?: Prisma.SortOrder
   subjectId?: Prisma.SortOrder
   teacherId?: Prisma.SortOrder
+  sharedTeachingGroupId?: Prisma.SortOrder
   weeklyOccurrences?: Prisma.SortOrder
   durationPeriods?: Prisma.SortOrder
   minOccurrencesPerDay?: Prisma.SortOrder
@@ -981,6 +1005,48 @@ export type TeachingRequirementUncheckedUpdateManyWithoutClassSectionNestedInput
   deleteMany?: Prisma.TeachingRequirementScalarWhereInput | Prisma.TeachingRequirementScalarWhereInput[]
 }
 
+export type TeachingRequirementCreateNestedManyWithoutSharedTeachingGroupInput = {
+  create?: Prisma.XOR<Prisma.TeachingRequirementCreateWithoutSharedTeachingGroupInput, Prisma.TeachingRequirementUncheckedCreateWithoutSharedTeachingGroupInput> | Prisma.TeachingRequirementCreateWithoutSharedTeachingGroupInput[] | Prisma.TeachingRequirementUncheckedCreateWithoutSharedTeachingGroupInput[]
+  connectOrCreate?: Prisma.TeachingRequirementCreateOrConnectWithoutSharedTeachingGroupInput | Prisma.TeachingRequirementCreateOrConnectWithoutSharedTeachingGroupInput[]
+  createMany?: Prisma.TeachingRequirementCreateManySharedTeachingGroupInputEnvelope
+  connect?: Prisma.TeachingRequirementWhereUniqueInput | Prisma.TeachingRequirementWhereUniqueInput[]
+}
+
+export type TeachingRequirementUncheckedCreateNestedManyWithoutSharedTeachingGroupInput = {
+  create?: Prisma.XOR<Prisma.TeachingRequirementCreateWithoutSharedTeachingGroupInput, Prisma.TeachingRequirementUncheckedCreateWithoutSharedTeachingGroupInput> | Prisma.TeachingRequirementCreateWithoutSharedTeachingGroupInput[] | Prisma.TeachingRequirementUncheckedCreateWithoutSharedTeachingGroupInput[]
+  connectOrCreate?: Prisma.TeachingRequirementCreateOrConnectWithoutSharedTeachingGroupInput | Prisma.TeachingRequirementCreateOrConnectWithoutSharedTeachingGroupInput[]
+  createMany?: Prisma.TeachingRequirementCreateManySharedTeachingGroupInputEnvelope
+  connect?: Prisma.TeachingRequirementWhereUniqueInput | Prisma.TeachingRequirementWhereUniqueInput[]
+}
+
+export type TeachingRequirementUpdateManyWithoutSharedTeachingGroupNestedInput = {
+  create?: Prisma.XOR<Prisma.TeachingRequirementCreateWithoutSharedTeachingGroupInput, Prisma.TeachingRequirementUncheckedCreateWithoutSharedTeachingGroupInput> | Prisma.TeachingRequirementCreateWithoutSharedTeachingGroupInput[] | Prisma.TeachingRequirementUncheckedCreateWithoutSharedTeachingGroupInput[]
+  connectOrCreate?: Prisma.TeachingRequirementCreateOrConnectWithoutSharedTeachingGroupInput | Prisma.TeachingRequirementCreateOrConnectWithoutSharedTeachingGroupInput[]
+  upsert?: Prisma.TeachingRequirementUpsertWithWhereUniqueWithoutSharedTeachingGroupInput | Prisma.TeachingRequirementUpsertWithWhereUniqueWithoutSharedTeachingGroupInput[]
+  createMany?: Prisma.TeachingRequirementCreateManySharedTeachingGroupInputEnvelope
+  set?: Prisma.TeachingRequirementWhereUniqueInput | Prisma.TeachingRequirementWhereUniqueInput[]
+  disconnect?: Prisma.TeachingRequirementWhereUniqueInput | Prisma.TeachingRequirementWhereUniqueInput[]
+  delete?: Prisma.TeachingRequirementWhereUniqueInput | Prisma.TeachingRequirementWhereUniqueInput[]
+  connect?: Prisma.TeachingRequirementWhereUniqueInput | Prisma.TeachingRequirementWhereUniqueInput[]
+  update?: Prisma.TeachingRequirementUpdateWithWhereUniqueWithoutSharedTeachingGroupInput | Prisma.TeachingRequirementUpdateWithWhereUniqueWithoutSharedTeachingGroupInput[]
+  updateMany?: Prisma.TeachingRequirementUpdateManyWithWhereWithoutSharedTeachingGroupInput | Prisma.TeachingRequirementUpdateManyWithWhereWithoutSharedTeachingGroupInput[]
+  deleteMany?: Prisma.TeachingRequirementScalarWhereInput | Prisma.TeachingRequirementScalarWhereInput[]
+}
+
+export type TeachingRequirementUncheckedUpdateManyWithoutSharedTeachingGroupNestedInput = {
+  create?: Prisma.XOR<Prisma.TeachingRequirementCreateWithoutSharedTeachingGroupInput, Prisma.TeachingRequirementUncheckedCreateWithoutSharedTeachingGroupInput> | Prisma.TeachingRequirementCreateWithoutSharedTeachingGroupInput[] | Prisma.TeachingRequirementUncheckedCreateWithoutSharedTeachingGroupInput[]
+  connectOrCreate?: Prisma.TeachingRequirementCreateOrConnectWithoutSharedTeachingGroupInput | Prisma.TeachingRequirementCreateOrConnectWithoutSharedTeachingGroupInput[]
+  upsert?: Prisma.TeachingRequirementUpsertWithWhereUniqueWithoutSharedTeachingGroupInput | Prisma.TeachingRequirementUpsertWithWhereUniqueWithoutSharedTeachingGroupInput[]
+  createMany?: Prisma.TeachingRequirementCreateManySharedTeachingGroupInputEnvelope
+  set?: Prisma.TeachingRequirementWhereUniqueInput | Prisma.TeachingRequirementWhereUniqueInput[]
+  disconnect?: Prisma.TeachingRequirementWhereUniqueInput | Prisma.TeachingRequirementWhereUniqueInput[]
+  delete?: Prisma.TeachingRequirementWhereUniqueInput | Prisma.TeachingRequirementWhereUniqueInput[]
+  connect?: Prisma.TeachingRequirementWhereUniqueInput | Prisma.TeachingRequirementWhereUniqueInput[]
+  update?: Prisma.TeachingRequirementUpdateWithWhereUniqueWithoutSharedTeachingGroupInput | Prisma.TeachingRequirementUpdateWithWhereUniqueWithoutSharedTeachingGroupInput[]
+  updateMany?: Prisma.TeachingRequirementUpdateManyWithWhereWithoutSharedTeachingGroupInput | Prisma.TeachingRequirementUpdateManyWithWhereWithoutSharedTeachingGroupInput[]
+  deleteMany?: Prisma.TeachingRequirementScalarWhereInput | Prisma.TeachingRequirementScalarWhereInput[]
+}
+
 export type TeachingRequirementCreateNestedOneWithoutFixedSlotsInput = {
   create?: Prisma.XOR<Prisma.TeachingRequirementCreateWithoutFixedSlotsInput, Prisma.TeachingRequirementUncheckedCreateWithoutFixedSlotsInput>
   connectOrCreate?: Prisma.TeachingRequirementCreateOrConnectWithoutFixedSlotsInput
@@ -1041,6 +1107,7 @@ export type TeachingRequirementCreateWithoutSchoolInput = {
   classSection: Prisma.ClassSectionCreateNestedOneWithoutRequirementsInput
   subject: Prisma.SubjectCreateNestedOneWithoutRequirementsInput
   teacher: Prisma.TeacherCreateNestedOneWithoutRequirementsInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupCreateNestedOneWithoutRequirementsInput
   requiredRoom?: Prisma.RoomCreateNestedOneWithoutRequirementsInput
   fixedSlots?: Prisma.RequirementFixedSlotCreateNestedManyWithoutRequirementInput
   forbiddenSlots?: Prisma.RequirementForbiddenSlotCreateNestedManyWithoutRequirementInput
@@ -1053,6 +1120,7 @@ export type TeachingRequirementUncheckedCreateWithoutSchoolInput = {
   classSectionId: string
   subjectId: string
   teacherId: string
+  sharedTeachingGroupId?: string | null
   weeklyOccurrences: number
   durationPeriods?: number
   minOccurrencesPerDay?: number
@@ -1107,6 +1175,7 @@ export type TeachingRequirementScalarWhereInput = {
   classSectionId?: Prisma.UuidFilter<"TeachingRequirement"> | string
   subjectId?: Prisma.UuidFilter<"TeachingRequirement"> | string
   teacherId?: Prisma.UuidFilter<"TeachingRequirement"> | string
+  sharedTeachingGroupId?: Prisma.UuidNullableFilter<"TeachingRequirement"> | string | null
   weeklyOccurrences?: Prisma.IntFilter<"TeachingRequirement"> | number
   durationPeriods?: Prisma.IntFilter<"TeachingRequirement"> | number
   minOccurrencesPerDay?: Prisma.IntFilter<"TeachingRequirement"> | number
@@ -1140,6 +1209,7 @@ export type TeachingRequirementCreateWithoutTermInput = {
   classSection: Prisma.ClassSectionCreateNestedOneWithoutRequirementsInput
   subject: Prisma.SubjectCreateNestedOneWithoutRequirementsInput
   teacher: Prisma.TeacherCreateNestedOneWithoutRequirementsInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupCreateNestedOneWithoutRequirementsInput
   requiredRoom?: Prisma.RoomCreateNestedOneWithoutRequirementsInput
   fixedSlots?: Prisma.RequirementFixedSlotCreateNestedManyWithoutRequirementInput
   forbiddenSlots?: Prisma.RequirementForbiddenSlotCreateNestedManyWithoutRequirementInput
@@ -1151,6 +1221,7 @@ export type TeachingRequirementUncheckedCreateWithoutTermInput = {
   classSectionId: string
   subjectId: string
   teacherId: string
+  sharedTeachingGroupId?: string | null
   weeklyOccurrences: number
   durationPeriods?: number
   minOccurrencesPerDay?: number
@@ -1213,6 +1284,7 @@ export type TeachingRequirementCreateWithoutTeacherInput = {
   term: Prisma.AcademicTermCreateNestedOneWithoutRequirementsInput
   classSection: Prisma.ClassSectionCreateNestedOneWithoutRequirementsInput
   subject: Prisma.SubjectCreateNestedOneWithoutRequirementsInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupCreateNestedOneWithoutRequirementsInput
   requiredRoom?: Prisma.RoomCreateNestedOneWithoutRequirementsInput
   fixedSlots?: Prisma.RequirementFixedSlotCreateNestedManyWithoutRequirementInput
   forbiddenSlots?: Prisma.RequirementForbiddenSlotCreateNestedManyWithoutRequirementInput
@@ -1224,6 +1296,7 @@ export type TeachingRequirementUncheckedCreateWithoutTeacherInput = {
   termId: string
   classSectionId: string
   subjectId: string
+  sharedTeachingGroupId?: string | null
   weeklyOccurrences: number
   durationPeriods?: number
   minOccurrencesPerDay?: number
@@ -1286,6 +1359,7 @@ export type TeachingRequirementCreateWithoutSubjectInput = {
   term: Prisma.AcademicTermCreateNestedOneWithoutRequirementsInput
   classSection: Prisma.ClassSectionCreateNestedOneWithoutRequirementsInput
   teacher: Prisma.TeacherCreateNestedOneWithoutRequirementsInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupCreateNestedOneWithoutRequirementsInput
   requiredRoom?: Prisma.RoomCreateNestedOneWithoutRequirementsInput
   fixedSlots?: Prisma.RequirementFixedSlotCreateNestedManyWithoutRequirementInput
   forbiddenSlots?: Prisma.RequirementForbiddenSlotCreateNestedManyWithoutRequirementInput
@@ -1297,6 +1371,7 @@ export type TeachingRequirementUncheckedCreateWithoutSubjectInput = {
   termId: string
   classSectionId: string
   teacherId: string
+  sharedTeachingGroupId?: string | null
   weeklyOccurrences: number
   durationPeriods?: number
   minOccurrencesPerDay?: number
@@ -1360,6 +1435,7 @@ export type TeachingRequirementCreateWithoutRequiredRoomInput = {
   classSection: Prisma.ClassSectionCreateNestedOneWithoutRequirementsInput
   subject: Prisma.SubjectCreateNestedOneWithoutRequirementsInput
   teacher: Prisma.TeacherCreateNestedOneWithoutRequirementsInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupCreateNestedOneWithoutRequirementsInput
   fixedSlots?: Prisma.RequirementFixedSlotCreateNestedManyWithoutRequirementInput
   forbiddenSlots?: Prisma.RequirementForbiddenSlotCreateNestedManyWithoutRequirementInput
   assignments?: Prisma.ScheduleAssignmentCreateNestedManyWithoutTeachingRequirementInput
@@ -1371,6 +1447,7 @@ export type TeachingRequirementUncheckedCreateWithoutRequiredRoomInput = {
   classSectionId: string
   subjectId: string
   teacherId: string
+  sharedTeachingGroupId?: string | null
   weeklyOccurrences: number
   durationPeriods?: number
   minOccurrencesPerDay?: number
@@ -1432,6 +1509,7 @@ export type TeachingRequirementCreateWithoutClassSectionInput = {
   term: Prisma.AcademicTermCreateNestedOneWithoutRequirementsInput
   subject: Prisma.SubjectCreateNestedOneWithoutRequirementsInput
   teacher: Prisma.TeacherCreateNestedOneWithoutRequirementsInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupCreateNestedOneWithoutRequirementsInput
   requiredRoom?: Prisma.RoomCreateNestedOneWithoutRequirementsInput
   fixedSlots?: Prisma.RequirementFixedSlotCreateNestedManyWithoutRequirementInput
   forbiddenSlots?: Prisma.RequirementForbiddenSlotCreateNestedManyWithoutRequirementInput
@@ -1442,6 +1520,7 @@ export type TeachingRequirementUncheckedCreateWithoutClassSectionInput = {
   id?: string
   subjectId: string
   teacherId: string
+  sharedTeachingGroupId?: string | null
   weeklyOccurrences: number
   durationPeriods?: number
   minOccurrencesPerDay?: number
@@ -1486,7 +1565,7 @@ export type TeachingRequirementUpdateManyWithWhereWithoutClassSectionInput = {
   data: Prisma.XOR<Prisma.TeachingRequirementUpdateManyMutationInput, Prisma.TeachingRequirementUncheckedUpdateManyWithoutClassSectionInput>
 }
 
-export type TeachingRequirementCreateWithoutFixedSlotsInput = {
+export type TeachingRequirementCreateWithoutSharedTeachingGroupInput = {
   id?: string
   weeklyOccurrences: number
   durationPeriods?: number
@@ -1506,6 +1585,83 @@ export type TeachingRequirementCreateWithoutFixedSlotsInput = {
   subject: Prisma.SubjectCreateNestedOneWithoutRequirementsInput
   teacher: Prisma.TeacherCreateNestedOneWithoutRequirementsInput
   requiredRoom?: Prisma.RoomCreateNestedOneWithoutRequirementsInput
+  fixedSlots?: Prisma.RequirementFixedSlotCreateNestedManyWithoutRequirementInput
+  forbiddenSlots?: Prisma.RequirementForbiddenSlotCreateNestedManyWithoutRequirementInput
+  assignments?: Prisma.ScheduleAssignmentCreateNestedManyWithoutTeachingRequirementInput
+}
+
+export type TeachingRequirementUncheckedCreateWithoutSharedTeachingGroupInput = {
+  id?: string
+  schoolId: string
+  termId: string
+  classSectionId: string
+  subjectId: string
+  teacherId: string
+  weeklyOccurrences: number
+  durationPeriods?: number
+  minOccurrencesPerDay?: number
+  maxOccurrencesPerDay?: number
+  minimumDistinctDays?: number
+  allowMultipleOccurrencesSameDay?: boolean
+  requiredRoomId?: string | null
+  requiredRoomType?: $Enums.RoomType | null
+  isActive?: boolean
+  notes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  fixedSlots?: Prisma.RequirementFixedSlotUncheckedCreateNestedManyWithoutRequirementInput
+  forbiddenSlots?: Prisma.RequirementForbiddenSlotUncheckedCreateNestedManyWithoutRequirementInput
+  assignments?: Prisma.ScheduleAssignmentUncheckedCreateNestedManyWithoutTeachingRequirementInput
+}
+
+export type TeachingRequirementCreateOrConnectWithoutSharedTeachingGroupInput = {
+  where: Prisma.TeachingRequirementWhereUniqueInput
+  create: Prisma.XOR<Prisma.TeachingRequirementCreateWithoutSharedTeachingGroupInput, Prisma.TeachingRequirementUncheckedCreateWithoutSharedTeachingGroupInput>
+}
+
+export type TeachingRequirementCreateManySharedTeachingGroupInputEnvelope = {
+  data: Prisma.TeachingRequirementCreateManySharedTeachingGroupInput | Prisma.TeachingRequirementCreateManySharedTeachingGroupInput[]
+  skipDuplicates?: boolean
+}
+
+export type TeachingRequirementUpsertWithWhereUniqueWithoutSharedTeachingGroupInput = {
+  where: Prisma.TeachingRequirementWhereUniqueInput
+  update: Prisma.XOR<Prisma.TeachingRequirementUpdateWithoutSharedTeachingGroupInput, Prisma.TeachingRequirementUncheckedUpdateWithoutSharedTeachingGroupInput>
+  create: Prisma.XOR<Prisma.TeachingRequirementCreateWithoutSharedTeachingGroupInput, Prisma.TeachingRequirementUncheckedCreateWithoutSharedTeachingGroupInput>
+}
+
+export type TeachingRequirementUpdateWithWhereUniqueWithoutSharedTeachingGroupInput = {
+  where: Prisma.TeachingRequirementWhereUniqueInput
+  data: Prisma.XOR<Prisma.TeachingRequirementUpdateWithoutSharedTeachingGroupInput, Prisma.TeachingRequirementUncheckedUpdateWithoutSharedTeachingGroupInput>
+}
+
+export type TeachingRequirementUpdateManyWithWhereWithoutSharedTeachingGroupInput = {
+  where: Prisma.TeachingRequirementScalarWhereInput
+  data: Prisma.XOR<Prisma.TeachingRequirementUpdateManyMutationInput, Prisma.TeachingRequirementUncheckedUpdateManyWithoutSharedTeachingGroupInput>
+}
+
+export type TeachingRequirementCreateWithoutFixedSlotsInput = {
+  id?: string
+  weeklyOccurrences: number
+  durationPeriods?: number
+  minOccurrencesPerDay?: number
+  maxOccurrencesPerDay?: number
+  minimumDistinctDays?: number
+  allowMultipleOccurrencesSameDay?: boolean
+  requiredRoomType?: $Enums.RoomType | null
+  isActive?: boolean
+  notes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  school: Prisma.SchoolCreateNestedOneWithoutRequirementsInput
+  term: Prisma.AcademicTermCreateNestedOneWithoutRequirementsInput
+  classSection: Prisma.ClassSectionCreateNestedOneWithoutRequirementsInput
+  subject: Prisma.SubjectCreateNestedOneWithoutRequirementsInput
+  teacher: Prisma.TeacherCreateNestedOneWithoutRequirementsInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupCreateNestedOneWithoutRequirementsInput
+  requiredRoom?: Prisma.RoomCreateNestedOneWithoutRequirementsInput
   forbiddenSlots?: Prisma.RequirementForbiddenSlotCreateNestedManyWithoutRequirementInput
   assignments?: Prisma.ScheduleAssignmentCreateNestedManyWithoutTeachingRequirementInput
 }
@@ -1517,6 +1673,7 @@ export type TeachingRequirementUncheckedCreateWithoutFixedSlotsInput = {
   classSectionId: string
   subjectId: string
   teacherId: string
+  sharedTeachingGroupId?: string | null
   weeklyOccurrences: number
   durationPeriods?: number
   minOccurrencesPerDay?: number
@@ -1569,6 +1726,7 @@ export type TeachingRequirementUpdateWithoutFixedSlotsInput = {
   classSection?: Prisma.ClassSectionUpdateOneRequiredWithoutRequirementsNestedInput
   subject?: Prisma.SubjectUpdateOneRequiredWithoutRequirementsNestedInput
   teacher?: Prisma.TeacherUpdateOneRequiredWithoutRequirementsNestedInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupUpdateOneWithoutRequirementsNestedInput
   requiredRoom?: Prisma.RoomUpdateOneWithoutRequirementsNestedInput
   forbiddenSlots?: Prisma.RequirementForbiddenSlotUpdateManyWithoutRequirementNestedInput
   assignments?: Prisma.ScheduleAssignmentUpdateManyWithoutTeachingRequirementNestedInput
@@ -1581,6 +1739,7 @@ export type TeachingRequirementUncheckedUpdateWithoutFixedSlotsInput = {
   classSectionId?: Prisma.StringFieldUpdateOperationsInput | string
   subjectId?: Prisma.StringFieldUpdateOperationsInput | string
   teacherId?: Prisma.StringFieldUpdateOperationsInput | string
+  sharedTeachingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   weeklyOccurrences?: Prisma.IntFieldUpdateOperationsInput | number
   durationPeriods?: Prisma.IntFieldUpdateOperationsInput | number
   minOccurrencesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1617,6 +1776,7 @@ export type TeachingRequirementCreateWithoutForbiddenSlotsInput = {
   classSection: Prisma.ClassSectionCreateNestedOneWithoutRequirementsInput
   subject: Prisma.SubjectCreateNestedOneWithoutRequirementsInput
   teacher: Prisma.TeacherCreateNestedOneWithoutRequirementsInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupCreateNestedOneWithoutRequirementsInput
   requiredRoom?: Prisma.RoomCreateNestedOneWithoutRequirementsInput
   fixedSlots?: Prisma.RequirementFixedSlotCreateNestedManyWithoutRequirementInput
   assignments?: Prisma.ScheduleAssignmentCreateNestedManyWithoutTeachingRequirementInput
@@ -1629,6 +1789,7 @@ export type TeachingRequirementUncheckedCreateWithoutForbiddenSlotsInput = {
   classSectionId: string
   subjectId: string
   teacherId: string
+  sharedTeachingGroupId?: string | null
   weeklyOccurrences: number
   durationPeriods?: number
   minOccurrencesPerDay?: number
@@ -1681,6 +1842,7 @@ export type TeachingRequirementUpdateWithoutForbiddenSlotsInput = {
   classSection?: Prisma.ClassSectionUpdateOneRequiredWithoutRequirementsNestedInput
   subject?: Prisma.SubjectUpdateOneRequiredWithoutRequirementsNestedInput
   teacher?: Prisma.TeacherUpdateOneRequiredWithoutRequirementsNestedInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupUpdateOneWithoutRequirementsNestedInput
   requiredRoom?: Prisma.RoomUpdateOneWithoutRequirementsNestedInput
   fixedSlots?: Prisma.RequirementFixedSlotUpdateManyWithoutRequirementNestedInput
   assignments?: Prisma.ScheduleAssignmentUpdateManyWithoutTeachingRequirementNestedInput
@@ -1693,6 +1855,7 @@ export type TeachingRequirementUncheckedUpdateWithoutForbiddenSlotsInput = {
   classSectionId?: Prisma.StringFieldUpdateOperationsInput | string
   subjectId?: Prisma.StringFieldUpdateOperationsInput | string
   teacherId?: Prisma.StringFieldUpdateOperationsInput | string
+  sharedTeachingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   weeklyOccurrences?: Prisma.IntFieldUpdateOperationsInput | number
   durationPeriods?: Prisma.IntFieldUpdateOperationsInput | number
   minOccurrencesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1729,6 +1892,7 @@ export type TeachingRequirementCreateWithoutAssignmentsInput = {
   classSection: Prisma.ClassSectionCreateNestedOneWithoutRequirementsInput
   subject: Prisma.SubjectCreateNestedOneWithoutRequirementsInput
   teacher: Prisma.TeacherCreateNestedOneWithoutRequirementsInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupCreateNestedOneWithoutRequirementsInput
   requiredRoom?: Prisma.RoomCreateNestedOneWithoutRequirementsInput
   fixedSlots?: Prisma.RequirementFixedSlotCreateNestedManyWithoutRequirementInput
   forbiddenSlots?: Prisma.RequirementForbiddenSlotCreateNestedManyWithoutRequirementInput
@@ -1741,6 +1905,7 @@ export type TeachingRequirementUncheckedCreateWithoutAssignmentsInput = {
   classSectionId: string
   subjectId: string
   teacherId: string
+  sharedTeachingGroupId?: string | null
   weeklyOccurrences: number
   durationPeriods?: number
   minOccurrencesPerDay?: number
@@ -1793,6 +1958,7 @@ export type TeachingRequirementUpdateWithoutAssignmentsInput = {
   classSection?: Prisma.ClassSectionUpdateOneRequiredWithoutRequirementsNestedInput
   subject?: Prisma.SubjectUpdateOneRequiredWithoutRequirementsNestedInput
   teacher?: Prisma.TeacherUpdateOneRequiredWithoutRequirementsNestedInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupUpdateOneWithoutRequirementsNestedInput
   requiredRoom?: Prisma.RoomUpdateOneWithoutRequirementsNestedInput
   fixedSlots?: Prisma.RequirementFixedSlotUpdateManyWithoutRequirementNestedInput
   forbiddenSlots?: Prisma.RequirementForbiddenSlotUpdateManyWithoutRequirementNestedInput
@@ -1805,6 +1971,7 @@ export type TeachingRequirementUncheckedUpdateWithoutAssignmentsInput = {
   classSectionId?: Prisma.StringFieldUpdateOperationsInput | string
   subjectId?: Prisma.StringFieldUpdateOperationsInput | string
   teacherId?: Prisma.StringFieldUpdateOperationsInput | string
+  sharedTeachingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   weeklyOccurrences?: Prisma.IntFieldUpdateOperationsInput | number
   durationPeriods?: Prisma.IntFieldUpdateOperationsInput | number
   minOccurrencesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1828,6 +1995,7 @@ export type TeachingRequirementCreateManySchoolInput = {
   classSectionId: string
   subjectId: string
   teacherId: string
+  sharedTeachingGroupId?: string | null
   weeklyOccurrences: number
   durationPeriods?: number
   minOccurrencesPerDay?: number
@@ -1861,6 +2029,7 @@ export type TeachingRequirementUpdateWithoutSchoolInput = {
   classSection?: Prisma.ClassSectionUpdateOneRequiredWithoutRequirementsNestedInput
   subject?: Prisma.SubjectUpdateOneRequiredWithoutRequirementsNestedInput
   teacher?: Prisma.TeacherUpdateOneRequiredWithoutRequirementsNestedInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupUpdateOneWithoutRequirementsNestedInput
   requiredRoom?: Prisma.RoomUpdateOneWithoutRequirementsNestedInput
   fixedSlots?: Prisma.RequirementFixedSlotUpdateManyWithoutRequirementNestedInput
   forbiddenSlots?: Prisma.RequirementForbiddenSlotUpdateManyWithoutRequirementNestedInput
@@ -1873,6 +2042,7 @@ export type TeachingRequirementUncheckedUpdateWithoutSchoolInput = {
   classSectionId?: Prisma.StringFieldUpdateOperationsInput | string
   subjectId?: Prisma.StringFieldUpdateOperationsInput | string
   teacherId?: Prisma.StringFieldUpdateOperationsInput | string
+  sharedTeachingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   weeklyOccurrences?: Prisma.IntFieldUpdateOperationsInput | number
   durationPeriods?: Prisma.IntFieldUpdateOperationsInput | number
   minOccurrencesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1897,6 +2067,7 @@ export type TeachingRequirementUncheckedUpdateManyWithoutSchoolInput = {
   classSectionId?: Prisma.StringFieldUpdateOperationsInput | string
   subjectId?: Prisma.StringFieldUpdateOperationsInput | string
   teacherId?: Prisma.StringFieldUpdateOperationsInput | string
+  sharedTeachingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   weeklyOccurrences?: Prisma.IntFieldUpdateOperationsInput | number
   durationPeriods?: Prisma.IntFieldUpdateOperationsInput | number
   minOccurrencesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1917,6 +2088,7 @@ export type TeachingRequirementCreateManyTermInput = {
   classSectionId: string
   subjectId: string
   teacherId: string
+  sharedTeachingGroupId?: string | null
   weeklyOccurrences: number
   durationPeriods?: number
   minOccurrencesPerDay?: number
@@ -1950,6 +2122,7 @@ export type TeachingRequirementUpdateWithoutTermInput = {
   classSection?: Prisma.ClassSectionUpdateOneRequiredWithoutRequirementsNestedInput
   subject?: Prisma.SubjectUpdateOneRequiredWithoutRequirementsNestedInput
   teacher?: Prisma.TeacherUpdateOneRequiredWithoutRequirementsNestedInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupUpdateOneWithoutRequirementsNestedInput
   requiredRoom?: Prisma.RoomUpdateOneWithoutRequirementsNestedInput
   fixedSlots?: Prisma.RequirementFixedSlotUpdateManyWithoutRequirementNestedInput
   forbiddenSlots?: Prisma.RequirementForbiddenSlotUpdateManyWithoutRequirementNestedInput
@@ -1961,6 +2134,7 @@ export type TeachingRequirementUncheckedUpdateWithoutTermInput = {
   classSectionId?: Prisma.StringFieldUpdateOperationsInput | string
   subjectId?: Prisma.StringFieldUpdateOperationsInput | string
   teacherId?: Prisma.StringFieldUpdateOperationsInput | string
+  sharedTeachingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   weeklyOccurrences?: Prisma.IntFieldUpdateOperationsInput | number
   durationPeriods?: Prisma.IntFieldUpdateOperationsInput | number
   minOccurrencesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1984,6 +2158,7 @@ export type TeachingRequirementUncheckedUpdateManyWithoutTermInput = {
   classSectionId?: Prisma.StringFieldUpdateOperationsInput | string
   subjectId?: Prisma.StringFieldUpdateOperationsInput | string
   teacherId?: Prisma.StringFieldUpdateOperationsInput | string
+  sharedTeachingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   weeklyOccurrences?: Prisma.IntFieldUpdateOperationsInput | number
   durationPeriods?: Prisma.IntFieldUpdateOperationsInput | number
   minOccurrencesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2004,6 +2179,7 @@ export type TeachingRequirementCreateManyTeacherInput = {
   termId: string
   classSectionId: string
   subjectId: string
+  sharedTeachingGroupId?: string | null
   weeklyOccurrences: number
   durationPeriods?: number
   minOccurrencesPerDay?: number
@@ -2037,6 +2213,7 @@ export type TeachingRequirementUpdateWithoutTeacherInput = {
   term?: Prisma.AcademicTermUpdateOneRequiredWithoutRequirementsNestedInput
   classSection?: Prisma.ClassSectionUpdateOneRequiredWithoutRequirementsNestedInput
   subject?: Prisma.SubjectUpdateOneRequiredWithoutRequirementsNestedInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupUpdateOneWithoutRequirementsNestedInput
   requiredRoom?: Prisma.RoomUpdateOneWithoutRequirementsNestedInput
   fixedSlots?: Prisma.RequirementFixedSlotUpdateManyWithoutRequirementNestedInput
   forbiddenSlots?: Prisma.RequirementForbiddenSlotUpdateManyWithoutRequirementNestedInput
@@ -2048,6 +2225,7 @@ export type TeachingRequirementUncheckedUpdateWithoutTeacherInput = {
   termId?: Prisma.StringFieldUpdateOperationsInput | string
   classSectionId?: Prisma.StringFieldUpdateOperationsInput | string
   subjectId?: Prisma.StringFieldUpdateOperationsInput | string
+  sharedTeachingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   weeklyOccurrences?: Prisma.IntFieldUpdateOperationsInput | number
   durationPeriods?: Prisma.IntFieldUpdateOperationsInput | number
   minOccurrencesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2071,6 +2249,7 @@ export type TeachingRequirementUncheckedUpdateManyWithoutTeacherInput = {
   termId?: Prisma.StringFieldUpdateOperationsInput | string
   classSectionId?: Prisma.StringFieldUpdateOperationsInput | string
   subjectId?: Prisma.StringFieldUpdateOperationsInput | string
+  sharedTeachingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   weeklyOccurrences?: Prisma.IntFieldUpdateOperationsInput | number
   durationPeriods?: Prisma.IntFieldUpdateOperationsInput | number
   minOccurrencesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2091,6 +2270,7 @@ export type TeachingRequirementCreateManySubjectInput = {
   termId: string
   classSectionId: string
   teacherId: string
+  sharedTeachingGroupId?: string | null
   weeklyOccurrences: number
   durationPeriods?: number
   minOccurrencesPerDay?: number
@@ -2124,6 +2304,7 @@ export type TeachingRequirementUpdateWithoutSubjectInput = {
   term?: Prisma.AcademicTermUpdateOneRequiredWithoutRequirementsNestedInput
   classSection?: Prisma.ClassSectionUpdateOneRequiredWithoutRequirementsNestedInput
   teacher?: Prisma.TeacherUpdateOneRequiredWithoutRequirementsNestedInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupUpdateOneWithoutRequirementsNestedInput
   requiredRoom?: Prisma.RoomUpdateOneWithoutRequirementsNestedInput
   fixedSlots?: Prisma.RequirementFixedSlotUpdateManyWithoutRequirementNestedInput
   forbiddenSlots?: Prisma.RequirementForbiddenSlotUpdateManyWithoutRequirementNestedInput
@@ -2135,6 +2316,7 @@ export type TeachingRequirementUncheckedUpdateWithoutSubjectInput = {
   termId?: Prisma.StringFieldUpdateOperationsInput | string
   classSectionId?: Prisma.StringFieldUpdateOperationsInput | string
   teacherId?: Prisma.StringFieldUpdateOperationsInput | string
+  sharedTeachingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   weeklyOccurrences?: Prisma.IntFieldUpdateOperationsInput | number
   durationPeriods?: Prisma.IntFieldUpdateOperationsInput | number
   minOccurrencesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2158,6 +2340,7 @@ export type TeachingRequirementUncheckedUpdateManyWithoutSubjectInput = {
   termId?: Prisma.StringFieldUpdateOperationsInput | string
   classSectionId?: Prisma.StringFieldUpdateOperationsInput | string
   teacherId?: Prisma.StringFieldUpdateOperationsInput | string
+  sharedTeachingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   weeklyOccurrences?: Prisma.IntFieldUpdateOperationsInput | number
   durationPeriods?: Prisma.IntFieldUpdateOperationsInput | number
   minOccurrencesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2179,6 +2362,7 @@ export type TeachingRequirementCreateManyRequiredRoomInput = {
   classSectionId: string
   subjectId: string
   teacherId: string
+  sharedTeachingGroupId?: string | null
   weeklyOccurrences: number
   durationPeriods?: number
   minOccurrencesPerDay?: number
@@ -2212,6 +2396,7 @@ export type TeachingRequirementUpdateWithoutRequiredRoomInput = {
   classSection?: Prisma.ClassSectionUpdateOneRequiredWithoutRequirementsNestedInput
   subject?: Prisma.SubjectUpdateOneRequiredWithoutRequirementsNestedInput
   teacher?: Prisma.TeacherUpdateOneRequiredWithoutRequirementsNestedInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupUpdateOneWithoutRequirementsNestedInput
   fixedSlots?: Prisma.RequirementFixedSlotUpdateManyWithoutRequirementNestedInput
   forbiddenSlots?: Prisma.RequirementForbiddenSlotUpdateManyWithoutRequirementNestedInput
   assignments?: Prisma.ScheduleAssignmentUpdateManyWithoutTeachingRequirementNestedInput
@@ -2223,6 +2408,7 @@ export type TeachingRequirementUncheckedUpdateWithoutRequiredRoomInput = {
   classSectionId?: Prisma.StringFieldUpdateOperationsInput | string
   subjectId?: Prisma.StringFieldUpdateOperationsInput | string
   teacherId?: Prisma.StringFieldUpdateOperationsInput | string
+  sharedTeachingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   weeklyOccurrences?: Prisma.IntFieldUpdateOperationsInput | number
   durationPeriods?: Prisma.IntFieldUpdateOperationsInput | number
   minOccurrencesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2246,6 +2432,7 @@ export type TeachingRequirementUncheckedUpdateManyWithoutRequiredRoomInput = {
   classSectionId?: Prisma.StringFieldUpdateOperationsInput | string
   subjectId?: Prisma.StringFieldUpdateOperationsInput | string
   teacherId?: Prisma.StringFieldUpdateOperationsInput | string
+  sharedTeachingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   weeklyOccurrences?: Prisma.IntFieldUpdateOperationsInput | number
   durationPeriods?: Prisma.IntFieldUpdateOperationsInput | number
   minOccurrencesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2264,6 +2451,7 @@ export type TeachingRequirementCreateManyClassSectionInput = {
   id?: string
   subjectId: string
   teacherId: string
+  sharedTeachingGroupId?: string | null
   weeklyOccurrences: number
   durationPeriods?: number
   minOccurrencesPerDay?: number
@@ -2297,6 +2485,7 @@ export type TeachingRequirementUpdateWithoutClassSectionInput = {
   term?: Prisma.AcademicTermUpdateOneRequiredWithoutRequirementsNestedInput
   subject?: Prisma.SubjectUpdateOneRequiredWithoutRequirementsNestedInput
   teacher?: Prisma.TeacherUpdateOneRequiredWithoutRequirementsNestedInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupUpdateOneWithoutRequirementsNestedInput
   requiredRoom?: Prisma.RoomUpdateOneWithoutRequirementsNestedInput
   fixedSlots?: Prisma.RequirementFixedSlotUpdateManyWithoutRequirementNestedInput
   forbiddenSlots?: Prisma.RequirementForbiddenSlotUpdateManyWithoutRequirementNestedInput
@@ -2307,6 +2496,7 @@ export type TeachingRequirementUncheckedUpdateWithoutClassSectionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   subjectId?: Prisma.StringFieldUpdateOperationsInput | string
   teacherId?: Prisma.StringFieldUpdateOperationsInput | string
+  sharedTeachingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   weeklyOccurrences?: Prisma.IntFieldUpdateOperationsInput | number
   durationPeriods?: Prisma.IntFieldUpdateOperationsInput | number
   minOccurrencesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2327,6 +2517,101 @@ export type TeachingRequirementUncheckedUpdateWithoutClassSectionInput = {
 
 export type TeachingRequirementUncheckedUpdateManyWithoutClassSectionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  subjectId?: Prisma.StringFieldUpdateOperationsInput | string
+  teacherId?: Prisma.StringFieldUpdateOperationsInput | string
+  sharedTeachingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  weeklyOccurrences?: Prisma.IntFieldUpdateOperationsInput | number
+  durationPeriods?: Prisma.IntFieldUpdateOperationsInput | number
+  minOccurrencesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
+  maxOccurrencesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
+  minimumDistinctDays?: Prisma.IntFieldUpdateOperationsInput | number
+  allowMultipleOccurrencesSameDay?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requiredRoomId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requiredRoomType?: Prisma.NullableEnumRoomTypeFieldUpdateOperationsInput | $Enums.RoomType | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+}
+
+export type TeachingRequirementCreateManySharedTeachingGroupInput = {
+  id?: string
+  schoolId: string
+  termId: string
+  classSectionId: string
+  subjectId: string
+  teacherId: string
+  weeklyOccurrences: number
+  durationPeriods?: number
+  minOccurrencesPerDay?: number
+  maxOccurrencesPerDay?: number
+  minimumDistinctDays?: number
+  allowMultipleOccurrencesSameDay?: boolean
+  requiredRoomId?: string | null
+  requiredRoomType?: $Enums.RoomType | null
+  isActive?: boolean
+  notes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+}
+
+export type TeachingRequirementUpdateWithoutSharedTeachingGroupInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  weeklyOccurrences?: Prisma.IntFieldUpdateOperationsInput | number
+  durationPeriods?: Prisma.IntFieldUpdateOperationsInput | number
+  minOccurrencesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
+  maxOccurrencesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
+  minimumDistinctDays?: Prisma.IntFieldUpdateOperationsInput | number
+  allowMultipleOccurrencesSameDay?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requiredRoomType?: Prisma.NullableEnumRoomTypeFieldUpdateOperationsInput | $Enums.RoomType | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  school?: Prisma.SchoolUpdateOneRequiredWithoutRequirementsNestedInput
+  term?: Prisma.AcademicTermUpdateOneRequiredWithoutRequirementsNestedInput
+  classSection?: Prisma.ClassSectionUpdateOneRequiredWithoutRequirementsNestedInput
+  subject?: Prisma.SubjectUpdateOneRequiredWithoutRequirementsNestedInput
+  teacher?: Prisma.TeacherUpdateOneRequiredWithoutRequirementsNestedInput
+  requiredRoom?: Prisma.RoomUpdateOneWithoutRequirementsNestedInput
+  fixedSlots?: Prisma.RequirementFixedSlotUpdateManyWithoutRequirementNestedInput
+  forbiddenSlots?: Prisma.RequirementForbiddenSlotUpdateManyWithoutRequirementNestedInput
+  assignments?: Prisma.ScheduleAssignmentUpdateManyWithoutTeachingRequirementNestedInput
+}
+
+export type TeachingRequirementUncheckedUpdateWithoutSharedTeachingGroupInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  schoolId?: Prisma.StringFieldUpdateOperationsInput | string
+  termId?: Prisma.StringFieldUpdateOperationsInput | string
+  classSectionId?: Prisma.StringFieldUpdateOperationsInput | string
+  subjectId?: Prisma.StringFieldUpdateOperationsInput | string
+  teacherId?: Prisma.StringFieldUpdateOperationsInput | string
+  weeklyOccurrences?: Prisma.IntFieldUpdateOperationsInput | number
+  durationPeriods?: Prisma.IntFieldUpdateOperationsInput | number
+  minOccurrencesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
+  maxOccurrencesPerDay?: Prisma.IntFieldUpdateOperationsInput | number
+  minimumDistinctDays?: Prisma.IntFieldUpdateOperationsInput | number
+  allowMultipleOccurrencesSameDay?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requiredRoomId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  requiredRoomType?: Prisma.NullableEnumRoomTypeFieldUpdateOperationsInput | $Enums.RoomType | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  fixedSlots?: Prisma.RequirementFixedSlotUncheckedUpdateManyWithoutRequirementNestedInput
+  forbiddenSlots?: Prisma.RequirementForbiddenSlotUncheckedUpdateManyWithoutRequirementNestedInput
+  assignments?: Prisma.ScheduleAssignmentUncheckedUpdateManyWithoutTeachingRequirementNestedInput
+}
+
+export type TeachingRequirementUncheckedUpdateManyWithoutSharedTeachingGroupInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  schoolId?: Prisma.StringFieldUpdateOperationsInput | string
+  termId?: Prisma.StringFieldUpdateOperationsInput | string
+  classSectionId?: Prisma.StringFieldUpdateOperationsInput | string
   subjectId?: Prisma.StringFieldUpdateOperationsInput | string
   teacherId?: Prisma.StringFieldUpdateOperationsInput | string
   weeklyOccurrences?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2400,6 +2685,7 @@ export type TeachingRequirementSelect<ExtArgs extends runtime.Types.Extensions.I
   classSectionId?: boolean
   subjectId?: boolean
   teacherId?: boolean
+  sharedTeachingGroupId?: boolean
   weeklyOccurrences?: boolean
   durationPeriods?: boolean
   minOccurrencesPerDay?: boolean
@@ -2418,6 +2704,7 @@ export type TeachingRequirementSelect<ExtArgs extends runtime.Types.Extensions.I
   classSection?: boolean | Prisma.ClassSectionDefaultArgs<ExtArgs>
   subject?: boolean | Prisma.SubjectDefaultArgs<ExtArgs>
   teacher?: boolean | Prisma.TeacherDefaultArgs<ExtArgs>
+  sharedTeachingGroup?: boolean | Prisma.TeachingRequirement$sharedTeachingGroupArgs<ExtArgs>
   requiredRoom?: boolean | Prisma.TeachingRequirement$requiredRoomArgs<ExtArgs>
   fixedSlots?: boolean | Prisma.TeachingRequirement$fixedSlotsArgs<ExtArgs>
   forbiddenSlots?: boolean | Prisma.TeachingRequirement$forbiddenSlotsArgs<ExtArgs>
@@ -2432,6 +2719,7 @@ export type TeachingRequirementSelectCreateManyAndReturn<ExtArgs extends runtime
   classSectionId?: boolean
   subjectId?: boolean
   teacherId?: boolean
+  sharedTeachingGroupId?: boolean
   weeklyOccurrences?: boolean
   durationPeriods?: boolean
   minOccurrencesPerDay?: boolean
@@ -2450,6 +2738,7 @@ export type TeachingRequirementSelectCreateManyAndReturn<ExtArgs extends runtime
   classSection?: boolean | Prisma.ClassSectionDefaultArgs<ExtArgs>
   subject?: boolean | Prisma.SubjectDefaultArgs<ExtArgs>
   teacher?: boolean | Prisma.TeacherDefaultArgs<ExtArgs>
+  sharedTeachingGroup?: boolean | Prisma.TeachingRequirement$sharedTeachingGroupArgs<ExtArgs>
   requiredRoom?: boolean | Prisma.TeachingRequirement$requiredRoomArgs<ExtArgs>
 }, ExtArgs["result"]["teachingRequirement"]>
 
@@ -2460,6 +2749,7 @@ export type TeachingRequirementSelectUpdateManyAndReturn<ExtArgs extends runtime
   classSectionId?: boolean
   subjectId?: boolean
   teacherId?: boolean
+  sharedTeachingGroupId?: boolean
   weeklyOccurrences?: boolean
   durationPeriods?: boolean
   minOccurrencesPerDay?: boolean
@@ -2478,6 +2768,7 @@ export type TeachingRequirementSelectUpdateManyAndReturn<ExtArgs extends runtime
   classSection?: boolean | Prisma.ClassSectionDefaultArgs<ExtArgs>
   subject?: boolean | Prisma.SubjectDefaultArgs<ExtArgs>
   teacher?: boolean | Prisma.TeacherDefaultArgs<ExtArgs>
+  sharedTeachingGroup?: boolean | Prisma.TeachingRequirement$sharedTeachingGroupArgs<ExtArgs>
   requiredRoom?: boolean | Prisma.TeachingRequirement$requiredRoomArgs<ExtArgs>
 }, ExtArgs["result"]["teachingRequirement"]>
 
@@ -2488,6 +2779,7 @@ export type TeachingRequirementSelectScalar = {
   classSectionId?: boolean
   subjectId?: boolean
   teacherId?: boolean
+  sharedTeachingGroupId?: boolean
   weeklyOccurrences?: boolean
   durationPeriods?: boolean
   minOccurrencesPerDay?: boolean
@@ -2503,13 +2795,14 @@ export type TeachingRequirementSelectScalar = {
   deletedAt?: boolean
 }
 
-export type TeachingRequirementOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "termId" | "classSectionId" | "subjectId" | "teacherId" | "weeklyOccurrences" | "durationPeriods" | "minOccurrencesPerDay" | "maxOccurrencesPerDay" | "minimumDistinctDays" | "allowMultipleOccurrencesSameDay" | "requiredRoomId" | "requiredRoomType" | "isActive" | "notes" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["teachingRequirement"]>
+export type TeachingRequirementOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "termId" | "classSectionId" | "subjectId" | "teacherId" | "sharedTeachingGroupId" | "weeklyOccurrences" | "durationPeriods" | "minOccurrencesPerDay" | "maxOccurrencesPerDay" | "minimumDistinctDays" | "allowMultipleOccurrencesSameDay" | "requiredRoomId" | "requiredRoomType" | "isActive" | "notes" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["teachingRequirement"]>
 export type TeachingRequirementInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
   term?: boolean | Prisma.AcademicTermDefaultArgs<ExtArgs>
   classSection?: boolean | Prisma.ClassSectionDefaultArgs<ExtArgs>
   subject?: boolean | Prisma.SubjectDefaultArgs<ExtArgs>
   teacher?: boolean | Prisma.TeacherDefaultArgs<ExtArgs>
+  sharedTeachingGroup?: boolean | Prisma.TeachingRequirement$sharedTeachingGroupArgs<ExtArgs>
   requiredRoom?: boolean | Prisma.TeachingRequirement$requiredRoomArgs<ExtArgs>
   fixedSlots?: boolean | Prisma.TeachingRequirement$fixedSlotsArgs<ExtArgs>
   forbiddenSlots?: boolean | Prisma.TeachingRequirement$forbiddenSlotsArgs<ExtArgs>
@@ -2522,6 +2815,7 @@ export type TeachingRequirementIncludeCreateManyAndReturn<ExtArgs extends runtim
   classSection?: boolean | Prisma.ClassSectionDefaultArgs<ExtArgs>
   subject?: boolean | Prisma.SubjectDefaultArgs<ExtArgs>
   teacher?: boolean | Prisma.TeacherDefaultArgs<ExtArgs>
+  sharedTeachingGroup?: boolean | Prisma.TeachingRequirement$sharedTeachingGroupArgs<ExtArgs>
   requiredRoom?: boolean | Prisma.TeachingRequirement$requiredRoomArgs<ExtArgs>
 }
 export type TeachingRequirementIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2530,6 +2824,7 @@ export type TeachingRequirementIncludeUpdateManyAndReturn<ExtArgs extends runtim
   classSection?: boolean | Prisma.ClassSectionDefaultArgs<ExtArgs>
   subject?: boolean | Prisma.SubjectDefaultArgs<ExtArgs>
   teacher?: boolean | Prisma.TeacherDefaultArgs<ExtArgs>
+  sharedTeachingGroup?: boolean | Prisma.TeachingRequirement$sharedTeachingGroupArgs<ExtArgs>
   requiredRoom?: boolean | Prisma.TeachingRequirement$requiredRoomArgs<ExtArgs>
 }
 
@@ -2541,6 +2836,7 @@ export type $TeachingRequirementPayload<ExtArgs extends runtime.Types.Extensions
     classSection: Prisma.$ClassSectionPayload<ExtArgs>
     subject: Prisma.$SubjectPayload<ExtArgs>
     teacher: Prisma.$TeacherPayload<ExtArgs>
+    sharedTeachingGroup: Prisma.$SharedTeachingGroupPayload<ExtArgs> | null
     requiredRoom: Prisma.$RoomPayload<ExtArgs> | null
     fixedSlots: Prisma.$RequirementFixedSlotPayload<ExtArgs>[]
     forbiddenSlots: Prisma.$RequirementForbiddenSlotPayload<ExtArgs>[]
@@ -2553,6 +2849,7 @@ export type $TeachingRequirementPayload<ExtArgs extends runtime.Types.Extensions
     classSectionId: string
     subjectId: string
     teacherId: string
+    sharedTeachingGroupId: string | null
     weeklyOccurrences: number
     durationPeriods: number
     minOccurrencesPerDay: number
@@ -2965,6 +3262,7 @@ export interface Prisma__TeachingRequirementClient<T, Null = never, ExtArgs exte
   classSection<T extends Prisma.ClassSectionDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClassSectionDefaultArgs<ExtArgs>>): Prisma.Prisma__ClassSectionClient<runtime.Types.Result.GetResult<Prisma.$ClassSectionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   subject<T extends Prisma.SubjectDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SubjectDefaultArgs<ExtArgs>>): Prisma.Prisma__SubjectClient<runtime.Types.Result.GetResult<Prisma.$SubjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   teacher<T extends Prisma.TeacherDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TeacherDefaultArgs<ExtArgs>>): Prisma.Prisma__TeacherClient<runtime.Types.Result.GetResult<Prisma.$TeacherPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  sharedTeachingGroup<T extends Prisma.TeachingRequirement$sharedTeachingGroupArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TeachingRequirement$sharedTeachingGroupArgs<ExtArgs>>): Prisma.Prisma__SharedTeachingGroupClient<runtime.Types.Result.GetResult<Prisma.$SharedTeachingGroupPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   requiredRoom<T extends Prisma.TeachingRequirement$requiredRoomArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TeachingRequirement$requiredRoomArgs<ExtArgs>>): Prisma.Prisma__RoomClient<runtime.Types.Result.GetResult<Prisma.$RoomPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   fixedSlots<T extends Prisma.TeachingRequirement$fixedSlotsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TeachingRequirement$fixedSlotsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RequirementFixedSlotPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   forbiddenSlots<T extends Prisma.TeachingRequirement$forbiddenSlotsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TeachingRequirement$forbiddenSlotsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RequirementForbiddenSlotPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -3004,6 +3302,7 @@ export interface TeachingRequirementFieldRefs {
   readonly classSectionId: Prisma.FieldRef<"TeachingRequirement", 'String'>
   readonly subjectId: Prisma.FieldRef<"TeachingRequirement", 'String'>
   readonly teacherId: Prisma.FieldRef<"TeachingRequirement", 'String'>
+  readonly sharedTeachingGroupId: Prisma.FieldRef<"TeachingRequirement", 'String'>
   readonly weeklyOccurrences: Prisma.FieldRef<"TeachingRequirement", 'Int'>
   readonly durationPeriods: Prisma.FieldRef<"TeachingRequirement", 'Int'>
   readonly minOccurrencesPerDay: Prisma.FieldRef<"TeachingRequirement", 'Int'>
@@ -3415,6 +3714,25 @@ export type TeachingRequirementDeleteManyArgs<ExtArgs extends runtime.Types.Exte
    * Limit how many TeachingRequirements to delete.
    */
   limit?: number
+}
+
+/**
+ * TeachingRequirement.sharedTeachingGroup
+ */
+export type TeachingRequirement$sharedTeachingGroupArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SharedTeachingGroup
+   */
+  select?: Prisma.SharedTeachingGroupSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SharedTeachingGroup
+   */
+  omit?: Prisma.SharedTeachingGroupOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SharedTeachingGroupInclude<ExtArgs> | null
+  where?: Prisma.SharedTeachingGroupWhereInput
 }
 
 /**

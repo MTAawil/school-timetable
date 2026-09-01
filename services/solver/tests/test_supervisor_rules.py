@@ -212,3 +212,68 @@ def test_fingerprint_uses_the_exact_supplied_contract() -> None:
     )
 
     assert input_fingerprint(request) == hashlib.sha256(canonical.encode()).hexdigest()
+
+
+def test_shared_teaching_group_counts_once_and_synchronizes_classes() -> None:
+    request = supervisor_request(weekly_sessions=2)
+    payload = request.model_dump(by_alias=True)
+    payload["teachers"][0]["weeklyTeachingSessions"] = 2
+    payload["classSections"].append(
+        {
+            "id": "G7-B",
+            "name": "G7-B",
+            "shortCode": "G7-B",
+            "maxLessonsPerDay": 4,
+            "recessAfterSession": 3,
+        }
+    )
+    payload["requirements"].append(
+        {
+            "id": "G7-B:MATH",
+            "classSectionId": "G7-B",
+            "subjectId": "MATH",
+            "teacherId": "teacher",
+            "sharedTeachingGroupId": "math-group",
+            "weeklySessions": 2,
+            "isMainSubject": True,
+            "allowDoubleSession": True,
+            "fixedSlots": [],
+            "forbiddenSlots": [],
+        }
+    )
+    payload["requirements"][0]["sharedTeachingGroupId"] = "math-group"
+    request = SolveRequest.model_validate(payload)
+
+    response = solve(request)
+
+    assert response.status in {"FEASIBLE", "OPTIMAL"}
+    assignments = response.alternatives[0].assignments
+    by_requirement = {
+        requirement_id: sorted(
+            (item.day_index, item.period_index)
+            for item in assignments
+            if item.requirement_id == requirement_id
+        )
+        for requirement_id in ("G7-A:MATH", "G7-B:MATH")
+    }
+    assert by_requirement["G7-A:MATH"] == by_requirement["G7-B:MATH"]
+    assert len(by_requirement["G7-A:MATH"]) == 2
+    assert validate_assignments(request, assignments) == []
+
+
+def test_class_recess_is_a_hard_class_specific_block() -> None:
+    request = supervisor_request(weekly_sessions=1)
+    payload = request.model_dump(by_alias=True)
+    payload["classSections"][0]["recessAfterSession"] = 3
+    request = SolveRequest.model_validate(payload)
+
+    candidate = [
+        Assignment(
+            requirement_id="G7-A:MATH",
+            day_index=0,
+            period_index=2,
+            duration_periods=1,
+        )
+    ]
+
+    assert "CLASS_RECESS:G7-A" in validate_assignments(request, candidate)

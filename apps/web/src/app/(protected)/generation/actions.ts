@@ -108,6 +108,7 @@ export async function openAlternativeAsDraft(
             classSectionId: curriculum.classSectionId,
             subjectId: curriculum.subjectId,
             teacherId: curriculum.teacherId,
+            sharedTeachingGroupId: curriculum.sharedTeachingGroupId,
             weeklyOccurrences: curriculum.weeklySessions,
             durationPeriods: 1,
             minOccurrencesPerDay: 0,

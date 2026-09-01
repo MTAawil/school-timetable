@@ -38,6 +38,14 @@ A period definition contains `isTeaching`. Breaks are represented as non-teachin
 
 ## TeachingRequirement
 
+`ClassSection.recessAfterSession` optionally overrides the school's default
+recess position for that class. A null value inherits
+`SchoolWeekConfiguration.breakAfterSession`.
+
+`SharedTeachingGroup` links two or more class curriculum rows with the same
+subject and weekly session count to one teacher. Each member keeps its own
+curriculum demand; the group represents one shared teaching event per slot.
+
 Recommended fields:
 
 - id

@@ -42,6 +42,7 @@ export type ClassCurriculumMinAggregateOutputType = {
   gradeCurriculumId: string | null
   subjectId: string | null
   teacherId: string | null
+  sharedTeachingGroupId: string | null
   weeklySessions: number | null
   isMainSubject: boolean | null
   allowDoubleSession: boolean | null
@@ -58,6 +59,7 @@ export type ClassCurriculumMaxAggregateOutputType = {
   gradeCurriculumId: string | null
   subjectId: string | null
   teacherId: string | null
+  sharedTeachingGroupId: string | null
   weeklySessions: number | null
   isMainSubject: boolean | null
   allowDoubleSession: boolean | null
@@ -74,6 +76,7 @@ export type ClassCurriculumCountAggregateOutputType = {
   gradeCurriculumId: number
   subjectId: number
   teacherId: number
+  sharedTeachingGroupId: number
   weeklySessions: number
   isMainSubject: number
   allowDoubleSession: number
@@ -100,6 +103,7 @@ export type ClassCurriculumMinAggregateInputType = {
   gradeCurriculumId?: true
   subjectId?: true
   teacherId?: true
+  sharedTeachingGroupId?: true
   weeklySessions?: true
   isMainSubject?: true
   allowDoubleSession?: true
@@ -116,6 +120,7 @@ export type ClassCurriculumMaxAggregateInputType = {
   gradeCurriculumId?: true
   subjectId?: true
   teacherId?: true
+  sharedTeachingGroupId?: true
   weeklySessions?: true
   isMainSubject?: true
   allowDoubleSession?: true
@@ -132,6 +137,7 @@ export type ClassCurriculumCountAggregateInputType = {
   gradeCurriculumId?: true
   subjectId?: true
   teacherId?: true
+  sharedTeachingGroupId?: true
   weeklySessions?: true
   isMainSubject?: true
   allowDoubleSession?: true
@@ -235,6 +241,7 @@ export type ClassCurriculumGroupByOutputType = {
   gradeCurriculumId: string
   subjectId: string
   teacherId: string | null
+  sharedTeachingGroupId: string | null
   weeklySessions: number
   isMainSubject: boolean
   allowDoubleSession: boolean
@@ -274,6 +281,7 @@ export type ClassCurriculumWhereInput = {
   gradeCurriculumId?: Prisma.UuidFilter<"ClassCurriculum"> | string
   subjectId?: Prisma.UuidFilter<"ClassCurriculum"> | string
   teacherId?: Prisma.UuidNullableFilter<"ClassCurriculum"> | string | null
+  sharedTeachingGroupId?: Prisma.UuidNullableFilter<"ClassCurriculum"> | string | null
   weeklySessions?: Prisma.IntFilter<"ClassCurriculum"> | number
   isMainSubject?: Prisma.BoolFilter<"ClassCurriculum"> | boolean
   allowDoubleSession?: Prisma.BoolFilter<"ClassCurriculum"> | boolean
@@ -286,6 +294,7 @@ export type ClassCurriculumWhereInput = {
   gradeCurriculum?: Prisma.XOR<Prisma.GradeCurriculumScalarRelationFilter, Prisma.GradeCurriculumWhereInput>
   subject?: Prisma.XOR<Prisma.SubjectScalarRelationFilter, Prisma.SubjectWhereInput>
   teacher?: Prisma.XOR<Prisma.TeacherNullableScalarRelationFilter, Prisma.TeacherWhereInput> | null
+  sharedTeachingGroup?: Prisma.XOR<Prisma.SharedTeachingGroupNullableScalarRelationFilter, Prisma.SharedTeachingGroupWhereInput> | null
 }
 
 export type ClassCurriculumOrderByWithRelationInput = {
@@ -296,6 +305,7 @@ export type ClassCurriculumOrderByWithRelationInput = {
   gradeCurriculumId?: Prisma.SortOrder
   subjectId?: Prisma.SortOrder
   teacherId?: Prisma.SortOrderInput | Prisma.SortOrder
+  sharedTeachingGroupId?: Prisma.SortOrderInput | Prisma.SortOrder
   weeklySessions?: Prisma.SortOrder
   isMainSubject?: Prisma.SortOrder
   allowDoubleSession?: Prisma.SortOrder
@@ -308,6 +318,7 @@ export type ClassCurriculumOrderByWithRelationInput = {
   gradeCurriculum?: Prisma.GradeCurriculumOrderByWithRelationInput
   subject?: Prisma.SubjectOrderByWithRelationInput
   teacher?: Prisma.TeacherOrderByWithRelationInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupOrderByWithRelationInput
 }
 
 export type ClassCurriculumWhereUniqueInput = Prisma.AtLeast<{
@@ -323,6 +334,7 @@ export type ClassCurriculumWhereUniqueInput = Prisma.AtLeast<{
   gradeCurriculumId?: Prisma.UuidFilter<"ClassCurriculum"> | string
   subjectId?: Prisma.UuidFilter<"ClassCurriculum"> | string
   teacherId?: Prisma.UuidNullableFilter<"ClassCurriculum"> | string | null
+  sharedTeachingGroupId?: Prisma.UuidNullableFilter<"ClassCurriculum"> | string | null
   weeklySessions?: Prisma.IntFilter<"ClassCurriculum"> | number
   isMainSubject?: Prisma.BoolFilter<"ClassCurriculum"> | boolean
   allowDoubleSession?: Prisma.BoolFilter<"ClassCurriculum"> | boolean
@@ -335,6 +347,7 @@ export type ClassCurriculumWhereUniqueInput = Prisma.AtLeast<{
   gradeCurriculum?: Prisma.XOR<Prisma.GradeCurriculumScalarRelationFilter, Prisma.GradeCurriculumWhereInput>
   subject?: Prisma.XOR<Prisma.SubjectScalarRelationFilter, Prisma.SubjectWhereInput>
   teacher?: Prisma.XOR<Prisma.TeacherNullableScalarRelationFilter, Prisma.TeacherWhereInput> | null
+  sharedTeachingGroup?: Prisma.XOR<Prisma.SharedTeachingGroupNullableScalarRelationFilter, Prisma.SharedTeachingGroupWhereInput> | null
 }, "id" | "schoolId_termId_classSectionId_subjectId" | "id_schoolId_termId">
 
 export type ClassCurriculumOrderByWithAggregationInput = {
@@ -345,6 +358,7 @@ export type ClassCurriculumOrderByWithAggregationInput = {
   gradeCurriculumId?: Prisma.SortOrder
   subjectId?: Prisma.SortOrder
   teacherId?: Prisma.SortOrderInput | Prisma.SortOrder
+  sharedTeachingGroupId?: Prisma.SortOrderInput | Prisma.SortOrder
   weeklySessions?: Prisma.SortOrder
   isMainSubject?: Prisma.SortOrder
   allowDoubleSession?: Prisma.SortOrder
@@ -369,6 +383,7 @@ export type ClassCurriculumScalarWhereWithAggregatesInput = {
   gradeCurriculumId?: Prisma.UuidWithAggregatesFilter<"ClassCurriculum"> | string
   subjectId?: Prisma.UuidWithAggregatesFilter<"ClassCurriculum"> | string
   teacherId?: Prisma.UuidNullableWithAggregatesFilter<"ClassCurriculum"> | string | null
+  sharedTeachingGroupId?: Prisma.UuidNullableWithAggregatesFilter<"ClassCurriculum"> | string | null
   weeklySessions?: Prisma.IntWithAggregatesFilter<"ClassCurriculum"> | number
   isMainSubject?: Prisma.BoolWithAggregatesFilter<"ClassCurriculum"> | boolean
   allowDoubleSession?: Prisma.BoolWithAggregatesFilter<"ClassCurriculum"> | boolean
@@ -391,6 +406,7 @@ export type ClassCurriculumCreateInput = {
   gradeCurriculum: Prisma.GradeCurriculumCreateNestedOneWithoutClassCurriculaInput
   subject: Prisma.SubjectCreateNestedOneWithoutClassCurriculaInput
   teacher?: Prisma.TeacherCreateNestedOneWithoutClassCurriculaInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupCreateNestedOneWithoutMembersInput
 }
 
 export type ClassCurriculumUncheckedCreateInput = {
@@ -401,6 +417,7 @@ export type ClassCurriculumUncheckedCreateInput = {
   gradeCurriculumId: string
   subjectId: string
   teacherId?: string | null
+  sharedTeachingGroupId?: string | null
   weeklySessions: number
   isMainSubject?: boolean
   allowDoubleSession?: boolean
@@ -423,6 +440,7 @@ export type ClassCurriculumUpdateInput = {
   gradeCurriculum?: Prisma.GradeCurriculumUpdateOneRequiredWithoutClassCurriculaNestedInput
   subject?: Prisma.SubjectUpdateOneRequiredWithoutClassCurriculaNestedInput
   teacher?: Prisma.TeacherUpdateOneWithoutClassCurriculaNestedInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupUpdateOneWithoutMembersNestedInput
 }
 
 export type ClassCurriculumUncheckedUpdateInput = {
@@ -433,6 +451,7 @@ export type ClassCurriculumUncheckedUpdateInput = {
   gradeCurriculumId?: Prisma.StringFieldUpdateOperationsInput | string
   subjectId?: Prisma.StringFieldUpdateOperationsInput | string
   teacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sharedTeachingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   weeklySessions?: Prisma.IntFieldUpdateOperationsInput | number
   isMainSubject?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowDoubleSession?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -449,6 +468,7 @@ export type ClassCurriculumCreateManyInput = {
   gradeCurriculumId: string
   subjectId: string
   teacherId?: string | null
+  sharedTeachingGroupId?: string | null
   weeklySessions: number
   isMainSubject?: boolean
   allowDoubleSession?: boolean
@@ -475,6 +495,7 @@ export type ClassCurriculumUncheckedUpdateManyInput = {
   gradeCurriculumId?: Prisma.StringFieldUpdateOperationsInput | string
   subjectId?: Prisma.StringFieldUpdateOperationsInput | string
   teacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sharedTeachingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   weeklySessions?: Prisma.IntFieldUpdateOperationsInput | number
   isMainSubject?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowDoubleSession?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -514,6 +535,7 @@ export type ClassCurriculumCountOrderByAggregateInput = {
   gradeCurriculumId?: Prisma.SortOrder
   subjectId?: Prisma.SortOrder
   teacherId?: Prisma.SortOrder
+  sharedTeachingGroupId?: Prisma.SortOrder
   weeklySessions?: Prisma.SortOrder
   isMainSubject?: Prisma.SortOrder
   allowDoubleSession?: Prisma.SortOrder
@@ -534,6 +556,7 @@ export type ClassCurriculumMaxOrderByAggregateInput = {
   gradeCurriculumId?: Prisma.SortOrder
   subjectId?: Prisma.SortOrder
   teacherId?: Prisma.SortOrder
+  sharedTeachingGroupId?: Prisma.SortOrder
   weeklySessions?: Prisma.SortOrder
   isMainSubject?: Prisma.SortOrder
   allowDoubleSession?: Prisma.SortOrder
@@ -550,6 +573,7 @@ export type ClassCurriculumMinOrderByAggregateInput = {
   gradeCurriculumId?: Prisma.SortOrder
   subjectId?: Prisma.SortOrder
   teacherId?: Prisma.SortOrder
+  sharedTeachingGroupId?: Prisma.SortOrder
   weeklySessions?: Prisma.SortOrder
   isMainSubject?: Prisma.SortOrder
   allowDoubleSession?: Prisma.SortOrder
@@ -814,6 +838,48 @@ export type ClassCurriculumUncheckedUpdateManyWithoutGradeCurriculumNestedInput 
   deleteMany?: Prisma.ClassCurriculumScalarWhereInput | Prisma.ClassCurriculumScalarWhereInput[]
 }
 
+export type ClassCurriculumCreateNestedManyWithoutSharedTeachingGroupInput = {
+  create?: Prisma.XOR<Prisma.ClassCurriculumCreateWithoutSharedTeachingGroupInput, Prisma.ClassCurriculumUncheckedCreateWithoutSharedTeachingGroupInput> | Prisma.ClassCurriculumCreateWithoutSharedTeachingGroupInput[] | Prisma.ClassCurriculumUncheckedCreateWithoutSharedTeachingGroupInput[]
+  connectOrCreate?: Prisma.ClassCurriculumCreateOrConnectWithoutSharedTeachingGroupInput | Prisma.ClassCurriculumCreateOrConnectWithoutSharedTeachingGroupInput[]
+  createMany?: Prisma.ClassCurriculumCreateManySharedTeachingGroupInputEnvelope
+  connect?: Prisma.ClassCurriculumWhereUniqueInput | Prisma.ClassCurriculumWhereUniqueInput[]
+}
+
+export type ClassCurriculumUncheckedCreateNestedManyWithoutSharedTeachingGroupInput = {
+  create?: Prisma.XOR<Prisma.ClassCurriculumCreateWithoutSharedTeachingGroupInput, Prisma.ClassCurriculumUncheckedCreateWithoutSharedTeachingGroupInput> | Prisma.ClassCurriculumCreateWithoutSharedTeachingGroupInput[] | Prisma.ClassCurriculumUncheckedCreateWithoutSharedTeachingGroupInput[]
+  connectOrCreate?: Prisma.ClassCurriculumCreateOrConnectWithoutSharedTeachingGroupInput | Prisma.ClassCurriculumCreateOrConnectWithoutSharedTeachingGroupInput[]
+  createMany?: Prisma.ClassCurriculumCreateManySharedTeachingGroupInputEnvelope
+  connect?: Prisma.ClassCurriculumWhereUniqueInput | Prisma.ClassCurriculumWhereUniqueInput[]
+}
+
+export type ClassCurriculumUpdateManyWithoutSharedTeachingGroupNestedInput = {
+  create?: Prisma.XOR<Prisma.ClassCurriculumCreateWithoutSharedTeachingGroupInput, Prisma.ClassCurriculumUncheckedCreateWithoutSharedTeachingGroupInput> | Prisma.ClassCurriculumCreateWithoutSharedTeachingGroupInput[] | Prisma.ClassCurriculumUncheckedCreateWithoutSharedTeachingGroupInput[]
+  connectOrCreate?: Prisma.ClassCurriculumCreateOrConnectWithoutSharedTeachingGroupInput | Prisma.ClassCurriculumCreateOrConnectWithoutSharedTeachingGroupInput[]
+  upsert?: Prisma.ClassCurriculumUpsertWithWhereUniqueWithoutSharedTeachingGroupInput | Prisma.ClassCurriculumUpsertWithWhereUniqueWithoutSharedTeachingGroupInput[]
+  createMany?: Prisma.ClassCurriculumCreateManySharedTeachingGroupInputEnvelope
+  set?: Prisma.ClassCurriculumWhereUniqueInput | Prisma.ClassCurriculumWhereUniqueInput[]
+  disconnect?: Prisma.ClassCurriculumWhereUniqueInput | Prisma.ClassCurriculumWhereUniqueInput[]
+  delete?: Prisma.ClassCurriculumWhereUniqueInput | Prisma.ClassCurriculumWhereUniqueInput[]
+  connect?: Prisma.ClassCurriculumWhereUniqueInput | Prisma.ClassCurriculumWhereUniqueInput[]
+  update?: Prisma.ClassCurriculumUpdateWithWhereUniqueWithoutSharedTeachingGroupInput | Prisma.ClassCurriculumUpdateWithWhereUniqueWithoutSharedTeachingGroupInput[]
+  updateMany?: Prisma.ClassCurriculumUpdateManyWithWhereWithoutSharedTeachingGroupInput | Prisma.ClassCurriculumUpdateManyWithWhereWithoutSharedTeachingGroupInput[]
+  deleteMany?: Prisma.ClassCurriculumScalarWhereInput | Prisma.ClassCurriculumScalarWhereInput[]
+}
+
+export type ClassCurriculumUncheckedUpdateManyWithoutSharedTeachingGroupNestedInput = {
+  create?: Prisma.XOR<Prisma.ClassCurriculumCreateWithoutSharedTeachingGroupInput, Prisma.ClassCurriculumUncheckedCreateWithoutSharedTeachingGroupInput> | Prisma.ClassCurriculumCreateWithoutSharedTeachingGroupInput[] | Prisma.ClassCurriculumUncheckedCreateWithoutSharedTeachingGroupInput[]
+  connectOrCreate?: Prisma.ClassCurriculumCreateOrConnectWithoutSharedTeachingGroupInput | Prisma.ClassCurriculumCreateOrConnectWithoutSharedTeachingGroupInput[]
+  upsert?: Prisma.ClassCurriculumUpsertWithWhereUniqueWithoutSharedTeachingGroupInput | Prisma.ClassCurriculumUpsertWithWhereUniqueWithoutSharedTeachingGroupInput[]
+  createMany?: Prisma.ClassCurriculumCreateManySharedTeachingGroupInputEnvelope
+  set?: Prisma.ClassCurriculumWhereUniqueInput | Prisma.ClassCurriculumWhereUniqueInput[]
+  disconnect?: Prisma.ClassCurriculumWhereUniqueInput | Prisma.ClassCurriculumWhereUniqueInput[]
+  delete?: Prisma.ClassCurriculumWhereUniqueInput | Prisma.ClassCurriculumWhereUniqueInput[]
+  connect?: Prisma.ClassCurriculumWhereUniqueInput | Prisma.ClassCurriculumWhereUniqueInput[]
+  update?: Prisma.ClassCurriculumUpdateWithWhereUniqueWithoutSharedTeachingGroupInput | Prisma.ClassCurriculumUpdateWithWhereUniqueWithoutSharedTeachingGroupInput[]
+  updateMany?: Prisma.ClassCurriculumUpdateManyWithWhereWithoutSharedTeachingGroupInput | Prisma.ClassCurriculumUpdateManyWithWhereWithoutSharedTeachingGroupInput[]
+  deleteMany?: Prisma.ClassCurriculumScalarWhereInput | Prisma.ClassCurriculumScalarWhereInput[]
+}
+
 export type ClassCurriculumCreateWithoutSchoolInput = {
   id?: string
   weeklySessions: number
@@ -827,6 +893,7 @@ export type ClassCurriculumCreateWithoutSchoolInput = {
   gradeCurriculum: Prisma.GradeCurriculumCreateNestedOneWithoutClassCurriculaInput
   subject: Prisma.SubjectCreateNestedOneWithoutClassCurriculaInput
   teacher?: Prisma.TeacherCreateNestedOneWithoutClassCurriculaInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupCreateNestedOneWithoutMembersInput
 }
 
 export type ClassCurriculumUncheckedCreateWithoutSchoolInput = {
@@ -836,6 +903,7 @@ export type ClassCurriculumUncheckedCreateWithoutSchoolInput = {
   gradeCurriculumId: string
   subjectId: string
   teacherId?: string | null
+  sharedTeachingGroupId?: string | null
   weeklySessions: number
   isMainSubject?: boolean
   allowDoubleSession?: boolean
@@ -881,6 +949,7 @@ export type ClassCurriculumScalarWhereInput = {
   gradeCurriculumId?: Prisma.UuidFilter<"ClassCurriculum"> | string
   subjectId?: Prisma.UuidFilter<"ClassCurriculum"> | string
   teacherId?: Prisma.UuidNullableFilter<"ClassCurriculum"> | string | null
+  sharedTeachingGroupId?: Prisma.UuidNullableFilter<"ClassCurriculum"> | string | null
   weeklySessions?: Prisma.IntFilter<"ClassCurriculum"> | number
   isMainSubject?: Prisma.BoolFilter<"ClassCurriculum"> | boolean
   allowDoubleSession?: Prisma.BoolFilter<"ClassCurriculum"> | boolean
@@ -902,6 +971,7 @@ export type ClassCurriculumCreateWithoutTermInput = {
   gradeCurriculum: Prisma.GradeCurriculumCreateNestedOneWithoutClassCurriculaInput
   subject: Prisma.SubjectCreateNestedOneWithoutClassCurriculaInput
   teacher?: Prisma.TeacherCreateNestedOneWithoutClassCurriculaInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupCreateNestedOneWithoutMembersInput
 }
 
 export type ClassCurriculumUncheckedCreateWithoutTermInput = {
@@ -910,6 +980,7 @@ export type ClassCurriculumUncheckedCreateWithoutTermInput = {
   gradeCurriculumId: string
   subjectId: string
   teacherId?: string | null
+  sharedTeachingGroupId?: string | null
   weeklySessions: number
   isMainSubject?: boolean
   allowDoubleSession?: boolean
@@ -957,6 +1028,7 @@ export type ClassCurriculumCreateWithoutTeacherInput = {
   classSection: Prisma.ClassSectionCreateNestedOneWithoutClassCurriculaInput
   gradeCurriculum: Prisma.GradeCurriculumCreateNestedOneWithoutClassCurriculaInput
   subject: Prisma.SubjectCreateNestedOneWithoutClassCurriculaInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupCreateNestedOneWithoutMembersInput
 }
 
 export type ClassCurriculumUncheckedCreateWithoutTeacherInput = {
@@ -965,6 +1037,7 @@ export type ClassCurriculumUncheckedCreateWithoutTeacherInput = {
   classSectionId: string
   gradeCurriculumId: string
   subjectId: string
+  sharedTeachingGroupId?: string | null
   weeklySessions: number
   isMainSubject?: boolean
   allowDoubleSession?: boolean
@@ -1012,6 +1085,7 @@ export type ClassCurriculumCreateWithoutSubjectInput = {
   classSection: Prisma.ClassSectionCreateNestedOneWithoutClassCurriculaInput
   gradeCurriculum: Prisma.GradeCurriculumCreateNestedOneWithoutClassCurriculaInput
   teacher?: Prisma.TeacherCreateNestedOneWithoutClassCurriculaInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupCreateNestedOneWithoutMembersInput
 }
 
 export type ClassCurriculumUncheckedCreateWithoutSubjectInput = {
@@ -1020,6 +1094,7 @@ export type ClassCurriculumUncheckedCreateWithoutSubjectInput = {
   classSectionId: string
   gradeCurriculumId: string
   teacherId?: string | null
+  sharedTeachingGroupId?: string | null
   weeklySessions: number
   isMainSubject?: boolean
   allowDoubleSession?: boolean
@@ -1067,6 +1142,7 @@ export type ClassCurriculumCreateWithoutClassSectionInput = {
   gradeCurriculum: Prisma.GradeCurriculumCreateNestedOneWithoutClassCurriculaInput
   subject: Prisma.SubjectCreateNestedOneWithoutClassCurriculaInput
   teacher?: Prisma.TeacherCreateNestedOneWithoutClassCurriculaInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupCreateNestedOneWithoutMembersInput
 }
 
 export type ClassCurriculumUncheckedCreateWithoutClassSectionInput = {
@@ -1074,6 +1150,7 @@ export type ClassCurriculumUncheckedCreateWithoutClassSectionInput = {
   gradeCurriculumId: string
   subjectId: string
   teacherId?: string | null
+  sharedTeachingGroupId?: string | null
   weeklySessions: number
   isMainSubject?: boolean
   allowDoubleSession?: boolean
@@ -1121,12 +1198,14 @@ export type ClassCurriculumCreateWithoutGradeCurriculumInput = {
   classSection: Prisma.ClassSectionCreateNestedOneWithoutClassCurriculaInput
   subject: Prisma.SubjectCreateNestedOneWithoutClassCurriculaInput
   teacher?: Prisma.TeacherCreateNestedOneWithoutClassCurriculaInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupCreateNestedOneWithoutMembersInput
 }
 
 export type ClassCurriculumUncheckedCreateWithoutGradeCurriculumInput = {
   id?: string
   classSectionId: string
   teacherId?: string | null
+  sharedTeachingGroupId?: string | null
   weeklySessions: number
   isMainSubject?: boolean
   allowDoubleSession?: boolean
@@ -1161,6 +1240,64 @@ export type ClassCurriculumUpdateManyWithWhereWithoutGradeCurriculumInput = {
   data: Prisma.XOR<Prisma.ClassCurriculumUpdateManyMutationInput, Prisma.ClassCurriculumUncheckedUpdateManyWithoutGradeCurriculumInput>
 }
 
+export type ClassCurriculumCreateWithoutSharedTeachingGroupInput = {
+  id?: string
+  weeklySessions: number
+  isMainSubject?: boolean
+  allowDoubleSession?: boolean
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  school: Prisma.SchoolCreateNestedOneWithoutClassCurriculaInput
+  term: Prisma.AcademicTermCreateNestedOneWithoutClassCurriculaInput
+  classSection: Prisma.ClassSectionCreateNestedOneWithoutClassCurriculaInput
+  gradeCurriculum: Prisma.GradeCurriculumCreateNestedOneWithoutClassCurriculaInput
+  subject: Prisma.SubjectCreateNestedOneWithoutClassCurriculaInput
+  teacher?: Prisma.TeacherCreateNestedOneWithoutClassCurriculaInput
+}
+
+export type ClassCurriculumUncheckedCreateWithoutSharedTeachingGroupInput = {
+  id?: string
+  schoolId: string
+  termId: string
+  classSectionId: string
+  gradeCurriculumId: string
+  subjectId: string
+  teacherId?: string | null
+  weeklySessions: number
+  isMainSubject?: boolean
+  allowDoubleSession?: boolean
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type ClassCurriculumCreateOrConnectWithoutSharedTeachingGroupInput = {
+  where: Prisma.ClassCurriculumWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClassCurriculumCreateWithoutSharedTeachingGroupInput, Prisma.ClassCurriculumUncheckedCreateWithoutSharedTeachingGroupInput>
+}
+
+export type ClassCurriculumCreateManySharedTeachingGroupInputEnvelope = {
+  data: Prisma.ClassCurriculumCreateManySharedTeachingGroupInput | Prisma.ClassCurriculumCreateManySharedTeachingGroupInput[]
+  skipDuplicates?: boolean
+}
+
+export type ClassCurriculumUpsertWithWhereUniqueWithoutSharedTeachingGroupInput = {
+  where: Prisma.ClassCurriculumWhereUniqueInput
+  update: Prisma.XOR<Prisma.ClassCurriculumUpdateWithoutSharedTeachingGroupInput, Prisma.ClassCurriculumUncheckedUpdateWithoutSharedTeachingGroupInput>
+  create: Prisma.XOR<Prisma.ClassCurriculumCreateWithoutSharedTeachingGroupInput, Prisma.ClassCurriculumUncheckedCreateWithoutSharedTeachingGroupInput>
+}
+
+export type ClassCurriculumUpdateWithWhereUniqueWithoutSharedTeachingGroupInput = {
+  where: Prisma.ClassCurriculumWhereUniqueInput
+  data: Prisma.XOR<Prisma.ClassCurriculumUpdateWithoutSharedTeachingGroupInput, Prisma.ClassCurriculumUncheckedUpdateWithoutSharedTeachingGroupInput>
+}
+
+export type ClassCurriculumUpdateManyWithWhereWithoutSharedTeachingGroupInput = {
+  where: Prisma.ClassCurriculumScalarWhereInput
+  data: Prisma.XOR<Prisma.ClassCurriculumUpdateManyMutationInput, Prisma.ClassCurriculumUncheckedUpdateManyWithoutSharedTeachingGroupInput>
+}
+
 export type ClassCurriculumCreateManySchoolInput = {
   id?: string
   termId: string
@@ -1168,6 +1305,7 @@ export type ClassCurriculumCreateManySchoolInput = {
   gradeCurriculumId: string
   subjectId: string
   teacherId?: string | null
+  sharedTeachingGroupId?: string | null
   weeklySessions: number
   isMainSubject?: boolean
   allowDoubleSession?: boolean
@@ -1189,6 +1327,7 @@ export type ClassCurriculumUpdateWithoutSchoolInput = {
   gradeCurriculum?: Prisma.GradeCurriculumUpdateOneRequiredWithoutClassCurriculaNestedInput
   subject?: Prisma.SubjectUpdateOneRequiredWithoutClassCurriculaNestedInput
   teacher?: Prisma.TeacherUpdateOneWithoutClassCurriculaNestedInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupUpdateOneWithoutMembersNestedInput
 }
 
 export type ClassCurriculumUncheckedUpdateWithoutSchoolInput = {
@@ -1198,6 +1337,7 @@ export type ClassCurriculumUncheckedUpdateWithoutSchoolInput = {
   gradeCurriculumId?: Prisma.StringFieldUpdateOperationsInput | string
   subjectId?: Prisma.StringFieldUpdateOperationsInput | string
   teacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sharedTeachingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   weeklySessions?: Prisma.IntFieldUpdateOperationsInput | number
   isMainSubject?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowDoubleSession?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1213,6 +1353,7 @@ export type ClassCurriculumUncheckedUpdateManyWithoutSchoolInput = {
   gradeCurriculumId?: Prisma.StringFieldUpdateOperationsInput | string
   subjectId?: Prisma.StringFieldUpdateOperationsInput | string
   teacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sharedTeachingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   weeklySessions?: Prisma.IntFieldUpdateOperationsInput | number
   isMainSubject?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowDoubleSession?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1227,6 +1368,7 @@ export type ClassCurriculumCreateManyTermInput = {
   gradeCurriculumId: string
   subjectId: string
   teacherId?: string | null
+  sharedTeachingGroupId?: string | null
   weeklySessions: number
   isMainSubject?: boolean
   allowDoubleSession?: boolean
@@ -1248,6 +1390,7 @@ export type ClassCurriculumUpdateWithoutTermInput = {
   gradeCurriculum?: Prisma.GradeCurriculumUpdateOneRequiredWithoutClassCurriculaNestedInput
   subject?: Prisma.SubjectUpdateOneRequiredWithoutClassCurriculaNestedInput
   teacher?: Prisma.TeacherUpdateOneWithoutClassCurriculaNestedInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupUpdateOneWithoutMembersNestedInput
 }
 
 export type ClassCurriculumUncheckedUpdateWithoutTermInput = {
@@ -1256,6 +1399,7 @@ export type ClassCurriculumUncheckedUpdateWithoutTermInput = {
   gradeCurriculumId?: Prisma.StringFieldUpdateOperationsInput | string
   subjectId?: Prisma.StringFieldUpdateOperationsInput | string
   teacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sharedTeachingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   weeklySessions?: Prisma.IntFieldUpdateOperationsInput | number
   isMainSubject?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowDoubleSession?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1270,6 +1414,7 @@ export type ClassCurriculumUncheckedUpdateManyWithoutTermInput = {
   gradeCurriculumId?: Prisma.StringFieldUpdateOperationsInput | string
   subjectId?: Prisma.StringFieldUpdateOperationsInput | string
   teacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sharedTeachingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   weeklySessions?: Prisma.IntFieldUpdateOperationsInput | number
   isMainSubject?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowDoubleSession?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1284,6 +1429,7 @@ export type ClassCurriculumCreateManyTeacherInput = {
   classSectionId: string
   gradeCurriculumId: string
   subjectId: string
+  sharedTeachingGroupId?: string | null
   weeklySessions: number
   isMainSubject?: boolean
   allowDoubleSession?: boolean
@@ -1305,6 +1451,7 @@ export type ClassCurriculumUpdateWithoutTeacherInput = {
   classSection?: Prisma.ClassSectionUpdateOneRequiredWithoutClassCurriculaNestedInput
   gradeCurriculum?: Prisma.GradeCurriculumUpdateOneRequiredWithoutClassCurriculaNestedInput
   subject?: Prisma.SubjectUpdateOneRequiredWithoutClassCurriculaNestedInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupUpdateOneWithoutMembersNestedInput
 }
 
 export type ClassCurriculumUncheckedUpdateWithoutTeacherInput = {
@@ -1313,6 +1460,7 @@ export type ClassCurriculumUncheckedUpdateWithoutTeacherInput = {
   classSectionId?: Prisma.StringFieldUpdateOperationsInput | string
   gradeCurriculumId?: Prisma.StringFieldUpdateOperationsInput | string
   subjectId?: Prisma.StringFieldUpdateOperationsInput | string
+  sharedTeachingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   weeklySessions?: Prisma.IntFieldUpdateOperationsInput | number
   isMainSubject?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowDoubleSession?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1327,6 +1475,7 @@ export type ClassCurriculumUncheckedUpdateManyWithoutTeacherInput = {
   classSectionId?: Prisma.StringFieldUpdateOperationsInput | string
   gradeCurriculumId?: Prisma.StringFieldUpdateOperationsInput | string
   subjectId?: Prisma.StringFieldUpdateOperationsInput | string
+  sharedTeachingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   weeklySessions?: Prisma.IntFieldUpdateOperationsInput | number
   isMainSubject?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowDoubleSession?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1341,6 +1490,7 @@ export type ClassCurriculumCreateManySubjectInput = {
   classSectionId: string
   gradeCurriculumId: string
   teacherId?: string | null
+  sharedTeachingGroupId?: string | null
   weeklySessions: number
   isMainSubject?: boolean
   allowDoubleSession?: boolean
@@ -1362,6 +1512,7 @@ export type ClassCurriculumUpdateWithoutSubjectInput = {
   classSection?: Prisma.ClassSectionUpdateOneRequiredWithoutClassCurriculaNestedInput
   gradeCurriculum?: Prisma.GradeCurriculumUpdateOneRequiredWithoutClassCurriculaNestedInput
   teacher?: Prisma.TeacherUpdateOneWithoutClassCurriculaNestedInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupUpdateOneWithoutMembersNestedInput
 }
 
 export type ClassCurriculumUncheckedUpdateWithoutSubjectInput = {
@@ -1370,6 +1521,7 @@ export type ClassCurriculumUncheckedUpdateWithoutSubjectInput = {
   classSectionId?: Prisma.StringFieldUpdateOperationsInput | string
   gradeCurriculumId?: Prisma.StringFieldUpdateOperationsInput | string
   teacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sharedTeachingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   weeklySessions?: Prisma.IntFieldUpdateOperationsInput | number
   isMainSubject?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowDoubleSession?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1384,6 +1536,7 @@ export type ClassCurriculumUncheckedUpdateManyWithoutSubjectInput = {
   classSectionId?: Prisma.StringFieldUpdateOperationsInput | string
   gradeCurriculumId?: Prisma.StringFieldUpdateOperationsInput | string
   teacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sharedTeachingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   weeklySessions?: Prisma.IntFieldUpdateOperationsInput | number
   isMainSubject?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowDoubleSession?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1397,6 +1550,7 @@ export type ClassCurriculumCreateManyClassSectionInput = {
   gradeCurriculumId: string
   subjectId: string
   teacherId?: string | null
+  sharedTeachingGroupId?: string | null
   weeklySessions: number
   isMainSubject?: boolean
   allowDoubleSession?: boolean
@@ -1418,6 +1572,7 @@ export type ClassCurriculumUpdateWithoutClassSectionInput = {
   gradeCurriculum?: Prisma.GradeCurriculumUpdateOneRequiredWithoutClassCurriculaNestedInput
   subject?: Prisma.SubjectUpdateOneRequiredWithoutClassCurriculaNestedInput
   teacher?: Prisma.TeacherUpdateOneWithoutClassCurriculaNestedInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupUpdateOneWithoutMembersNestedInput
 }
 
 export type ClassCurriculumUncheckedUpdateWithoutClassSectionInput = {
@@ -1425,6 +1580,7 @@ export type ClassCurriculumUncheckedUpdateWithoutClassSectionInput = {
   gradeCurriculumId?: Prisma.StringFieldUpdateOperationsInput | string
   subjectId?: Prisma.StringFieldUpdateOperationsInput | string
   teacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sharedTeachingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   weeklySessions?: Prisma.IntFieldUpdateOperationsInput | number
   isMainSubject?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowDoubleSession?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1438,6 +1594,7 @@ export type ClassCurriculumUncheckedUpdateManyWithoutClassSectionInput = {
   gradeCurriculumId?: Prisma.StringFieldUpdateOperationsInput | string
   subjectId?: Prisma.StringFieldUpdateOperationsInput | string
   teacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sharedTeachingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   weeklySessions?: Prisma.IntFieldUpdateOperationsInput | number
   isMainSubject?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowDoubleSession?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1450,6 +1607,7 @@ export type ClassCurriculumCreateManyGradeCurriculumInput = {
   id?: string
   classSectionId: string
   teacherId?: string | null
+  sharedTeachingGroupId?: string | null
   weeklySessions: number
   isMainSubject?: boolean
   allowDoubleSession?: boolean
@@ -1471,12 +1629,14 @@ export type ClassCurriculumUpdateWithoutGradeCurriculumInput = {
   classSection?: Prisma.ClassSectionUpdateOneRequiredWithoutClassCurriculaNestedInput
   subject?: Prisma.SubjectUpdateOneRequiredWithoutClassCurriculaNestedInput
   teacher?: Prisma.TeacherUpdateOneWithoutClassCurriculaNestedInput
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupUpdateOneWithoutMembersNestedInput
 }
 
 export type ClassCurriculumUncheckedUpdateWithoutGradeCurriculumInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   classSectionId?: Prisma.StringFieldUpdateOperationsInput | string
   teacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sharedTeachingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   weeklySessions?: Prisma.IntFieldUpdateOperationsInput | number
   isMainSubject?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowDoubleSession?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1488,6 +1648,71 @@ export type ClassCurriculumUncheckedUpdateWithoutGradeCurriculumInput = {
 export type ClassCurriculumUncheckedUpdateManyWithoutGradeCurriculumInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   classSectionId?: Prisma.StringFieldUpdateOperationsInput | string
+  teacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sharedTeachingGroupId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  weeklySessions?: Prisma.IntFieldUpdateOperationsInput | number
+  isMainSubject?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDoubleSession?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type ClassCurriculumCreateManySharedTeachingGroupInput = {
+  id?: string
+  schoolId: string
+  termId: string
+  classSectionId: string
+  gradeCurriculumId: string
+  subjectId: string
+  teacherId?: string | null
+  weeklySessions: number
+  isMainSubject?: boolean
+  allowDoubleSession?: boolean
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type ClassCurriculumUpdateWithoutSharedTeachingGroupInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  weeklySessions?: Prisma.IntFieldUpdateOperationsInput | number
+  isMainSubject?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDoubleSession?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  school?: Prisma.SchoolUpdateOneRequiredWithoutClassCurriculaNestedInput
+  term?: Prisma.AcademicTermUpdateOneRequiredWithoutClassCurriculaNestedInput
+  classSection?: Prisma.ClassSectionUpdateOneRequiredWithoutClassCurriculaNestedInput
+  gradeCurriculum?: Prisma.GradeCurriculumUpdateOneRequiredWithoutClassCurriculaNestedInput
+  subject?: Prisma.SubjectUpdateOneRequiredWithoutClassCurriculaNestedInput
+  teacher?: Prisma.TeacherUpdateOneWithoutClassCurriculaNestedInput
+}
+
+export type ClassCurriculumUncheckedUpdateWithoutSharedTeachingGroupInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  schoolId?: Prisma.StringFieldUpdateOperationsInput | string
+  termId?: Prisma.StringFieldUpdateOperationsInput | string
+  classSectionId?: Prisma.StringFieldUpdateOperationsInput | string
+  gradeCurriculumId?: Prisma.StringFieldUpdateOperationsInput | string
+  subjectId?: Prisma.StringFieldUpdateOperationsInput | string
+  teacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  weeklySessions?: Prisma.IntFieldUpdateOperationsInput | number
+  isMainSubject?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowDoubleSession?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type ClassCurriculumUncheckedUpdateManyWithoutSharedTeachingGroupInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  schoolId?: Prisma.StringFieldUpdateOperationsInput | string
+  termId?: Prisma.StringFieldUpdateOperationsInput | string
+  classSectionId?: Prisma.StringFieldUpdateOperationsInput | string
+  gradeCurriculumId?: Prisma.StringFieldUpdateOperationsInput | string
+  subjectId?: Prisma.StringFieldUpdateOperationsInput | string
   teacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   weeklySessions?: Prisma.IntFieldUpdateOperationsInput | number
   isMainSubject?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1507,6 +1732,7 @@ export type ClassCurriculumSelect<ExtArgs extends runtime.Types.Extensions.Inter
   gradeCurriculumId?: boolean
   subjectId?: boolean
   teacherId?: boolean
+  sharedTeachingGroupId?: boolean
   weeklySessions?: boolean
   isMainSubject?: boolean
   allowDoubleSession?: boolean
@@ -1519,6 +1745,7 @@ export type ClassCurriculumSelect<ExtArgs extends runtime.Types.Extensions.Inter
   gradeCurriculum?: boolean | Prisma.GradeCurriculumDefaultArgs<ExtArgs>
   subject?: boolean | Prisma.SubjectDefaultArgs<ExtArgs>
   teacher?: boolean | Prisma.ClassCurriculum$teacherArgs<ExtArgs>
+  sharedTeachingGroup?: boolean | Prisma.ClassCurriculum$sharedTeachingGroupArgs<ExtArgs>
 }, ExtArgs["result"]["classCurriculum"]>
 
 export type ClassCurriculumSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1529,6 +1756,7 @@ export type ClassCurriculumSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
   gradeCurriculumId?: boolean
   subjectId?: boolean
   teacherId?: boolean
+  sharedTeachingGroupId?: boolean
   weeklySessions?: boolean
   isMainSubject?: boolean
   allowDoubleSession?: boolean
@@ -1541,6 +1769,7 @@ export type ClassCurriculumSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
   gradeCurriculum?: boolean | Prisma.GradeCurriculumDefaultArgs<ExtArgs>
   subject?: boolean | Prisma.SubjectDefaultArgs<ExtArgs>
   teacher?: boolean | Prisma.ClassCurriculum$teacherArgs<ExtArgs>
+  sharedTeachingGroup?: boolean | Prisma.ClassCurriculum$sharedTeachingGroupArgs<ExtArgs>
 }, ExtArgs["result"]["classCurriculum"]>
 
 export type ClassCurriculumSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1551,6 +1780,7 @@ export type ClassCurriculumSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
   gradeCurriculumId?: boolean
   subjectId?: boolean
   teacherId?: boolean
+  sharedTeachingGroupId?: boolean
   weeklySessions?: boolean
   isMainSubject?: boolean
   allowDoubleSession?: boolean
@@ -1563,6 +1793,7 @@ export type ClassCurriculumSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
   gradeCurriculum?: boolean | Prisma.GradeCurriculumDefaultArgs<ExtArgs>
   subject?: boolean | Prisma.SubjectDefaultArgs<ExtArgs>
   teacher?: boolean | Prisma.ClassCurriculum$teacherArgs<ExtArgs>
+  sharedTeachingGroup?: boolean | Prisma.ClassCurriculum$sharedTeachingGroupArgs<ExtArgs>
 }, ExtArgs["result"]["classCurriculum"]>
 
 export type ClassCurriculumSelectScalar = {
@@ -1573,6 +1804,7 @@ export type ClassCurriculumSelectScalar = {
   gradeCurriculumId?: boolean
   subjectId?: boolean
   teacherId?: boolean
+  sharedTeachingGroupId?: boolean
   weeklySessions?: boolean
   isMainSubject?: boolean
   allowDoubleSession?: boolean
@@ -1581,7 +1813,7 @@ export type ClassCurriculumSelectScalar = {
   updatedAt?: boolean
 }
 
-export type ClassCurriculumOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "termId" | "classSectionId" | "gradeCurriculumId" | "subjectId" | "teacherId" | "weeklySessions" | "isMainSubject" | "allowDoubleSession" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["classCurriculum"]>
+export type ClassCurriculumOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "termId" | "classSectionId" | "gradeCurriculumId" | "subjectId" | "teacherId" | "sharedTeachingGroupId" | "weeklySessions" | "isMainSubject" | "allowDoubleSession" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["classCurriculum"]>
 export type ClassCurriculumInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
   term?: boolean | Prisma.AcademicTermDefaultArgs<ExtArgs>
@@ -1589,6 +1821,7 @@ export type ClassCurriculumInclude<ExtArgs extends runtime.Types.Extensions.Inte
   gradeCurriculum?: boolean | Prisma.GradeCurriculumDefaultArgs<ExtArgs>
   subject?: boolean | Prisma.SubjectDefaultArgs<ExtArgs>
   teacher?: boolean | Prisma.ClassCurriculum$teacherArgs<ExtArgs>
+  sharedTeachingGroup?: boolean | Prisma.ClassCurriculum$sharedTeachingGroupArgs<ExtArgs>
 }
 export type ClassCurriculumIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
@@ -1597,6 +1830,7 @@ export type ClassCurriculumIncludeCreateManyAndReturn<ExtArgs extends runtime.Ty
   gradeCurriculum?: boolean | Prisma.GradeCurriculumDefaultArgs<ExtArgs>
   subject?: boolean | Prisma.SubjectDefaultArgs<ExtArgs>
   teacher?: boolean | Prisma.ClassCurriculum$teacherArgs<ExtArgs>
+  sharedTeachingGroup?: boolean | Prisma.ClassCurriculum$sharedTeachingGroupArgs<ExtArgs>
 }
 export type ClassCurriculumIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
@@ -1605,6 +1839,7 @@ export type ClassCurriculumIncludeUpdateManyAndReturn<ExtArgs extends runtime.Ty
   gradeCurriculum?: boolean | Prisma.GradeCurriculumDefaultArgs<ExtArgs>
   subject?: boolean | Prisma.SubjectDefaultArgs<ExtArgs>
   teacher?: boolean | Prisma.ClassCurriculum$teacherArgs<ExtArgs>
+  sharedTeachingGroup?: boolean | Prisma.ClassCurriculum$sharedTeachingGroupArgs<ExtArgs>
 }
 
 export type $ClassCurriculumPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1616,6 +1851,7 @@ export type $ClassCurriculumPayload<ExtArgs extends runtime.Types.Extensions.Int
     gradeCurriculum: Prisma.$GradeCurriculumPayload<ExtArgs>
     subject: Prisma.$SubjectPayload<ExtArgs>
     teacher: Prisma.$TeacherPayload<ExtArgs> | null
+    sharedTeachingGroup: Prisma.$SharedTeachingGroupPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1625,6 +1861,7 @@ export type $ClassCurriculumPayload<ExtArgs extends runtime.Types.Extensions.Int
     gradeCurriculumId: string
     subjectId: string
     teacherId: string | null
+    sharedTeachingGroupId: string | null
     weeklySessions: number
     isMainSubject: boolean
     allowDoubleSession: boolean
@@ -2031,6 +2268,7 @@ export interface Prisma__ClassCurriculumClient<T, Null = never, ExtArgs extends 
   gradeCurriculum<T extends Prisma.GradeCurriculumDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.GradeCurriculumDefaultArgs<ExtArgs>>): Prisma.Prisma__GradeCurriculumClient<runtime.Types.Result.GetResult<Prisma.$GradeCurriculumPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   subject<T extends Prisma.SubjectDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SubjectDefaultArgs<ExtArgs>>): Prisma.Prisma__SubjectClient<runtime.Types.Result.GetResult<Prisma.$SubjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   teacher<T extends Prisma.ClassCurriculum$teacherArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClassCurriculum$teacherArgs<ExtArgs>>): Prisma.Prisma__TeacherClient<runtime.Types.Result.GetResult<Prisma.$TeacherPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  sharedTeachingGroup<T extends Prisma.ClassCurriculum$sharedTeachingGroupArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClassCurriculum$sharedTeachingGroupArgs<ExtArgs>>): Prisma.Prisma__SharedTeachingGroupClient<runtime.Types.Result.GetResult<Prisma.$SharedTeachingGroupPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2067,6 +2305,7 @@ export interface ClassCurriculumFieldRefs {
   readonly gradeCurriculumId: Prisma.FieldRef<"ClassCurriculum", 'String'>
   readonly subjectId: Prisma.FieldRef<"ClassCurriculum", 'String'>
   readonly teacherId: Prisma.FieldRef<"ClassCurriculum", 'String'>
+  readonly sharedTeachingGroupId: Prisma.FieldRef<"ClassCurriculum", 'String'>
   readonly weeklySessions: Prisma.FieldRef<"ClassCurriculum", 'Int'>
   readonly isMainSubject: Prisma.FieldRef<"ClassCurriculum", 'Boolean'>
   readonly allowDoubleSession: Prisma.FieldRef<"ClassCurriculum", 'Boolean'>
@@ -2490,6 +2729,25 @@ export type ClassCurriculum$teacherArgs<ExtArgs extends runtime.Types.Extensions
    */
   include?: Prisma.TeacherInclude<ExtArgs> | null
   where?: Prisma.TeacherWhereInput
+}
+
+/**
+ * ClassCurriculum.sharedTeachingGroup
+ */
+export type ClassCurriculum$sharedTeachingGroupArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SharedTeachingGroup
+   */
+  select?: Prisma.SharedTeachingGroupSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SharedTeachingGroup
+   */
+  omit?: Prisma.SharedTeachingGroupOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SharedTeachingGroupInclude<ExtArgs> | null
+  where?: Prisma.SharedTeachingGroupWhereInput
 }
 
 /**

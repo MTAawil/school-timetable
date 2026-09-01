@@ -429,6 +429,7 @@ const classSchema = z.object({
   homeroomTeacherId: z.uuid().nullable(),
   fixedRoomId: z.uuid().nullable(),
   maxLessonsPerDay: z.number().int().positive().nullable(),
+  recessAfterSession: z.number().int().positive().nullable(),
 });
 
 export async function saveClassSection(formData: FormData): Promise<void> {
@@ -441,7 +442,18 @@ export async function saveClassSection(formData: FormData): Promise<void> {
     homeroomTeacherId: optionalText(formData.get("homeroomTeacherId")),
     fixedRoomId: optionalText(formData.get("fixedRoomId")),
     maxLessonsPerDay: optionalInteger(formData.get("maxLessonsPerDay")),
+    recessAfterSession: optionalInteger(formData.get("recessAfterSession")),
   });
+  const configuration = await getDatabase().schoolWeekConfiguration.findFirst({
+    where: { schoolId: user.schoolId, termId: term.id },
+  });
+  if (!configuration) throw new Error("SCHOOL_WEEK_INCOMPLETE");
+  if (
+    input.recessAfterSession !== null &&
+    input.recessAfterSession >= configuration.sessionsPerDay
+  ) {
+    throw new Error("CLASS_RECESS_MUST_BE_BEFORE_LAST_SESSION");
+  }
   await getDatabase().classSection.create({
     data: {
       schoolId: user.schoolId,
@@ -450,6 +462,30 @@ export async function saveClassSection(formData: FormData): Promise<void> {
     },
   });
   revalidatePath("/classes");
+}
+
+export async function saveClassRecess(formData: FormData): Promise<void> {
+  const user = await verifySession();
+  const term = await getActiveTerm(user.schoolId);
+  const id = z.uuid().parse(formData.get("classSectionId"));
+  const recessAfterSession = optionalInteger(formData.get("recessAfterSession"));
+  const configuration = await getDatabase().schoolWeekConfiguration.findFirst({
+    where: { schoolId: user.schoolId, termId: term.id },
+  });
+  if (!configuration) throw new Error("SCHOOL_WEEK_INCOMPLETE");
+  if (
+    recessAfterSession !== null &&
+    recessAfterSession >= configuration.sessionsPerDay
+  ) {
+    throw new Error("CLASS_RECESS_MUST_BE_BEFORE_LAST_SESSION");
+  }
+  const result = await getDatabase().classSection.updateMany({
+    where: { id, schoolId: user.schoolId, termId: term.id, deletedAt: null },
+    data: { recessAfterSession },
+  });
+  if (result.count !== 1) throw new Error("CLASS_SECTION_NOT_FOUND");
+  revalidatePath("/classes");
+  revalidatePath("/readiness");
 }
 
 const requirementSchema = z.object({

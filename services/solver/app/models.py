@@ -80,6 +80,7 @@ class ClassSection(ContractModel):
     name: str
     short_code: str | None = None
     max_lessons_per_day: int | None = Field(default=None, ge=1)
+    recess_after_session: int | None = Field(default=None, ge=1)
 
 
 class Room(ContractModel):
@@ -99,6 +100,7 @@ class Requirement(ContractModel):
     class_section_id: str
     subject_id: str
     teacher_id: str
+    shared_teaching_group_id: str | None = None
     weekly_occurrences: int | None = Field(default=None, ge=1)
     duration_periods: int | None = Field(default=None, ge=1)
     max_occurrences_per_day: int | None = Field(default=None, ge=1)

@@ -137,6 +137,11 @@ The redesigned solver must enforce:
 12. Every class-subject has exactly one teacher before the request is accepted.
 13. Every teacher's allocated curriculum sessions equal their declared weekly
     teaching sessions before the request is accepted.
+14. A shared-teaching group selects identical slots for every member class and
+    counts those synchronized sessions once for teacher collision and workload
+    constraints.
+15. A class-specific recess position is unavailable to that class; null uses
+    the school's default recess.
 
 Rooms are omitted from new redesign snapshots. Existing schema-version-1 room
 behavior remains unchanged for historical reproducibility.

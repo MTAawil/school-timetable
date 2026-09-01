@@ -55,6 +55,9 @@ export async function saveTeacherWorkflow(formData: FormData): Promise<void> {
   const confirmedReassignmentIds = z
     .array(z.uuid())
     .parse(formData.getAll("reassignCurriculumId"));
+  const sharedCurriculumIds = z
+    .array(z.uuid())
+    .parse(formData.getAll("sharedCurriculumId"));
   const submittedSlots = z
     .array(z.string().regex(/^\d+:\d+$/))
     .parse(formData.getAll("restrictionSlot"));
@@ -88,6 +91,7 @@ export async function saveTeacherWorkflow(formData: FormData): Promise<void> {
           subjectId: true,
           teacherId: true,
           weeklySessions: true,
+          sharedTeachingGroupId: true,
         },
       }),
       teacherId
@@ -127,6 +131,7 @@ export async function saveTeacherWorkflow(formData: FormData): Promise<void> {
       weeklySessions: item.weeklySessions,
     })),
     confirmedReassignmentIds,
+    sharedCurriculumIds,
   );
   if (
     !allocationValidation.valid &&
@@ -144,6 +149,31 @@ export async function saveTeacherWorkflow(formData: FormData): Promise<void> {
   }
   if (!allocationValidation.valid) {
     throw new Error(allocationValidation.code);
+  }
+  const curriculumById = new Map(curriculum.map((item) => [item.id, item]));
+  if (sharedCurriculumIds.some((id) => !selectedCurriculumIds.includes(id))) {
+    throw new Error("SHARED_CLASS_NOT_SELECTED");
+  }
+  const sharedItems = sharedCurriculumIds.map((id) => {
+    const item = curriculumById.get(id);
+    if (!item || item.teacherId || item.sharedTeachingGroupId) {
+      throw new Error("SHARED_CLASS_NOT_ELIGIBLE");
+    }
+    return item;
+  });
+  if (sharedItems.length > 0) {
+    const anchor = selectedCurriculumIds
+      .map((id) => curriculumById.get(id))
+      .find(
+        (item) =>
+          item?.subjectId === sharedItems[0]?.subjectId &&
+          item?.weeklySessions === sharedItems[0]?.weeklySessions &&
+          item !== undefined &&
+          !sharedCurriculumIds.includes(item.id),
+      );
+    if (!anchor || sharedItems.some((item) => item.subjectId !== anchor.subjectId)) {
+      throw new Error("SHARED_CLASS_REQUIRES_MATCHING_ANCHOR");
+    }
   }
   const expectedSlots = days
     .flatMap((day) =>
@@ -199,7 +229,7 @@ export async function saveTeacherWorkflow(formData: FormData): Promise<void> {
             teacherId,
             id: { notIn: selectedCurriculumIds },
           },
-          data: { teacherId: null },
+          data: { teacherId: null, sharedTeachingGroupId: null },
         });
       }
       if (selectedCurriculumIds.length > 0) {
@@ -215,6 +245,49 @@ export async function saveTeacherWorkflow(formData: FormData): Promise<void> {
           throw new Error("CLASS_SUBJECT_ALREADY_ASSIGNED");
         }
       }
+      if (sharedItems.length > 0) {
+        const anchor = selectedCurriculumIds
+          .map((id) => curriculumById.get(id))
+          .find(
+            (item) =>
+              item?.subjectId === sharedItems[0]?.subjectId &&
+              item?.weeklySessions === sharedItems[0]?.weeklySessions &&
+              item !== undefined &&
+              !sharedCurriculumIds.includes(item.id),
+          );
+        if (!anchor) throw new Error("SHARED_CLASS_REQUIRES_MATCHING_ANCHOR");
+        const group = anchor.sharedTeachingGroupId
+          ? await transaction.sharedTeachingGroup.update({
+              where: { id: anchor.sharedTeachingGroupId },
+              data: { weeklySessions: anchor.weeklySessions },
+            })
+          : await transaction.sharedTeachingGroup.create({
+              data: {
+                schoolId: user.schoolId,
+                termId: term.id,
+                subjectId: anchor.subjectId,
+                teacherId: teacher.id,
+                weeklySessions: anchor.weeklySessions,
+              },
+            });
+        await transaction.classCurriculum.updateMany({
+          where: {
+            id: { in: [anchor.id, ...sharedCurriculumIds] },
+            schoolId: user.schoolId,
+            termId: term.id,
+          },
+          data: { sharedTeachingGroupId: group.id },
+        });
+      }
+      const sharedGroups = await transaction.sharedTeachingGroup.findMany({
+        where: { schoolId: user.schoolId, termId: term.id },
+        include: { _count: { select: { members: true } } },
+      });
+      await transaction.sharedTeachingGroup.deleteMany({
+        where: {
+          id: { in: sharedGroups.filter((group) => group._count.members < 2).map((group) => group.id) },
+        },
+      });
 
       await transaction.availabilityRule.deleteMany({
         where: {

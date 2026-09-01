@@ -136,6 +136,7 @@ export async function buildCurrentSnapshot(
       name: `${classSection.grade} ${classSection.sectionName}`,
       shortCode: classSection.shortCode,
       maxLessonsPerDay: classSection.maxLessonsPerDay,
+      recessAfterSession: classSection.recessAfterSession,
     })),
     rooms: [],
     requirements: classCurricula.map((requirement) => ({
@@ -143,6 +144,7 @@ export async function buildCurrentSnapshot(
       classSectionId: requirement.classSectionId,
       subjectId: requirement.subjectId,
       teacherId: requirement.teacherId,
+      sharedTeachingGroupId: requirement.sharedTeachingGroupId,
       weeklySessions: requirement.weeklySessions,
       isMainSubject: requirement.isMainSubject,
       allowDoubleSession: requirement.allowDoubleSession,

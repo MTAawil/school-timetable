@@ -411,6 +411,7 @@ export const ModelName = {
   SchoolWeekConfiguration: 'SchoolWeekConfiguration',
   GradeCurriculum: 'GradeCurriculum',
   ClassCurriculum: 'ClassCurriculum',
+  SharedTeachingGroup: 'SharedTeachingGroup',
   AvailabilityRule: 'AvailabilityRule',
   TeachingRequirement: 'TeachingRequirement',
   RequirementFixedSlot: 'RequirementFixedSlot',
@@ -438,7 +439,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "school" | "user" | "academicTerm" | "dayDefinition" | "periodDefinition" | "slot" | "teacher" | "subject" | "room" | "classSection" | "gradeLevel" | "schoolWeekConfiguration" | "gradeCurriculum" | "classCurriculum" | "availabilityRule" | "teachingRequirement" | "requirementFixedSlot" | "requirementForbiddenSlot" | "constraintProfile" | "constraintWeight" | "generationJob" | "generationAlternative" | "generationDiagnostic" | "schedule" | "scheduleAssignment" | "auditLog"
+    modelProps: "school" | "user" | "academicTerm" | "dayDefinition" | "periodDefinition" | "slot" | "teacher" | "subject" | "room" | "classSection" | "gradeLevel" | "schoolWeekConfiguration" | "gradeCurriculum" | "classCurriculum" | "sharedTeachingGroup" | "availabilityRule" | "teachingRequirement" | "requirementFixedSlot" | "requirementForbiddenSlot" | "constraintProfile" | "constraintWeight" | "generationJob" | "generationAlternative" | "generationDiagnostic" | "schedule" | "scheduleAssignment" | "auditLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1475,6 +1476,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ClassCurriculumCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ClassCurriculumCountAggregateOutputType> | number
+        }
+      }
+    }
+    SharedTeachingGroup: {
+      payload: Prisma.$SharedTeachingGroupPayload<ExtArgs>
+      fields: Prisma.SharedTeachingGroupFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SharedTeachingGroupFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SharedTeachingGroupPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SharedTeachingGroupFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SharedTeachingGroupPayload>
+        }
+        findFirst: {
+          args: Prisma.SharedTeachingGroupFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SharedTeachingGroupPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SharedTeachingGroupFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SharedTeachingGroupPayload>
+        }
+        findMany: {
+          args: Prisma.SharedTeachingGroupFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SharedTeachingGroupPayload>[]
+        }
+        create: {
+          args: Prisma.SharedTeachingGroupCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SharedTeachingGroupPayload>
+        }
+        createMany: {
+          args: Prisma.SharedTeachingGroupCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SharedTeachingGroupCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SharedTeachingGroupPayload>[]
+        }
+        delete: {
+          args: Prisma.SharedTeachingGroupDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SharedTeachingGroupPayload>
+        }
+        update: {
+          args: Prisma.SharedTeachingGroupUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SharedTeachingGroupPayload>
+        }
+        deleteMany: {
+          args: Prisma.SharedTeachingGroupDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SharedTeachingGroupUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SharedTeachingGroupUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SharedTeachingGroupPayload>[]
+        }
+        upsert: {
+          args: Prisma.SharedTeachingGroupUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SharedTeachingGroupPayload>
+        }
+        aggregate: {
+          args: Prisma.SharedTeachingGroupAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSharedTeachingGroup>
+        }
+        groupBy: {
+          args: Prisma.SharedTeachingGroupGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SharedTeachingGroupGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SharedTeachingGroupCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SharedTeachingGroupCountAggregateOutputType> | number
         }
       }
     }
@@ -2566,6 +2641,7 @@ export const ClassSectionScalarFieldEnum = {
   homeroomTeacherId: 'homeroomTeacherId',
   fixedRoomId: 'fixedRoomId',
   maxLessonsPerDay: 'maxLessonsPerDay',
+  recessAfterSession: 'recessAfterSession',
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
@@ -2632,6 +2708,7 @@ export const ClassCurriculumScalarFieldEnum = {
   gradeCurriculumId: 'gradeCurriculumId',
   subjectId: 'subjectId',
   teacherId: 'teacherId',
+  sharedTeachingGroupId: 'sharedTeachingGroupId',
   weeklySessions: 'weeklySessions',
   isMainSubject: 'isMainSubject',
   allowDoubleSession: 'allowDoubleSession',
@@ -2641,6 +2718,20 @@ export const ClassCurriculumScalarFieldEnum = {
 } as const
 
 export type ClassCurriculumScalarFieldEnum = (typeof ClassCurriculumScalarFieldEnum)[keyof typeof ClassCurriculumScalarFieldEnum]
+
+
+export const SharedTeachingGroupScalarFieldEnum = {
+  id: 'id',
+  schoolId: 'schoolId',
+  termId: 'termId',
+  subjectId: 'subjectId',
+  teacherId: 'teacherId',
+  weeklySessions: 'weeklySessions',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SharedTeachingGroupScalarFieldEnum = (typeof SharedTeachingGroupScalarFieldEnum)[keyof typeof SharedTeachingGroupScalarFieldEnum]
 
 
 export const AvailabilityRuleScalarFieldEnum = {
@@ -2667,6 +2758,7 @@ export const TeachingRequirementScalarFieldEnum = {
   classSectionId: 'classSectionId',
   subjectId: 'subjectId',
   teacherId: 'teacherId',
+  sharedTeachingGroupId: 'sharedTeachingGroupId',
   weeklyOccurrences: 'weeklyOccurrences',
   durationPeriods: 'durationPeriods',
   minOccurrencesPerDay: 'minOccurrencesPerDay',
@@ -3282,6 +3374,7 @@ export type GlobalOmitConfig = {
   schoolWeekConfiguration?: Prisma.SchoolWeekConfigurationOmit
   gradeCurriculum?: Prisma.GradeCurriculumOmit
   classCurriculum?: Prisma.ClassCurriculumOmit
+  sharedTeachingGroup?: Prisma.SharedTeachingGroupOmit
   availabilityRule?: Prisma.AvailabilityRuleOmit
   teachingRequirement?: Prisma.TeachingRequirementOmit
   requirementFixedSlot?: Prisma.RequirementFixedSlotOmit

@@ -111,6 +111,7 @@ export type SupervisorSolverSnapshot = SnapshotBase & {
     name: string;
     shortCode: string;
     maxLessonsPerDay: number | null;
+    recessAfterSession: number | null;
   }[];
   rooms: [];
   requirements: {
@@ -118,6 +119,7 @@ export type SupervisorSolverSnapshot = SnapshotBase & {
     classSectionId: string;
     subjectId: string;
     teacherId: string | null;
+    sharedTeachingGroupId: string | null;
     weeklySessions: number;
     isMainSubject: boolean;
     allowDoubleSession: boolean;

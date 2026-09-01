@@ -45,6 +45,8 @@ def compatible_choices(
 ) -> list[Choice]:
     enabled = {(slot.day_index, slot.period_index) for slot in request.calendar.enabled_slots}
     teaching = {period.index for period in request.calendar.periods if period.is_teaching}
+    class_by_id = {item.id: item for item in request.class_sections}
+    class_recess = class_by_id[requirement.class_section_id].recess_after_session
     forbidden = {(slot.day_index, slot.period_index) for slot in requirement.forbidden_slots}
     unavailable = {
         (rule.entity_type, rule.entity_id, rule.day_index, rule.period_index)
@@ -82,7 +84,14 @@ def compatible_choices(
             valid = True
             for offset in range(requirement.occurrence_duration):
                 position = (day, period + offset)
-                if position not in enabled or position[1] not in teaching:
+                if (
+                    position not in enabled
+                    or position[1] not in teaching
+                    or (
+                        class_recess is not None
+                        and position[1] == class_recess - 1
+                    )
+                ):
                     valid = False
                     break
                 resources = (
@@ -117,6 +126,18 @@ def solve(request: SolveRequest) -> SolveResponse:
     variables: dict[Choice, cp_model.IntVar] = {}
     constraints = 0
     requirement_by_id = {item.id: item for item in request.requirements}
+    shared_requirements: dict[str, list[str]] = defaultdict(list)
+    for requirement in request.requirements:
+        if requirement.shared_teaching_group_id:
+            shared_requirements[requirement.shared_teaching_group_id].append(requirement.id)
+    shared_representatives = {
+        requirement_ids[0]
+        for requirement_ids in shared_requirements.values()
+        if requirement_ids
+    }
+    positions_by_requirement: dict[
+        str, dict[tuple[int, int, str | None], cp_model.IntVar]
+    ] = defaultdict(dict)
 
     for requirement in request.requirements:
         occurrence_range = (
@@ -132,6 +153,9 @@ def solve(request: SolveRequest) -> SolveResponse:
                     f"x_{requirement.id}_{occurrence}_{choice.day}_{choice.period}_{choice.room_id}"
                 )
                 variables[choice] = variable
+                positions_by_requirement[requirement.id][
+                    (choice.day, choice.period, choice.room_id)
+                ] = variable
                 occurrence_variables.append(variable)
                 requirement_variables.append(variable)
                 choices_by_position[(choice.day, choice.period, choice.room_id)] = variable
@@ -140,6 +164,7 @@ def solve(request: SolveRequest) -> SolveResponse:
             if request.schema_version == 1:
                 model.add_exactly_one(occurrence_variables)
                 constraints += 1
+
         if request.schema_version == 2:
             model.add(sum(requirement_variables) == requirement.occurrence_count)
             constraints += 1
@@ -170,6 +195,20 @@ def solve(request: SolveRequest) -> SolveResponse:
                 model.add(sum(fixed_variables) == 1)
                 constraints += 1
 
+    for _group_id, requirement_ids in shared_requirements.items():
+        if len(requirement_ids) < 2:
+            return _infeasible(request, started, len(variables), constraints)
+        anchor = requirement_ids[0]
+        anchor_positions = positions_by_requirement[anchor]
+        for member_id in requirement_ids[1:]:
+            member_positions = positions_by_requirement[member_id]
+            all_positions = set(anchor_positions) | set(member_positions)
+            for position in all_positions:
+                left = anchor_positions.get(position, 0)
+                right = member_positions.get(position, 0)
+                model.add(left == right)
+                constraints += 1
+
     occupancy: dict[tuple[str, str, int, int], list[cp_model.IntVar]] = defaultdict(list)
     starts_by_day: dict[tuple[str, int], list[cp_model.IntVar]] = defaultdict(list)
     starts_by_period: dict[tuple[str, int, int], list[cp_model.IntVar]] = defaultdict(list)
@@ -180,7 +219,16 @@ def solve(request: SolveRequest) -> SolveResponse:
         starts_by_period[(choice.requirement_id, choice.day, choice.period)].append(variable)
         for offset in range(choice.duration):
             period = choice.period + offset
-            occupancy[("teacher", requirement.teacher_id, choice.day, period)].append(variable)
+            if (
+                not requirement.shared_teaching_group_id
+                or requirement.id in shared_representatives
+            ):
+                occupancy[("teacher", requirement.teacher_id, choice.day, period)].append(
+                    variable
+                )
+                occupancy[("teacher_load", requirement.teacher_id, choice.day, period)].append(
+                    variable
+                )
             occupancy[("class", requirement.class_section_id, choice.day, period)].append(variable)
             if choice.room_id:
                 occupancy[("room", choice.room_id, choice.day, period)].append(variable)
@@ -199,7 +247,7 @@ def solve(request: SolveRequest) -> SolveResponse:
             daily = [
                 variable
                 for period in teaching_periods
-                for variable in occupancy.get(("teacher", teacher.id, day, period), [])
+                for variable in occupancy.get(("teacher_load", teacher.id, day, period), [])
             ]
             if teacher.max_lessons_per_day is not None and daily:
                 model.add(sum(daily) <= teacher.max_lessons_per_day)
@@ -221,7 +269,7 @@ def solve(request: SolveRequest) -> SolveResponse:
                     window_variables = [
                         variable
                         for period in window
-                        for variable in occupancy.get(("teacher", teacher.id, day, period), [])
+                        for variable in occupancy.get(("teacher_load", teacher.id, day, period), [])
                     ]
                     if window_variables:
                         model.add(sum(window_variables) <= teacher.max_consecutive_lessons)
@@ -329,11 +377,28 @@ def solve(request: SolveRequest) -> SolveResponse:
             requirement.occurrence_count * requirement.occurrence_duration
             for requirement in request.requirements
             if requirement.teacher_id == teacher.id
+            and not requirement.shared_teaching_group_id
+        )
+        total_periods += sum(
+            requirement.occurrence_count * requirement.occurrence_duration
+            for requirement in request.requirements
+            if requirement.teacher_id == teacher.id
+            and requirement.shared_teaching_group_id
+            and requirement.shared_teaching_group_id
+            == next(
+                (
+                    group_id
+                    for group_id, members in shared_requirements.items()
+                    if requirement.id in members
+                ),
+                None,
+            )
+            and requirement.id == shared_requirements[requirement.shared_teaching_group_id][0]
         )
         for day in days:
             daily_indicators: list[cp_model.IntVar] = []
             for period in teaching_periods:
-                candidates = occupancy.get(("teacher", teacher.id, day, period), [])
+                candidates = occupancy.get(("teacher_load", teacher.id, day, period), [])
                 if not candidates:
                     continue
                 occupied = model.new_bool_var(f"occupied_{teacher.id}_{day}_{period}")

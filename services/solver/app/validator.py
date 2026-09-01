@@ -11,6 +11,7 @@ def validate_assignments(
 ) -> list[str]:
     errors: list[str] = []
     requirements = {item.id: item for item in request.requirements}
+    classes = {item.id: item for item in request.class_sections}
     enabled = {(slot.day_index, slot.period_index) for slot in request.calendar.enabled_slots}
     teaching = {period.index for period in request.calendar.periods if period.is_teaching}
     unavailable = {
@@ -26,6 +27,9 @@ def validate_assignments(
     class_daily_periods: Counter[tuple[str, int]] = Counter()
     teacher_periods: dict[tuple[str, int], set[int]] = {}
     rooms = {room.id: room for room in request.rooms}
+    group_positions: dict[str, dict[str, set[tuple[int, int]]]] = {}
+    teacher_event_seen: set[tuple[str, int, int]] = set()
+    teacher_occupancy: dict[tuple[str, int, int], str | None] = {}
 
     for requirement in request.requirements:
         if not allow_incomplete and counts[requirement.id] != requirement.occurrence_count:
@@ -52,8 +56,23 @@ def validate_assignments(
             period = assignment.period_index + offset
             if (day, period) not in enabled or period not in teaching:
                 errors.append(f"INVALID_SLOT:{current_requirement.id}")
+            class_recess = classes[current_requirement.class_section_id].recess_after_session
+            if class_recess is not None and period == class_recess - 1:
+                errors.append(f"CLASS_RECESS:{current_requirement.class_section_id}")
+            teacher_slot = (current_requirement.teacher_id, day, period)
+            shared_group = current_requirement.shared_teaching_group_id
+            existing_group = teacher_occupancy.get(teacher_slot)
+            if teacher_slot in teacher_occupancy and (
+                shared_group is None or existing_group != shared_group
+            ):
+                errors.append(f"COLLISION:TEACHER:{current_requirement.teacher_id}")
+            else:
+                teacher_occupancy[teacher_slot] = shared_group
             for kind, entity_id in (
-                ("TEACHER", current_requirement.teacher_id),
+                (
+                    "TEACHER",
+                    None,
+                ),
                 ("CLASS_SECTION", current_requirement.class_section_id),
                 ("ROOM", assignment.room_id),
             ):
@@ -65,11 +84,28 @@ def validate_assignments(
                 if key in occupied:
                     errors.append(f"COLLISION:{kind}:{entity_id}")
                 occupied.add(key)
-            teacher_daily_periods[(current_requirement.teacher_id, day)] += 1
+            teacher_event_key = (
+                current_requirement.shared_teaching_group_id
+                or current_requirement.teacher_id,
+                day,
+                period,
+            )
+            if teacher_event_key not in teacher_event_seen:
+                teacher_event_seen.add(teacher_event_key)
+                teacher_daily_periods[(current_requirement.teacher_id, day)] += 1
+                teacher_periods.setdefault((current_requirement.teacher_id, day), set()).add(period)
             class_daily_periods[(current_requirement.class_section_id, day)] += 1
-            teacher_periods.setdefault((current_requirement.teacher_id, day), set()).add(period)
         days_by_requirement.setdefault(current_requirement.id, set()).add(assignment.day_index)
         daily_counts[(current_requirement.id, assignment.day_index)] += 1
+        if current_requirement.shared_teaching_group_id:
+            group_positions.setdefault(current_requirement.shared_teaching_group_id, {}).setdefault(
+                current_requirement.id, set()
+            ).add((assignment.day_index, assignment.period_index))
+
+    for group_id, requirement_positions in group_positions.items():
+        positions = list(requirement_positions.values())
+        if positions and any(item != positions[0] for item in positions[1:]):
+            errors.append(f"SHARED_GROUP_NOT_SYNCHRONIZED:{group_id}")
 
     for requirement in request.requirements:
         if (
@@ -103,11 +139,16 @@ def validate_assignments(
                     errors.append(f"MAIN_DOUBLE_DISABLED:{requirement.id}")
     for teacher in request.teachers:
         if request.schema_version == 2:
-            allocated = sum(
-                requirement.occurrence_count
-                for requirement in request.requirements
-                if requirement.teacher_id == teacher.id
-            )
+            counted_groups: set[str] = set()
+            allocated = 0
+            for requirement in request.requirements:
+                if requirement.teacher_id != teacher.id:
+                    continue
+                if requirement.shared_teaching_group_id:
+                    if requirement.shared_teaching_group_id in counted_groups:
+                        continue
+                    counted_groups.add(requirement.shared_teaching_group_id)
+                allocated += requirement.occurrence_count
             if allocated != teacher.weekly_teaching_sessions:
                 errors.append(f"TEACHER_WORKLOAD_MISMATCH:{teacher.id}")
         if teacher.max_lessons_per_day and any(

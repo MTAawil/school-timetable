@@ -79,6 +79,7 @@ export default async function TeachersPage({
       classCurriculumId: item.id,
       teacherId: item.teacherId,
       weeklySessions: item.weeklySessions,
+      sharedTeachingGroupId: item.sharedTeachingGroupId,
     })),
   );
   const uncovered = curriculum.filter((item) => !item.teacherId).length;
@@ -261,6 +262,7 @@ export default async function TeachersPage({
             weeklySessions: item.weeklySessions,
             teacherId: item.teacherId,
             teacherName: item.teacher?.name ?? null,
+            sharedTeachingGroupId: item.sharedTeachingGroupId,
           }))}
           days={days.map((day) => ({
             dayIndex: day.dayIndex,

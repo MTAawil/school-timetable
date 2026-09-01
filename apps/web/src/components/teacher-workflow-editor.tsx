@@ -16,6 +16,7 @@ type CurriculumItem = {
   weeklySessions: number;
   teacherId: string | null;
   teacherName: string | null;
+  sharedTeachingGroupId?: string | null;
 };
 
 type TeacherValue = {
@@ -98,6 +99,7 @@ export function TeacherWorkflowEditor({
     () => new Set(initiallyAssigned.map((item) => item.id)),
   );
   const [reassignedIds, setReassignedIds] = useState(() => new Set<string>());
+  const [sharedIds, setSharedIds] = useState(() => new Set<string>());
   const [states, setStates] = useState(() => {
     const initial = new Map<string, TeacherRestrictionState>();
     for (const restriction of restrictions) {
@@ -109,11 +111,20 @@ export function TeacherWorkflowEditor({
     return initial;
   });
   const allocatedSessions = useMemo(
-    () =>
-      curriculum
+    () => {
+      const countedGroups = new Set<string>();
+      return curriculum
         .filter((item) => selectedIds.has(item.id))
-        .reduce((total, item) => total + item.weeklySessions, 0),
-    [curriculum, selectedIds],
+        .reduce((total, item) => {
+          const groupId = item.sharedTeachingGroupId;
+          if (groupId) {
+            if (countedGroups.has(groupId)) return total;
+            countedGroups.add(groupId);
+          }
+          return total + (sharedIds.has(item.id) ? 0 : item.weeklySessions);
+        }, 0);
+    },
+    [curriculum, selectedIds, sharedIds],
   );
   const remaining = Math.max(0, declaredSessions - allocatedSessions);
   const excess = Math.max(0, allocatedSessions - declaredSessions);
@@ -151,6 +162,18 @@ export function TeacherWorkflowEditor({
   );
   const visibleCurriculum = teachingSubjectId
     ? curriculum.filter((item) => item.subjectId === teachingSubjectId)
+    : [];
+  const anchor = visibleCurriculum.find(
+    (item) => item.teacherId === teacher?.id,
+  );
+  const shareCandidates = anchor
+    ? visibleCurriculum.filter(
+        (item) =>
+          item.id !== anchor.id &&
+          item.teacherId === null &&
+          item.sharedTeachingGroupId === null &&
+          item.weeklySessions === anchor.weeklySessions,
+      )
     : [];
   const grouped = Map.groupBy(
     visibleCurriculum,
@@ -470,6 +493,9 @@ export function TeacherWorkflowEditor({
             value={id}
           />
         ))}
+        {[...sharedIds].map((id) => (
+          <input key={id} name="sharedCurriculumId" type="hidden" value={id} />
+        ))}
         <dl className="grid border-l border-t border-[#dce1dc] bg-white sm:grid-cols-4">
           {[
             ["Declared", declaredSessions],
@@ -510,6 +536,36 @@ export function TeacherWorkflowEditor({
           </p>
         ) : (
           <div className="space-y-5">
+            {shareCandidates.length > 0 ? (
+              <label className="block max-w-xl text-xs font-medium text-[#56615c]">
+                Combine unassigned classes with {anchor?.className}
+                <select
+                  className={`${inputClass} mt-1.5 min-h-28`}
+                  multiple
+                  value={[...sharedIds]}
+                  onChange={(event) => {
+                    const next = new Set(
+                      Array.from(event.target.selectedOptions, (option) => option.value),
+                    );
+                    setSharedIds(next);
+                    setSelectedIds((current) => {
+                      const updated = new Set(current);
+                      shareCandidates.forEach((item) => {
+                        if (next.has(item.id)) updated.add(item.id);
+                        else updated.delete(item.id);
+                      });
+                      return updated;
+                    });
+                  }}
+                >
+                  {shareCandidates.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.className} ({item.classCode}) - {item.weeklySessions} sessions
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
             {[...grouped.entries()].map(([key, items]) => {
               const first = items[0];
               if (!first) return null;

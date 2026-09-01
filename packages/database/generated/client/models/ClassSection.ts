@@ -28,10 +28,12 @@ export type AggregateClassSection = {
 
 export type ClassSectionAvgAggregateOutputType = {
   maxLessonsPerDay: number | null
+  recessAfterSession: number | null
 }
 
 export type ClassSectionSumAggregateOutputType = {
   maxLessonsPerDay: number | null
+  recessAfterSession: number | null
 }
 
 export type ClassSectionMinAggregateOutputType = {
@@ -48,6 +50,7 @@ export type ClassSectionMinAggregateOutputType = {
   homeroomTeacherId: string | null
   fixedRoomId: string | null
   maxLessonsPerDay: number | null
+  recessAfterSession: number | null
   isActive: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -68,6 +71,7 @@ export type ClassSectionMaxAggregateOutputType = {
   homeroomTeacherId: string | null
   fixedRoomId: string | null
   maxLessonsPerDay: number | null
+  recessAfterSession: number | null
   isActive: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -88,6 +92,7 @@ export type ClassSectionCountAggregateOutputType = {
   homeroomTeacherId: number
   fixedRoomId: number
   maxLessonsPerDay: number
+  recessAfterSession: number
   isActive: number
   createdAt: number
   updatedAt: number
@@ -98,10 +103,12 @@ export type ClassSectionCountAggregateOutputType = {
 
 export type ClassSectionAvgAggregateInputType = {
   maxLessonsPerDay?: true
+  recessAfterSession?: true
 }
 
 export type ClassSectionSumAggregateInputType = {
   maxLessonsPerDay?: true
+  recessAfterSession?: true
 }
 
 export type ClassSectionMinAggregateInputType = {
@@ -118,6 +125,7 @@ export type ClassSectionMinAggregateInputType = {
   homeroomTeacherId?: true
   fixedRoomId?: true
   maxLessonsPerDay?: true
+  recessAfterSession?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -138,6 +146,7 @@ export type ClassSectionMaxAggregateInputType = {
   homeroomTeacherId?: true
   fixedRoomId?: true
   maxLessonsPerDay?: true
+  recessAfterSession?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -158,6 +167,7 @@ export type ClassSectionCountAggregateInputType = {
   homeroomTeacherId?: true
   fixedRoomId?: true
   maxLessonsPerDay?: true
+  recessAfterSession?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -265,6 +275,7 @@ export type ClassSectionGroupByOutputType = {
   homeroomTeacherId: string | null
   fixedRoomId: string | null
   maxLessonsPerDay: number | null
+  recessAfterSession: number | null
   isActive: boolean
   createdAt: Date
   updatedAt: Date
@@ -308,6 +319,7 @@ export type ClassSectionWhereInput = {
   homeroomTeacherId?: Prisma.UuidNullableFilter<"ClassSection"> | string | null
   fixedRoomId?: Prisma.UuidNullableFilter<"ClassSection"> | string | null
   maxLessonsPerDay?: Prisma.IntNullableFilter<"ClassSection"> | number | null
+  recessAfterSession?: Prisma.IntNullableFilter<"ClassSection"> | number | null
   isActive?: Prisma.BoolFilter<"ClassSection"> | boolean
   createdAt?: Prisma.DateTimeFilter<"ClassSection"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ClassSection"> | Date | string
@@ -336,6 +348,7 @@ export type ClassSectionOrderByWithRelationInput = {
   homeroomTeacherId?: Prisma.SortOrderInput | Prisma.SortOrder
   fixedRoomId?: Prisma.SortOrderInput | Prisma.SortOrder
   maxLessonsPerDay?: Prisma.SortOrderInput | Prisma.SortOrder
+  recessAfterSession?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -370,6 +383,7 @@ export type ClassSectionWhereUniqueInput = Prisma.AtLeast<{
   homeroomTeacherId?: Prisma.UuidNullableFilter<"ClassSection"> | string | null
   fixedRoomId?: Prisma.UuidNullableFilter<"ClassSection"> | string | null
   maxLessonsPerDay?: Prisma.IntNullableFilter<"ClassSection"> | number | null
+  recessAfterSession?: Prisma.IntNullableFilter<"ClassSection"> | number | null
   isActive?: Prisma.BoolFilter<"ClassSection"> | boolean
   createdAt?: Prisma.DateTimeFilter<"ClassSection"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ClassSection"> | Date | string
@@ -398,6 +412,7 @@ export type ClassSectionOrderByWithAggregationInput = {
   homeroomTeacherId?: Prisma.SortOrderInput | Prisma.SortOrder
   fixedRoomId?: Prisma.SortOrderInput | Prisma.SortOrder
   maxLessonsPerDay?: Prisma.SortOrderInput | Prisma.SortOrder
+  recessAfterSession?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -426,6 +441,7 @@ export type ClassSectionScalarWhereWithAggregatesInput = {
   homeroomTeacherId?: Prisma.UuidNullableWithAggregatesFilter<"ClassSection"> | string | null
   fixedRoomId?: Prisma.UuidNullableWithAggregatesFilter<"ClassSection"> | string | null
   maxLessonsPerDay?: Prisma.IntNullableWithAggregatesFilter<"ClassSection"> | number | null
+  recessAfterSession?: Prisma.IntNullableWithAggregatesFilter<"ClassSection"> | number | null
   isActive?: Prisma.BoolWithAggregatesFilter<"ClassSection"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ClassSection"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"ClassSection"> | Date | string
@@ -441,6 +457,7 @@ export type ClassSectionCreateInput = {
   sectionName: string
   shortCode: string
   maxLessonsPerDay?: number | null
+  recessAfterSession?: number | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -469,6 +486,7 @@ export type ClassSectionUncheckedCreateInput = {
   homeroomTeacherId?: string | null
   fixedRoomId?: string | null
   maxLessonsPerDay?: number | null
+  recessAfterSession?: number | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -487,6 +505,7 @@ export type ClassSectionUpdateInput = {
   sectionName?: Prisma.StringFieldUpdateOperationsInput | string
   shortCode?: Prisma.StringFieldUpdateOperationsInput | string
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  recessAfterSession?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -515,6 +534,7 @@ export type ClassSectionUncheckedUpdateInput = {
   homeroomTeacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fixedRoomId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  recessAfterSession?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -538,6 +558,7 @@ export type ClassSectionCreateManyInput = {
   homeroomTeacherId?: string | null
   fixedRoomId?: string | null
   maxLessonsPerDay?: number | null
+  recessAfterSession?: number | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -553,6 +574,7 @@ export type ClassSectionUpdateManyMutationInput = {
   sectionName?: Prisma.StringFieldUpdateOperationsInput | string
   shortCode?: Prisma.StringFieldUpdateOperationsInput | string
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  recessAfterSession?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -573,6 +595,7 @@ export type ClassSectionUncheckedUpdateManyInput = {
   homeroomTeacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fixedRoomId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  recessAfterSession?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -622,6 +645,7 @@ export type ClassSectionCountOrderByAggregateInput = {
   homeroomTeacherId?: Prisma.SortOrder
   fixedRoomId?: Prisma.SortOrder
   maxLessonsPerDay?: Prisma.SortOrder
+  recessAfterSession?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -630,6 +654,7 @@ export type ClassSectionCountOrderByAggregateInput = {
 
 export type ClassSectionAvgOrderByAggregateInput = {
   maxLessonsPerDay?: Prisma.SortOrder
+  recessAfterSession?: Prisma.SortOrder
 }
 
 export type ClassSectionMaxOrderByAggregateInput = {
@@ -646,6 +671,7 @@ export type ClassSectionMaxOrderByAggregateInput = {
   homeroomTeacherId?: Prisma.SortOrder
   fixedRoomId?: Prisma.SortOrder
   maxLessonsPerDay?: Prisma.SortOrder
+  recessAfterSession?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -666,6 +692,7 @@ export type ClassSectionMinOrderByAggregateInput = {
   homeroomTeacherId?: Prisma.SortOrder
   fixedRoomId?: Prisma.SortOrder
   maxLessonsPerDay?: Prisma.SortOrder
+  recessAfterSession?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -674,6 +701,7 @@ export type ClassSectionMinOrderByAggregateInput = {
 
 export type ClassSectionSumOrderByAggregateInput = {
   maxLessonsPerDay?: Prisma.SortOrder
+  recessAfterSession?: Prisma.SortOrder
 }
 
 export type ClassSectionScalarRelationFilter = {
@@ -942,6 +970,7 @@ export type ClassSectionCreateWithoutSchoolInput = {
   sectionName: string
   shortCode: string
   maxLessonsPerDay?: number | null
+  recessAfterSession?: number | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -968,6 +997,7 @@ export type ClassSectionUncheckedCreateWithoutSchoolInput = {
   homeroomTeacherId?: string | null
   fixedRoomId?: string | null
   maxLessonsPerDay?: number | null
+  recessAfterSession?: number | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1020,6 +1050,7 @@ export type ClassSectionScalarWhereInput = {
   homeroomTeacherId?: Prisma.UuidNullableFilter<"ClassSection"> | string | null
   fixedRoomId?: Prisma.UuidNullableFilter<"ClassSection"> | string | null
   maxLessonsPerDay?: Prisma.IntNullableFilter<"ClassSection"> | number | null
+  recessAfterSession?: Prisma.IntNullableFilter<"ClassSection"> | number | null
   isActive?: Prisma.BoolFilter<"ClassSection"> | boolean
   createdAt?: Prisma.DateTimeFilter<"ClassSection"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ClassSection"> | Date | string
@@ -1035,6 +1066,7 @@ export type ClassSectionCreateWithoutTermInput = {
   sectionName: string
   shortCode: string
   maxLessonsPerDay?: number | null
+  recessAfterSession?: number | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1060,6 +1092,7 @@ export type ClassSectionUncheckedCreateWithoutTermInput = {
   homeroomTeacherId?: string | null
   fixedRoomId?: string | null
   maxLessonsPerDay?: number | null
+  recessAfterSession?: number | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1104,6 +1137,7 @@ export type ClassSectionCreateWithoutHomeroomTeacherInput = {
   sectionName: string
   shortCode: string
   maxLessonsPerDay?: number | null
+  recessAfterSession?: number | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1129,6 +1163,7 @@ export type ClassSectionUncheckedCreateWithoutHomeroomTeacherInput = {
   shortCode: string
   fixedRoomId?: string | null
   maxLessonsPerDay?: number | null
+  recessAfterSession?: number | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1173,6 +1208,7 @@ export type ClassSectionCreateWithoutFixedRoomInput = {
   sectionName: string
   shortCode: string
   maxLessonsPerDay?: number | null
+  recessAfterSession?: number | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1198,6 +1234,7 @@ export type ClassSectionUncheckedCreateWithoutFixedRoomInput = {
   shortCode: string
   homeroomTeacherId?: string | null
   maxLessonsPerDay?: number | null
+  recessAfterSession?: number | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1242,6 +1279,7 @@ export type ClassSectionCreateWithoutGradeLevelInput = {
   sectionName: string
   shortCode: string
   maxLessonsPerDay?: number | null
+  recessAfterSession?: number | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1267,6 +1305,7 @@ export type ClassSectionUncheckedCreateWithoutGradeLevelInput = {
   homeroomTeacherId?: string | null
   fixedRoomId?: string | null
   maxLessonsPerDay?: number | null
+  recessAfterSession?: number | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1311,6 +1350,7 @@ export type ClassSectionCreateWithoutClassCurriculaInput = {
   sectionName: string
   shortCode: string
   maxLessonsPerDay?: number | null
+  recessAfterSession?: number | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1338,6 +1378,7 @@ export type ClassSectionUncheckedCreateWithoutClassCurriculaInput = {
   homeroomTeacherId?: string | null
   fixedRoomId?: string | null
   maxLessonsPerDay?: number | null
+  recessAfterSession?: number | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1371,6 +1412,7 @@ export type ClassSectionUpdateWithoutClassCurriculaInput = {
   sectionName?: Prisma.StringFieldUpdateOperationsInput | string
   shortCode?: Prisma.StringFieldUpdateOperationsInput | string
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  recessAfterSession?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1398,6 +1440,7 @@ export type ClassSectionUncheckedUpdateWithoutClassCurriculaInput = {
   homeroomTeacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fixedRoomId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  recessAfterSession?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1415,6 +1458,7 @@ export type ClassSectionCreateWithoutRequirementsInput = {
   sectionName: string
   shortCode: string
   maxLessonsPerDay?: number | null
+  recessAfterSession?: number | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1442,6 +1486,7 @@ export type ClassSectionUncheckedCreateWithoutRequirementsInput = {
   homeroomTeacherId?: string | null
   fixedRoomId?: string | null
   maxLessonsPerDay?: number | null
+  recessAfterSession?: number | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1475,6 +1520,7 @@ export type ClassSectionUpdateWithoutRequirementsInput = {
   sectionName?: Prisma.StringFieldUpdateOperationsInput | string
   shortCode?: Prisma.StringFieldUpdateOperationsInput | string
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  recessAfterSession?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1502,6 +1548,7 @@ export type ClassSectionUncheckedUpdateWithoutRequirementsInput = {
   homeroomTeacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fixedRoomId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  recessAfterSession?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1519,6 +1566,7 @@ export type ClassSectionCreateWithoutAssignmentsInput = {
   sectionName: string
   shortCode: string
   maxLessonsPerDay?: number | null
+  recessAfterSession?: number | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1546,6 +1594,7 @@ export type ClassSectionUncheckedCreateWithoutAssignmentsInput = {
   homeroomTeacherId?: string | null
   fixedRoomId?: string | null
   maxLessonsPerDay?: number | null
+  recessAfterSession?: number | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1579,6 +1628,7 @@ export type ClassSectionUpdateWithoutAssignmentsInput = {
   sectionName?: Prisma.StringFieldUpdateOperationsInput | string
   shortCode?: Prisma.StringFieldUpdateOperationsInput | string
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  recessAfterSession?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1606,6 +1656,7 @@ export type ClassSectionUncheckedUpdateWithoutAssignmentsInput = {
   homeroomTeacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fixedRoomId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  recessAfterSession?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1627,6 +1678,7 @@ export type ClassSectionCreateManySchoolInput = {
   homeroomTeacherId?: string | null
   fixedRoomId?: string | null
   maxLessonsPerDay?: number | null
+  recessAfterSession?: number | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1642,6 +1694,7 @@ export type ClassSectionUpdateWithoutSchoolInput = {
   sectionName?: Prisma.StringFieldUpdateOperationsInput | string
   shortCode?: Prisma.StringFieldUpdateOperationsInput | string
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  recessAfterSession?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1668,6 +1721,7 @@ export type ClassSectionUncheckedUpdateWithoutSchoolInput = {
   homeroomTeacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fixedRoomId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  recessAfterSession?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1690,6 +1744,7 @@ export type ClassSectionUncheckedUpdateManyWithoutSchoolInput = {
   homeroomTeacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fixedRoomId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  recessAfterSession?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1708,6 +1763,7 @@ export type ClassSectionCreateManyTermInput = {
   homeroomTeacherId?: string | null
   fixedRoomId?: string | null
   maxLessonsPerDay?: number | null
+  recessAfterSession?: number | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1723,6 +1779,7 @@ export type ClassSectionUpdateWithoutTermInput = {
   sectionName?: Prisma.StringFieldUpdateOperationsInput | string
   shortCode?: Prisma.StringFieldUpdateOperationsInput | string
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  recessAfterSession?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1748,6 +1805,7 @@ export type ClassSectionUncheckedUpdateWithoutTermInput = {
   homeroomTeacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fixedRoomId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  recessAfterSession?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1769,6 +1827,7 @@ export type ClassSectionUncheckedUpdateManyWithoutTermInput = {
   homeroomTeacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fixedRoomId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  recessAfterSession?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1787,6 +1846,7 @@ export type ClassSectionCreateManyHomeroomTeacherInput = {
   shortCode: string
   fixedRoomId?: string | null
   maxLessonsPerDay?: number | null
+  recessAfterSession?: number | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1802,6 +1862,7 @@ export type ClassSectionUpdateWithoutHomeroomTeacherInput = {
   sectionName?: Prisma.StringFieldUpdateOperationsInput | string
   shortCode?: Prisma.StringFieldUpdateOperationsInput | string
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  recessAfterSession?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1827,6 +1888,7 @@ export type ClassSectionUncheckedUpdateWithoutHomeroomTeacherInput = {
   shortCode?: Prisma.StringFieldUpdateOperationsInput | string
   fixedRoomId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  recessAfterSession?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1848,6 +1910,7 @@ export type ClassSectionUncheckedUpdateManyWithoutHomeroomTeacherInput = {
   shortCode?: Prisma.StringFieldUpdateOperationsInput | string
   fixedRoomId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  recessAfterSession?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1866,6 +1929,7 @@ export type ClassSectionCreateManyFixedRoomInput = {
   shortCode: string
   homeroomTeacherId?: string | null
   maxLessonsPerDay?: number | null
+  recessAfterSession?: number | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1881,6 +1945,7 @@ export type ClassSectionUpdateWithoutFixedRoomInput = {
   sectionName?: Prisma.StringFieldUpdateOperationsInput | string
   shortCode?: Prisma.StringFieldUpdateOperationsInput | string
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  recessAfterSession?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1906,6 +1971,7 @@ export type ClassSectionUncheckedUpdateWithoutFixedRoomInput = {
   shortCode?: Prisma.StringFieldUpdateOperationsInput | string
   homeroomTeacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  recessAfterSession?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1927,6 +1993,7 @@ export type ClassSectionUncheckedUpdateManyWithoutFixedRoomInput = {
   shortCode?: Prisma.StringFieldUpdateOperationsInput | string
   homeroomTeacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  recessAfterSession?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1945,6 +2012,7 @@ export type ClassSectionCreateManyGradeLevelInput = {
   homeroomTeacherId?: string | null
   fixedRoomId?: string | null
   maxLessonsPerDay?: number | null
+  recessAfterSession?: number | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1960,6 +2028,7 @@ export type ClassSectionUpdateWithoutGradeLevelInput = {
   sectionName?: Prisma.StringFieldUpdateOperationsInput | string
   shortCode?: Prisma.StringFieldUpdateOperationsInput | string
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  recessAfterSession?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1985,6 +2054,7 @@ export type ClassSectionUncheckedUpdateWithoutGradeLevelInput = {
   homeroomTeacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fixedRoomId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  recessAfterSession?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2006,6 +2076,7 @@ export type ClassSectionUncheckedUpdateManyWithoutGradeLevelInput = {
   homeroomTeacherId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fixedRoomId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxLessonsPerDay?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  recessAfterSession?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2075,6 +2146,7 @@ export type ClassSectionSelect<ExtArgs extends runtime.Types.Extensions.Internal
   homeroomTeacherId?: boolean
   fixedRoomId?: boolean
   maxLessonsPerDay?: boolean
+  recessAfterSession?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -2104,6 +2176,7 @@ export type ClassSectionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   homeroomTeacherId?: boolean
   fixedRoomId?: boolean
   maxLessonsPerDay?: boolean
+  recessAfterSession?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -2129,6 +2202,7 @@ export type ClassSectionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   homeroomTeacherId?: boolean
   fixedRoomId?: boolean
   maxLessonsPerDay?: boolean
+  recessAfterSession?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -2154,13 +2228,14 @@ export type ClassSectionSelectScalar = {
   homeroomTeacherId?: boolean
   fixedRoomId?: boolean
   maxLessonsPerDay?: boolean
+  recessAfterSession?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
 }
 
-export type ClassSectionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "termId" | "grade" | "gradeLevelId" | "sectionLabel" | "generatedName" | "generatedShortCode" | "sectionName" | "shortCode" | "homeroomTeacherId" | "fixedRoomId" | "maxLessonsPerDay" | "isActive" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["classSection"]>
+export type ClassSectionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "schoolId" | "termId" | "grade" | "gradeLevelId" | "sectionLabel" | "generatedName" | "generatedShortCode" | "sectionName" | "shortCode" | "homeroomTeacherId" | "fixedRoomId" | "maxLessonsPerDay" | "recessAfterSession" | "isActive" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["classSection"]>
 export type ClassSectionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   school?: boolean | Prisma.SchoolDefaultArgs<ExtArgs>
   term?: boolean | Prisma.AcademicTermDefaultArgs<ExtArgs>
@@ -2213,6 +2288,7 @@ export type $ClassSectionPayload<ExtArgs extends runtime.Types.Extensions.Intern
     homeroomTeacherId: string | null
     fixedRoomId: string | null
     maxLessonsPerDay: number | null
+    recessAfterSession: number | null
     isActive: boolean
     createdAt: Date
     updatedAt: Date
@@ -2661,6 +2737,7 @@ export interface ClassSectionFieldRefs {
   readonly homeroomTeacherId: Prisma.FieldRef<"ClassSection", 'String'>
   readonly fixedRoomId: Prisma.FieldRef<"ClassSection", 'String'>
   readonly maxLessonsPerDay: Prisma.FieldRef<"ClassSection", 'Int'>
+  readonly recessAfterSession: Prisma.FieldRef<"ClassSection", 'Int'>
   readonly isActive: Prisma.FieldRef<"ClassSection", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"ClassSection", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"ClassSection", 'DateTime'>
