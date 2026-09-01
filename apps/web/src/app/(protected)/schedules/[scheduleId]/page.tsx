@@ -111,6 +111,7 @@ export default async function SchedulePage({
     (assignment) =>
       assignment.startDayIndex === null || assignment.startPeriodIndex === null,
   );
+  const editableAssignments = view === "school" ? [] : visibleAssignments;
   const latestAudit = schedule.auditLogs[0]?.details as
     | {
         scoreDelta?: number;
@@ -403,11 +404,17 @@ export default async function SchedulePage({
         ) : null}
       </div>
 
-      {schedule.status === "DRAFT" ? (
+      {schedule.status === "DRAFT" && view === "school" ? (
+        <section className="border border-[#dce1dc] bg-white p-4 text-sm text-[#66706b]">
+          Choose a class, teacher, or room view to edit individual lessons.
+        </section>
+      ) : null}
+
+      {schedule.status === "DRAFT" && editableAssignments.length > 0 ? (
         <section className="space-y-3">
           <h2 className="text-base font-semibold">Assignment editor</h2>
           <div className="divide-y divide-[#dce1dc] border border-[#dce1dc] bg-white">
-            {schedule.assignments.map((assignment) => (
+            {editableAssignments.map((assignment) => (
               <div
                 className="grid gap-3 p-4 xl:grid-cols-[220px_1fr_1fr_auto]"
                 id={`assignment-${assignment.id}`}
@@ -477,7 +484,7 @@ export default async function SchedulePage({
                     className={inputClass}
                     name="swapWithId"
                   >
-                    {schedule.assignments
+                    {editableAssignments
                       .filter((item) => item.id !== assignment.id)
                       .map((item) => (
                         <option key={item.id} value={item.id}>
