@@ -119,7 +119,12 @@ def solve(request: SolveRequest) -> SolveResponse:
     requirement_by_id = {item.id: item for item in request.requirements}
 
     for requirement in request.requirements:
-        for occurrence in range(requirement.occurrence_count):
+        occurrence_range = (
+            range(requirement.occurrence_count) if request.schema_version == 1 else range(1)
+        )
+        requirement_variables: list[cp_model.IntVar] = []
+        choices_by_position: dict[tuple[int, int, str | None], cp_model.IntVar] = {}
+        for occurrence in occurrence_range:
             choices = compatible_choices(request, requirement, occurrence)
             occurrence_variables = []
             for choice in choices:
@@ -128,10 +133,42 @@ def solve(request: SolveRequest) -> SolveResponse:
                 )
                 variables[choice] = variable
                 occurrence_variables.append(variable)
+                requirement_variables.append(variable)
+                choices_by_position[(choice.day, choice.period, choice.room_id)] = variable
             if not occurrence_variables:
                 return _infeasible(request, started, len(variables), constraints)
-            model.add_exactly_one(occurrence_variables)
+            if request.schema_version == 1:
+                model.add_exactly_one(occurrence_variables)
+                constraints += 1
+        if request.schema_version == 2:
+            model.add(sum(requirement_variables) == requirement.occurrence_count)
             constraints += 1
+            fixed_positions: list[Position | Assignment] = list(requirement.fixed_slots)
+            fixed_positions.extend(
+                item for item in request.locked_assignments if item.requirement_id == requirement.id
+            )
+            for fixed in fixed_positions:
+                if isinstance(fixed, Assignment):
+                    fixed_variables = (
+                        [choices_by_position[(fixed.day_index, fixed.period_index, fixed.room_id)]]
+                        if (
+                            fixed.day_index,
+                            fixed.period_index,
+                            fixed.room_id,
+                        )
+                        in choices_by_position
+                        else []
+                    )
+                else:
+                    fixed_variables = [
+                        variable
+                        for (day, period, _room_id), variable in choices_by_position.items()
+                        if day == fixed.day_index and period == fixed.period_index
+                    ]
+                if not fixed_variables:
+                    return _infeasible(request, started, len(variables), constraints)
+                model.add(sum(fixed_variables) == 1)
+                constraints += 1
 
     occupancy: dict[tuple[str, str, int, int], list[cp_model.IntVar]] = defaultdict(list)
     starts_by_day: dict[tuple[str, int], list[cp_model.IntVar]] = defaultdict(list)
@@ -156,6 +193,7 @@ def solve(request: SolveRequest) -> SolveResponse:
     teaching_periods = sorted(
         period.index for period in request.calendar.periods if period.is_teaching
     )
+    raw_terms: dict[str, list[cp_model.LinearExpr]] = defaultdict(list)
     for teacher in request.teachers:
         for day in days:
             daily = [
@@ -236,15 +274,20 @@ def solve(request: SolveRequest) -> SolveResponse:
                         model.add(pair >= sum(left_starts) + sum(right_starts) - 1)
                         constraints += 3
                         adjacent_pairs.append(pair)
-                    model.add(sum(starts) <= 1 + sum(adjacent_pairs))
+                    non_adjacent_double = model.new_int_var(
+                        0,
+                        1,
+                        f"non_adjacent_double_{requirement.id}_{day}",
+                    )
+                    model.add(non_adjacent_double >= sum(starts) - 1 - sum(adjacent_pairs))
                     constraints += 1
+                    raw_terms["MAIN_DOUBLE_ADJACENCY"].append(non_adjacent_double)
         used_variables = [
             day_used[(requirement.id, day)] for day in days if (requirement.id, day) in day_used
         ]
         model.add(sum(used_variables) >= requirement.distinct_day_minimum)
         constraints += 1
 
-    raw_terms: dict[str, list[cp_model.LinearExpr]] = defaultdict(list)
     period_rank = {period: rank for rank, period in enumerate(teaching_periods)}
     first_period = teaching_periods[0] if teaching_periods else -1
     last_period = teaching_periods[-1] if teaching_periods else -1

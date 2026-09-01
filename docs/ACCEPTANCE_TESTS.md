@@ -176,8 +176,8 @@ Expected: `NON_MAIN_DAILY_CAPACITY_SHORTAGE`, required 6, available 5.
 
 Main Mathematics requires six sessions over five days and allows doubles.
 
-Expected: feasible; at least one adjacent pair, no day above two sessions, and
-no pair crosses the break.
+Expected: feasible; same-day pairs are preferred adjacent, no day is above two
+sessions, and distributed same-day pairs remain valid when needed.
 
 ### R07 - required pair disabled
 

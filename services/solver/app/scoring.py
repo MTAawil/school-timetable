@@ -9,6 +9,7 @@ SOFT_CONSTRAINT_CODES = (
     "TEACHER_GAP",
     "PART_TIME_COMPACTNESS",
     "TEACHER_CONSECUTIVE_PREFERENCE",
+    "MAIN_DOUBLE_ADJACENCY",
     "SUBJECT_SPREAD",
     "REPEATED_SUBJECT_DAY",
     "LATE_HEAVY_SUBJECT",
@@ -48,11 +49,15 @@ def score_assignments(request: SolveRequest, assignments: list[Assignment]) -> S
     raw: Counter[str] = Counter()
     occupied_by_teacher: dict[tuple[str, int], set[int]] = defaultdict(set)
     subject_days: dict[str, list[int]] = defaultdict(list)
+    subject_periods_by_day: dict[tuple[str, int], list[int]] = defaultdict(list)
 
     for assignment in assignments:
         requirement = requirements[assignment.requirement_id]
         subject = subjects[requirement.subject_id]
         subject_days[requirement.id].append(assignment.day_index)
+        subject_periods_by_day[(requirement.id, assignment.day_index)].append(
+            assignment.period_index
+        )
         for offset in range(assignment.duration_periods):
             period = assignment.period_index + offset
             occupied_by_teacher[(requirement.teacher_id, assignment.day_index)].add(period)
@@ -89,10 +94,31 @@ def score_assignments(request: SolveRequest, assignments: list[Assignment]) -> S
         )
         raw["TEACHER_CONSECUTIVE_PREFERENCE"] += len(ordered) - adjacent
 
-    for days in subject_days.values():
-        repeats = len(days) - len(set(days))
+    for selected_days in subject_days.values():
+        repeats = len(selected_days) - len(set(selected_days))
         raw["SUBJECT_SPREAD"] += repeats
         raw["REPEATED_SUBJECT_DAY"] += repeats
+
+    for (requirement_id, _day), daily_subject_periods in subject_periods_by_day.items():
+        requirement = requirements[requirement_id]
+        if (
+            request.schema_version != 2
+            or not requirement.is_main_subject
+            or not requirement.allow_double_session
+            or len(daily_subject_periods) < 2
+        ):
+            continue
+        ordered = sorted(daily_subject_periods)
+        has_adjacent_pair = any(
+            right == left + 1
+            and not (
+                request.week_configuration
+                and left == request.week_configuration.break_after_session - 1
+            )
+            for left, right in zip(ordered, ordered[1:], strict=False)
+        )
+        if not has_adjacent_pair:
+            raw["MAIN_DOUBLE_ADJACENCY"] += 1
 
     for teacher in request.teachers:
         daily_counts = [

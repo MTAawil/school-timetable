@@ -99,18 +99,8 @@ def validate_assignments(
                 if not requirement.is_main_subject:
                     errors.append(f"SUBJECT_DAILY_REPEAT:{class_section.name}:{subject.name}")
                     continue
-                pair_periods = sorted(item.period_index for item in daily)
-                crosses_break = bool(
-                    request.week_configuration
-                    and pair_periods[0] == request.week_configuration.break_after_session - 1
-                )
-                if (
-                    not requirement.allow_double_session
-                    or len(pair_periods) != 2
-                    or pair_periods[1] != pair_periods[0] + 1
-                    or crosses_break
-                ):
-                    errors.append(f"MAIN_DOUBLE_NOT_CONSECUTIVE:{requirement.id}")
+                if not requirement.allow_double_session:
+                    errors.append(f"MAIN_DOUBLE_DISABLED:{requirement.id}")
     for teacher in request.teachers:
         if request.schema_version == 2:
             allocated = sum(

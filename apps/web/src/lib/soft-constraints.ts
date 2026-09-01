@@ -32,6 +32,13 @@ export const softConstraints = [
     defaultWeight: 3,
   },
   {
+    code: "MAIN_DOUBLE_ADJACENCY",
+    label: "Consecutive double sessions",
+    description:
+      "Prefer same-day main subject pairs to be consecutive when the timetable allows it.",
+    defaultWeight: 12,
+  },
+  {
     code: "SUBJECT_SPREAD",
     label: "Subject spread",
     description: "Spread repeated class-subject sessions across more days.",

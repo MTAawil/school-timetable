@@ -297,10 +297,11 @@ Current task: R7.1 - Teacher-Centered Entry and Restrictions.
 - Added deterministic supervisor readiness checks with stable correction codes
   for incomplete setup, curriculum capacity, teacher ownership, exact workload,
   subject frequency, optional doubles, and teacher hard capacity.
-- Enforced non-main daily uniqueness and main-subject adjacent optional doubles
-  in CP-SAT, including break-aware adjacency and consecutive-teaching limits.
+- Enforced non-main daily uniqueness and main-subject optional double daily
+  limits in CP-SAT; same-day main pairs prefer break-aware adjacency but may be
+  distributed when required.
 - Added independent version-2 post-validation for exact demand, daily subject
-  frequency, double adjacency, break crossing, and declared teacher totals.
+  frequency, disabled doubles, and declared teacher totals.
 - Added named `FULL_TIME_DAILY_BALANCE` scoring while preserving part-time
   compactness and all legacy scoring behavior.
 - Updated the readiness page to use supervisor terminology and direct every new

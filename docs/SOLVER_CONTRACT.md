@@ -106,8 +106,9 @@ snapshots. Historical schema-version-1 snapshots remain reproducible.
 class-subject. Every selected solver variable consumes one physical session.
 
 An optional double is not a duration-two requirement. It is two physical
-sessions of the same class-subject selected on the same day in adjacent
-teaching periods.
+sessions of the same class-subject selected on the same day. Consecutive
+teaching periods are preferred, but allowed doubles may be distributed across
+the same day when required to satisfy the timetable.
 
 This distinction allows five weekly Mathematics sessions to become:
 
@@ -130,8 +131,8 @@ The redesigned solver must enforce:
 7. Optional teacher maximum consecutive sessions.
 8. A non-main class-subject has at most one session per day.
 9. A main class-subject has at most two sessions per day.
-10. When a main class-subject has two sessions in one day, the sessions are
-    consecutive teaching periods and do not cross the break.
+10. When a main class-subject has two sessions in one day, consecutive teaching
+    periods that do not cross the break are preferred, not required.
 11. Two sessions in one day are forbidden when `allowDoubleSession` is false.
 12. Every class-subject has exactly one teacher before the request is accepted.
 13. Every teacher's allocated curriculum sessions equal their declared weekly
@@ -148,13 +149,15 @@ class-subject, session occurrence, day, and teaching period.
 For a main subject on a given day:
 
 - sum of selected sessions is at most two
-- if the sum is two, exactly one valid adjacent pair indicator is true
+- if the sum is two and no valid adjacent pair is selected, the solver applies
+  `MAIN_DOUBLE_ADJACENCY` as a soft penalty
 
 Valid adjacency is defined by teaching-session order, not raw clock minutes.
 The break separates adjacency even when period indices are numerically
 consecutive.
 
-The solver must not force an allowed double to occur.
+The solver must not force an allowed double to occur and must not fail a
+schedule solely because an allowed same-day double is distributed.
 
 ### Full-time workload balance
 
@@ -185,7 +188,6 @@ The independent validator must additionally prove:
 - exact physical curriculum session totals
 - non-main daily uniqueness
 - main daily maximum of two
-- adjacency of every same-day main pair
 - no pair when double sessions are disabled
 - declared and allocated teacher totals in the input contract
 
