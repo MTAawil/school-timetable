@@ -3,6 +3,15 @@ from collections import Counter
 from app.models import Assignment, SolveRequest
 
 
+def _part_time_distribution_can_relax(request: SolveRequest, requirement_id: str) -> bool:
+    if request.schema_version != 2:
+        return False
+    requirements = {item.id: item for item in request.requirements}
+    teachers = {item.id: item for item in request.teachers}
+    requirement = requirements[requirement_id]
+    return teachers[requirement.teacher_id].employment_type == "PART_TIME"
+
+
 def _crosses_break(
     left_period: int,
     right_period: int,
@@ -214,11 +223,12 @@ def validate_assignments(
     for requirement in request.requirements:
         if (
             not allow_incomplete
+            and not _part_time_distribution_can_relax(request, requirement.id)
             and len(days_by_requirement.get(requirement.id, set()))
             < requirement.distinct_day_minimum
         ):
             errors.append(f"DISTINCT_DAYS:{requirement.id}")
-        if any(
+        if not _part_time_distribution_can_relax(request, requirement.id) and any(
             count > requirement.daily_occurrence_limit
             for (requirement_id, _day), count in daily_counts.items()
             if requirement_id == requirement.id
@@ -235,6 +245,8 @@ def validate_assignments(
             subject = next(item for item in request.subjects if item.id == requirement.subject_id)
             for daily in assignments_by_day.values():
                 if len(daily) < 2:
+                    continue
+                if _part_time_distribution_can_relax(request, requirement.id):
                     continue
                 if not requirement.is_main_subject:
                     errors.append(f"SUBJECT_DAILY_REPEAT:{class_section.name}:{subject.name}")

@@ -16,6 +16,7 @@ SOFT_CONSTRAINT_CODES = (
     "MAIN_SUBJECT_LATE_SESSION",
     "DAILY_WORKLOAD_BALANCE",
     "FULL_TIME_DAILY_BALANCE",
+    "PART_TIME_DISTRIBUTION_RELAXATION",
 )
 
 
@@ -126,6 +127,23 @@ def score_assignments(request: SolveRequest, assignments: list[Assignment]) -> S
         repeats = len(selected_days) - len(set(selected_days))
         raw["SUBJECT_SPREAD"] += repeats
         raw["REPEATED_SUBJECT_DAY"] += repeats
+    for requirement_id, selected_days in subject_days.items():
+        requirement = requirements[requirement_id]
+        if (
+            request.schema_version != 2
+            or teachers[requirement.teacher_id].employment_type != "PART_TIME"
+        ):
+            continue
+        distinct_day_shortage = max(
+            0,
+            requirement.distinct_day_minimum - len(set(selected_days)),
+        )
+        daily_excess = sum(
+            max(0, len(periods) - requirement.daily_occurrence_limit)
+            for (current_requirement_id, _day), periods in subject_periods_by_day.items()
+            if current_requirement_id == requirement_id
+        )
+        raw["PART_TIME_DISTRIBUTION_RELAXATION"] += distinct_day_shortage + daily_excess
 
     for (requirement_id, _day), daily_subject_periods in subject_periods_by_day.items():
         requirement = requirements[requirement_id]

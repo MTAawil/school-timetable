@@ -33,6 +33,13 @@ class Choice:
     duration: int
 
 
+def part_time_distribution_can_relax(request: SolveRequest, requirement: Requirement) -> bool:
+    if request.schema_version != 2:
+        return False
+    teacher = next(item for item in request.teachers if item.id == requirement.teacher_id)
+    return teacher.employment_type == "PART_TIME"
+
+
 def class_break_after_session(request: SolveRequest, class_section_id: str) -> int | None:
     class_section = next(item for item in request.class_sections if item.id == class_section_id)
     if class_section.recess_after_session is not None:
@@ -401,16 +408,27 @@ def solve(request: SolveRequest) -> SolveResponse:
                 constraints += 1
 
     for requirement in request.requirements:
+        relax_part_time_distribution = part_time_distribution_can_relax(request, requirement)
         for day in days:
             starts = starts_by_day.get((requirement.id, day), [])
             if starts:
-                model.add(sum(starts) <= requirement.daily_occurrence_limit)
-                constraints += 1
                 used = model.new_bool_var(f"used_{requirement.id}_{day}")
                 day_used[(requirement.id, day)] = used
                 model.add(sum(starts) >= used)
-                model.add(sum(starts) <= requirement.daily_occurrence_limit * used)
+                model.add(sum(starts) <= requirement.occurrence_count * used)
                 constraints += 2
+                if relax_part_time_distribution:
+                    daily_excess = model.new_int_var(
+                        0,
+                        requirement.occurrence_count,
+                        f"part_time_daily_excess_{requirement.id}_{day}",
+                    )
+                    model.add(daily_excess >= sum(starts) - requirement.daily_occurrence_limit)
+                    constraints += 1
+                    raw_terms["PART_TIME_DISTRIBUTION_RELAXATION"].append(daily_excess)
+                else:
+                    model.add(sum(starts) <= requirement.daily_occurrence_limit)
+                    constraints += 1
                 if (
                     request.schema_version == 2
                     and requirement.is_main_subject
@@ -452,8 +470,20 @@ def solve(request: SolveRequest) -> SolveResponse:
         used_variables = [
             day_used[(requirement.id, day)] for day in days if (requirement.id, day) in day_used
         ]
-        model.add(sum(used_variables) >= requirement.distinct_day_minimum)
-        constraints += 1
+        if relax_part_time_distribution:
+            distinct_day_shortage = model.new_int_var(
+                0,
+                requirement.distinct_day_minimum,
+                f"part_time_distinct_day_shortage_{requirement.id}",
+            )
+            model.add(
+                distinct_day_shortage >= requirement.distinct_day_minimum - sum(used_variables)
+            )
+            constraints += 1
+            raw_terms["PART_TIME_DISTRIBUTION_RELAXATION"].append(distinct_day_shortage)
+        else:
+            model.add(sum(used_variables) >= requirement.distinct_day_minimum)
+            constraints += 1
 
     period_rank = {period: rank for rank, period in enumerate(teaching_periods)}
     first_period = teaching_periods[0] if teaching_periods else -1
@@ -767,7 +797,7 @@ def solve(request: SolveRequest) -> SolveResponse:
                 else []
             ),
             runtime_ms=first_runtime_ms,
-            warnings=[],
+            warnings=_part_time_distribution_warnings(request, assignments),
         )
     ]
     previous_selections = [selected]
@@ -881,7 +911,7 @@ def solve(request: SolveRequest) -> SolveResponse:
                     else []
                 ),
                 runtime_ms=alternative_runtime_ms,
-                warnings=[],
+                warnings=_part_time_distribution_warnings(request, alternative_assignments),
             )
         )
         previous_selections.append(alternative_selected)
@@ -916,6 +946,46 @@ def _assignments_from_choices(choices: set[Choice]) -> list[Assignment]:
     ]
     assignments.sort(key=lambda item: (item.day_index, item.period_index, item.requirement_id))
     return assignments
+
+
+def _part_time_distribution_warnings(
+    request: SolveRequest,
+    assignments: list[Assignment],
+) -> list[str]:
+    teachers = {item.id: item for item in request.teachers}
+    subjects = {item.id: item for item in request.subjects}
+    class_sections = {item.id: item for item in request.class_sections}
+    assignments_by_requirement_day: dict[tuple[str, int], list[Assignment]] = defaultdict(list)
+    days_by_requirement: dict[str, set[int]] = defaultdict(set)
+    for assignment in assignments:
+        assignments_by_requirement_day[(assignment.requirement_id, assignment.day_index)].append(
+            assignment
+        )
+        days_by_requirement[assignment.requirement_id].add(assignment.day_index)
+
+    warnings: list[str] = []
+    for requirement in request.requirements:
+        if not part_time_distribution_can_relax(request, requirement):
+            continue
+        repeated_days = [
+            day
+            for (requirement_id, day), daily_assignments in assignments_by_requirement_day.items()
+            if requirement_id == requirement.id
+            and len(daily_assignments) > requirement.daily_occurrence_limit
+        ]
+        distinct_shortage = max(
+            0,
+            requirement.distinct_day_minimum - len(days_by_requirement.get(requirement.id, set())),
+        )
+        if not repeated_days and distinct_shortage == 0:
+            continue
+        teacher = teachers[requirement.teacher_id]
+        subject = subjects[requirement.subject_id]
+        class_section = class_sections[requirement.class_section_id]
+        warnings.append(
+            f"PART_TIME_DISTRIBUTION_RELAXED:{teacher.name}:{class_section.name}:{subject.name}"
+        )
+    return warnings
 
 
 def _moved_assignments(before: list[Assignment], after: list[Assignment]) -> list[MovedAssignment]:
@@ -1062,9 +1132,10 @@ def _resource_packing_diagnostic(
                 )
 
         model.add(sum(starts_by_requirement[requirement.id]) == requirement.occurrence_count)
+        relax_part_time_distribution = part_time_distribution_can_relax(request, requirement)
         for day in days:
             starts = starts_by_requirement_day.get((requirement.id, day), [])
-            if starts:
+            if starts and not relax_part_time_distribution:
                 model.add(sum(starts) <= requirement.daily_occurrence_limit)
         used_days: list[cp_model.IntVar] = []
         for day in days:
@@ -1073,9 +1144,15 @@ def _resource_packing_diagnostic(
                 continue
             used = model.new_bool_var(f"pack_used_{requirement.id}_{day}")
             model.add(sum(starts) >= used)
-            model.add(sum(starts) <= requirement.daily_occurrence_limit * used)
+            used_limit = (
+                requirement.occurrence_count
+                if relax_part_time_distribution
+                else requirement.daily_occurrence_limit
+            )
+            model.add(sum(starts) <= used_limit * used)
             used_days.append(used)
-        model.add(sum(used_days) >= requirement.distinct_day_minimum)
+        if not relax_part_time_distribution:
+            model.add(sum(used_days) >= requirement.distinct_day_minimum)
 
     for position_variables in occupied_by_position.values():
         if len(position_variables) > 1:
@@ -1133,13 +1210,17 @@ def _resource_packing_diagnostic(
         }
         for requirement in requirements
     ]
+    all_distribution_relaxed = all(
+        part_time_distribution_can_relax(request, requirement) for requirement in requirements
+    )
+    reason = (
+        "current hard availability and real-time collision rules"
+        if resource_type == "TEACHER" and all_distribution_relaxed
+        else "current hard availability, real-time collision, daily limit, and distinct-day rules"
+    )
     return {
         "code": code,
-        "summary": (
-            f"{resource_name} cannot pack {demand} required sessions into the "
-            "current hard availability, real-time collision, daily limit, and "
-            "distinct-day rules."
-        ),
+        "summary": f"{resource_name} cannot pack {demand} required sessions into the {reason}.",
         "resourceType": resource_type,
         "resourceId": resource_id,
         "resourceName": resource_name,

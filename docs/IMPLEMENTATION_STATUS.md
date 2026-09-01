@@ -15,6 +15,8 @@
       checks and display generated session labels with their actual times.
 - [x] Prefer main subjects in sessions 1-4 with a weighted soft constraint while
       still allowing later sessions when needed for feasibility.
+- [x] Allow part-time teacher subject distribution to relax with a named heavy
+      penalty when hard availability leaves too few days for strict spreading.
 
 ## Current phase
 

@@ -270,6 +270,71 @@ def test_validator_rejects_repeated_non_main_subject() -> None:
     assert "SUBJECT_DAILY_REPEAT:G7-A:MATH" in validate_assignments(request, candidate)
 
 
+def test_validator_allows_part_time_distribution_relaxation() -> None:
+    payload = supervisor_request(
+        weekly_sessions=2,
+        is_main_subject=False,
+        allow_double_session=False,
+    ).model_dump(by_alias=True)
+    payload["teachers"][0]["employmentType"] = "PART_TIME"
+    request = SolveRequest.model_validate(payload)
+    candidate = [
+        Assignment(
+            requirement_id="G7-A:MATH",
+            day_index=0,
+            period_index=0,
+            duration_periods=1,
+        ),
+        Assignment(
+            requirement_id="G7-A:MATH",
+            day_index=0,
+            period_index=1,
+            duration_periods=1,
+        ),
+    ]
+
+    assert validate_assignments(request, candidate) == []
+
+
+def test_part_time_distribution_relaxes_when_availability_forces_repeat() -> None:
+    payload = supervisor_request(
+        weekly_sessions=3,
+        is_main_subject=False,
+        allow_double_session=False,
+        sessions_per_day=2,
+    ).model_dump(by_alias=True)
+    payload["teachers"][0]["employmentType"] = "PART_TIME"
+    payload["teachers"][0]["weeklyTeachingSessions"] = 3
+    payload["teachers"][0]["maxLessonsPerDay"] = 2
+    payload["constraintProfile"]["weights"] = {
+        "PART_TIME_DISTRIBUTION_RELAXATION": 10000,
+        "PART_TIME_COMPACTNESS": 10,
+    }
+    payload["availability"] = [
+        {
+            "entityType": "TEACHER",
+            "entityId": "teacher",
+            "dayIndex": day,
+            "periodIndex": period,
+            "state": "UNAVAILABLE",
+        }
+        for day in range(5)
+        for period in range(2)
+        if (day, period) not in {(0, 0), (0, 1), (1, 0)}
+    ]
+    request = SolveRequest.model_validate(payload)
+
+    response = solve(request)
+
+    assert response.status in {"FEASIBLE", "OPTIMAL"}
+    alternative = response.alternatives[0]
+    assert validate_assignments(request, alternative.assignments) == []
+    assert alternative.penalty_breakdown["PART_TIME_DISTRIBUTION_RELAXATION"] > 0
+    assert any(
+        warning.startswith("PART_TIME_DISTRIBUTION_RELAXED:") for warning in alternative.warnings
+    )
+
+
 def test_full_time_balance_penalty_orders_daily_distributions() -> None:
     request = supervisor_request(weekly_sessions=25)
 

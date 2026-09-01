@@ -206,17 +206,23 @@ Part-time teachers retain named soft penalties for:
 - internal gaps
 - unnecessary separate teaching blocks
 - teaching on more days when an equally feasible compact pattern exists
+- repeating a class-subject on the same day only when hard availability makes
+  the normal distribution impossible
 
-Explicit availability always overrides compactness.
+Explicit availability always overrides compactness and distribution: part-time
+teachers are never scheduled in unavailable slots. The named soft penalty
+`PART_TIME_DISTRIBUTION_RELAXATION` records each daily-limit or distinct-day
+exception used for a schema-version-2 requirement taught by a part-time teacher.
 
 ### Post-solve validation
 
 The independent validator must additionally prove:
 
 - exact physical curriculum session totals
-- non-main daily uniqueness
-- main daily maximum of two
-- no pair when double sessions are disabled
+- non-main daily uniqueness, except for named part-time distribution relaxation
+- main daily maximum of two, except for named part-time distribution relaxation
+- no pair when double sessions are disabled, except for named part-time
+  distribution relaxation
 - declared and allocated teacher totals in the input contract
 
 A violation returns `FAILED`; it is never repaired or ignored after solving.

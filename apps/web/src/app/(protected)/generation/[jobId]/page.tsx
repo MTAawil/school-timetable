@@ -48,6 +48,7 @@ const diagnosticDetailsSchema = z.object({
     )
     .optional(),
 });
+const warningsSchema = z.array(z.string());
 
 export default async function GenerationResultPage({
   params,
@@ -113,6 +114,8 @@ export default async function GenerationResultPage({
     string,
     number
   >;
+  const alternativeWarnings =
+    warningsSchema.safeParse(alternative?.warnings).data ?? [];
   const successful = job.status === "FEASIBLE" || job.status === "OPTIMAL";
   const timedOut = job.diagnostics.some(
     (diagnostic) => diagnostic.code === "SOLVER_TIME_LIMIT_REACHED",
@@ -331,6 +334,21 @@ export default async function GenerationResultPage({
       ) : null}
       {alternative ? (
         <section className="space-y-3">
+          {alternativeWarnings.length > 0 ? (
+            <div className="border border-[#e2c069] bg-[#fff8df] px-4 py-3 text-sm text-[#5f4a12]">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                <div>
+                  <p className="font-semibold">Schedule warnings</p>
+                  <ul className="mt-2 space-y-1">
+                    {alternativeWarnings.map((warning) => (
+                      <li key={warning}>{warning}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          ) : null}
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <h2 className="text-base font-semibold">Quality score</h2>
