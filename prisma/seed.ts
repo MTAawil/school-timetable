@@ -39,6 +39,8 @@ const ids = {
 
 const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 
+type DayName = (typeof days)[number];
+
 const schoolWeekConfiguration = {
   workingDayCount: 5,
   sessionsPerDay: 6,
@@ -47,6 +49,75 @@ const schoolWeekConfiguration = {
   breakAfterSession: 3,
   breakDurationMinutes: 30,
 } as const;
+
+const partTimeAvailabilityByTeacher = {
+  "علي بندر": {
+    Monday: [1, 2, 3, 4],
+    Wednesday: [1, 2, 3, 4],
+    Thursday: [5, 6],
+  },
+  "محمد عساف": {
+    Monday: [2, 3, 4, 5, 6],
+    Tuesday: [2, 3, 4, 5, 6],
+    Wednesday: [2, 3, 4, 5],
+  },
+  "حسن يزبك": {
+    Monday: [5, 6],
+    Tuesday: [1, 2, 3],
+    Wednesday: [2, 3, 4],
+    Thursday: [3, 4],
+  },
+  "ناجي هاشم": {
+    Monday: [1, 2, 3],
+    Wednesday: [1, 2, 3],
+    Friday: [1, 2, 3],
+  },
+  "رباب العبد": {
+    Monday: [1, 2, 3, 4, 5, 6],
+    Tuesday: [1, 2, 3, 4, 5, 6],
+    Thursday: [1, 2, 3, 4, 5, 6],
+  },
+  "رؤى الحاج حسن": {
+    Monday: [1, 2, 3, 4, 5, 6],
+    Wednesday: [1, 2, 3, 4, 5, 6],
+    Friday: [1, 2, 3, 4, 5, 6],
+  },
+  "صبحي حمية": {
+    Monday: [1, 2, 3, 4, 5, 6],
+    Wednesday: [1, 2, 3, 4, 5, 6],
+    Friday: [1, 2, 3, 4],
+  },
+  "سحر فقيه": {
+    Monday: [1, 2, 3, 4, 5, 6],
+    Tuesday: [1, 2, 3, 4, 5, 6],
+    Thursday: [1, 2, 3, 4, 5, 6],
+    Friday: [1, 2],
+  },
+  "منى وهبي": {
+    Monday: [1, 2, 3, 4, 5, 6],
+    Wednesday: [1, 2, 3, 4, 5, 6],
+    Friday: [1, 2, 3, 4],
+  },
+  "محمد عبدو": {
+    Wednesday: [1, 2, 3, 4, 5, 6],
+    Friday: [1, 2, 3, 4, 5, 6],
+  },
+  "محمد جقمرة": {
+    Monday: [1, 2, 3, 4],
+    Tuesday: [1, 2, 3, 4],
+    Wednesday: [1, 2, 3, 4],
+    Thursday: [1, 2, 3, 4],
+    Friday: [1, 2, 3, 4],
+  },
+  "حسن ناجي": {
+    Monday: [1, 2, 3, 4, 5],
+    Wednesday: [1, 2, 3, 4, 5],
+    Friday: [1, 2, 3],
+  },
+  "ريما عيسى": {
+    Friday: [1, 2, 3, 4, 5, 6],
+  },
+} satisfies Record<string, Partial<Record<DayName, readonly number[]>>>;
 
 const gradesSevenToTwelveClasses = [
   "SE",
@@ -3400,12 +3471,63 @@ async function main(): Promise<void> {
         schoolId: ids.school,
         name: teacherName,
         shortCode: stableCode("T", teacherIndex),
-        employmentType: weeklyHours < 15 ? "PART_TIME" : "FULL_TIME",
+        employmentType:
+          teacherName in partTimeAvailabilityByTeacher || weeklyHours < 15
+            ? "PART_TIME"
+            : "FULL_TIME",
         weeklyTeachingSessions: weeklyHours,
         maxWeeklyWorkload: weeklyHours,
       },
     });
     teacherIds.set(teacherName, teacher.id);
+  }
+
+  const teachingPeriodBySession = new Map(
+    periodRecords
+      .filter((period) => period.isTeaching)
+      .map((period, index) => [index + 1, period.periodIndex]),
+  );
+  const unavailableRules = [];
+  for (const [teacherName, availabilityByDay] of Object.entries(
+    partTimeAvailabilityByTeacher,
+  )) {
+    const teacherId = teacherIds.get(teacherName);
+    if (!teacherId) {
+      throw new Error(
+        `Cannot seed availability: unknown teacher ${teacherName}.`,
+      );
+    }
+    for (const day of dayRecords) {
+      const allowedSessions = new Set(
+        availabilityByDay[day.name as DayName] ?? [],
+      );
+      for (
+        let session = 1;
+        session <= schoolWeekConfiguration.sessionsPerDay;
+        session += 1
+      ) {
+        if (allowedSessions.has(session)) continue;
+        const periodIndex = teachingPeriodBySession.get(session);
+        if (periodIndex === undefined) {
+          throw new Error(
+            `Cannot seed availability: unresolved session ${String(session)}.`,
+          );
+        }
+        unavailableRules.push({
+          schoolId: ids.school,
+          termId: ids.term,
+          entityType: "TEACHER" as const,
+          entityId: teacherId,
+          dayIndex: day.dayIndex,
+          periodIndex,
+          state: "UNAVAILABLE" as const,
+          reason: "Seeded part-time availability.",
+        });
+      }
+    }
+  }
+  if (unavailableRules.length > 0) {
+    await db.availabilityRule.createMany({ data: unavailableRules });
   }
 
   const subjectIds = new Map<string, string>();
