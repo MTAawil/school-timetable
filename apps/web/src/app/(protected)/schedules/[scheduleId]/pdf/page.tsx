@@ -400,7 +400,7 @@ export default async function SchedulePdfPage({
           <Link className={buttonClass} href={`/schedules/${schedule.id}`}>
             Back
           </Link>
-          <PrintButton />
+          <PrintButton label="Download PDF" />
         </div>
       </div>
       {(query.type === "school" || query.type === "class"
