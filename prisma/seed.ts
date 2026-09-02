@@ -119,6 +119,11 @@ const partTimeAvailabilityByTeacher = {
   },
 } satisfies Record<string, Partial<Record<DayName, readonly number[]>>>;
 
+const seededUnavailableSessionsByTeacher = {
+  "عادل رزق": [3, 4],
+  "نزيه طي": [3, 4],
+} satisfies Record<string, readonly number[]>;
+
 const gradesSevenToTwelveClasses = [
   "SE",
   "ES",
@@ -3547,6 +3552,41 @@ async function main(): Promise<void> {
   }
   if (unavailableRules.length > 0) {
     await db.availabilityRule.createMany({ data: unavailableRules });
+  }
+
+  const seededUnavailableRules = [];
+  for (const [teacherName, unavailableSessions] of Object.entries(
+    seededUnavailableSessionsByTeacher,
+  )) {
+    const teacherId = teacherIds.get(teacherName);
+    if (!teacherId) {
+      throw new Error(
+        `Cannot seed unavailable sessions: unknown teacher ${teacherName}.`,
+      );
+    }
+    for (const day of dayRecords) {
+      for (const session of unavailableSessions) {
+        const periodIndex = teachingPeriodBySession.get(session);
+        if (periodIndex === undefined) {
+          throw new Error(
+            `Cannot seed unavailable sessions: unresolved session ${String(session)}.`,
+          );
+        }
+        seededUnavailableRules.push({
+          schoolId: ids.school,
+          termId: ids.term,
+          entityType: "TEACHER" as const,
+          entityId: teacherId,
+          dayIndex: day.dayIndex,
+          periodIndex,
+          state: "UNAVAILABLE" as const,
+          reason: "Sport cannot be scheduled in sessions 3 or 4.",
+        });
+      }
+    }
+  }
+  if (seededUnavailableRules.length > 0) {
+    await db.availabilityRule.createMany({ data: seededUnavailableRules });
   }
 
   const subjectIds = new Map<string, string>();
