@@ -559,10 +559,11 @@ def solve(request: SolveRequest) -> SolveResponse:
             daily_indicators: list[cp_model.IntVar] = []
             for period in teaching_periods:
                 lesson_candidates = occupancy.get(("teacher_load", teacher.id, day, period), [])
-                if not lesson_candidates:
-                    continue
                 occupied = model.new_bool_var(f"occupied_{teacher.id}_{day}_{period}")
-                model.add(occupied == sum(lesson_candidates))
+                if lesson_candidates:
+                    model.add(occupied == sum(lesson_candidates))
+                else:
+                    model.add(occupied == 0)
                 constraints += 1
                 occupied_indicator[(teacher.id, day, period)] = occupied
                 daily_indicators.append(occupied)
