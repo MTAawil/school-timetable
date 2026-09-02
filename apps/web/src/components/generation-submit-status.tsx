@@ -70,7 +70,11 @@ function GenerationProgressDialog() {
   );
 }
 
-export function GenerationSubmitStatus() {
+export function GenerationSubmitStatus({
+  label = "Generate timetable",
+}: {
+  label?: string;
+}) {
   const { pending } = useFormStatus();
 
   return (
@@ -80,7 +84,7 @@ export function GenerationSubmitStatus() {
         disabled={pending}
         type="submit"
       >
-        {pending ? "Generating..." : "Generate timetable"}
+        {pending ? "Generating..." : label}
       </button>
       {pending ? <GenerationProgressDialog /> : null}
     </>

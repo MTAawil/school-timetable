@@ -5,6 +5,10 @@ import { generateTimetable } from "@/app/(protected)/readiness/actions";
 import { GenerationSubmitStatus } from "@/components/generation-submit-status";
 import { PageHeading } from "@/components/setup-ui";
 import { verifySession } from "@/lib/auth/dal";
+import {
+  analyzePartTimeTeacherPressure,
+  buildPartTimeCheckSnapshot,
+} from "@/lib/part-time-check";
 import { getCurrentReadiness } from "@/lib/readiness";
 import { getReadinessIssueAction } from "@/lib/readiness-navigation";
 
@@ -40,6 +44,10 @@ export default async function ReadinessPage() {
   const teachingSlots =
     snapshot.calendar.days.filter((day) => day.isWorking).length *
     snapshot.calendar.periods.filter((period) => period.isTeaching).length;
+  const partTimeSnapshot = buildPartTimeCheckSnapshot(snapshot, 60);
+  const tightPartTimers = analyzePartTimeTeacherPressure(
+    partTimeSnapshot,
+  ).filter((teacher) => teacher.tight);
 
   return (
     <div className="space-y-7">
@@ -144,6 +152,38 @@ export default async function ReadinessPage() {
         </section>
       ) : (
         <section className="border border-[#dce1dc] bg-white p-5">
+          {tightPartTimers.length > 0 ? (
+            <div className="mb-5 border border-[#e4bd73] bg-[#fff9e9] p-4 text-sm">
+              <div className="flex items-start gap-3">
+                <AlertTriangle
+                  className="mt-0.5 shrink-0 text-[#9a6511]"
+                  size={18}
+                />
+                <div>
+                  <h2 className="font-semibold">
+                    Tight part-time availability
+                  </h2>
+                  <p className="mt-1 leading-6 text-[#66706b]">
+                    {tightPartTimers
+                      .slice(0, 4)
+                      .map(
+                        (teacher) =>
+                          `${teacher.teacherName}: ${String(
+                            teacher.weeklySessions,
+                          )}/${String(teacher.availableSlots)} slots`,
+                      )
+                      .join("; ")}
+                  </p>
+                  <Link
+                    className="mt-3 inline-flex h-9 items-center border border-[#9ba59f] bg-white px-3 text-sm font-semibold hover:bg-[#f0f2ef]"
+                    href="/part-time-check"
+                  >
+                    Open part-time check
+                  </Link>
+                </div>
+              </div>
+            </div>
+          ) : null}
           <div className="flex items-center gap-3">
             <ShieldCheck className="text-[#0e6b4f]" size={20} />
             <h2 className="font-semibold">Snapshot prepared</h2>
@@ -200,6 +240,16 @@ export default async function ReadinessPage() {
               </select>
             </label>
             <GenerationSubmitStatus />
+          </form>
+          <form action={generateTimetable} className="mt-3">
+            <input name="alternativeCount" type="hidden" value="1" />
+            <input
+              name="maxQualityDegradationPercent"
+              type="hidden"
+              value="20"
+            />
+            <input name="timeLimitSeconds" type="hidden" value="180" />
+            <GenerationSubmitStatus label="Run 180s check" />
           </form>
         </section>
       )}

@@ -28,6 +28,7 @@ import { verifySession } from "@/lib/auth/dal";
 import { assignmentSessionLabel } from "@/lib/session-times";
 
 type ViewType = "school" | "class" | "teacher" | "room";
+type HighlightMode = "none" | "part-time" | "double" | "locked";
 
 export default async function SchedulePage({
   params,
@@ -45,6 +46,7 @@ export default async function SchedulePage({
     previewDelta?: string;
     regenerated?: string;
     published?: string;
+    highlight?: string;
   }>;
 }) {
   const user = await verifySession();
@@ -74,6 +76,11 @@ export default async function SchedulePage({
   const view: ViewType = ["class", "teacher", "room"].includes(query.view ?? "")
     ? (query.view as ViewType)
     : "school";
+  const highlight: HighlightMode = ["part-time", "double", "locked"].includes(
+    query.highlight ?? "",
+  )
+    ? (query.highlight as HighlightMode)
+    : "none";
   const entities =
     view === "class"
       ? Array.from(
@@ -131,6 +138,22 @@ export default async function SchedulePage({
       assignment.startDayIndex === null || assignment.startPeriodIndex === null,
   );
   const editableAssignments = view === "school" ? [] : visibleAssignments;
+  const highlightedAssignmentIds = new Set(
+    visibleAssignments
+      .filter((assignment) => {
+        if (highlight === "part-time") {
+          return assignment.teacher.employmentType === "PART_TIME";
+        }
+        if (highlight === "double") {
+          return assignment.durationPeriods > 1;
+        }
+        if (highlight === "locked") {
+          return assignment.isLocked;
+        }
+        return false;
+      })
+      .map((assignment) => assignment.id),
+  );
   const latestAudit = schedule.auditLogs[0]?.details as
     | {
         scoreDelta?: number;
@@ -250,6 +273,38 @@ export default async function SchedulePage({
         ) : null}
       </div>
 
+      <div className="flex flex-wrap items-center gap-2">
+        {[
+          ["none", "No highlight"],
+          ["part-time", "Part-time"],
+          ["double", "Double sessions"],
+          ["locked", "Locked"],
+        ].map(([mode, label]) => {
+          const params = new URLSearchParams();
+          params.set("view", view);
+          if (entityId) params.set("entity", entityId);
+          if (mode !== "none") params.set("highlight", mode);
+          return (
+            <Link
+              className={`h-9 px-3 py-2 text-sm font-medium ${
+                highlight === mode
+                  ? "bg-[#132b24] text-white"
+                  : "border border-[#cfd5d1] bg-white"
+              }`}
+              href={`/schedules/${schedule.id}?${params.toString()}`}
+              key={mode}
+            >
+              {label}
+            </Link>
+          );
+        })}
+        {highlight !== "none" ? (
+          <p className="text-sm text-[#66706b]">
+            {String(highlightedAssignmentIds.size)} lessons highlighted
+          </p>
+        ) : null}
+      </div>
+
       <div className="overflow-x-auto border border-[#dce1dc] bg-white">
         <table className="w-full min-w-[900px] table-fixed border-collapse text-sm">
           <thead>
@@ -302,7 +357,11 @@ export default async function SchedulePage({
                               key={assignment.id}
                             >
                               <a
-                                className="block cursor-grab border-l-2 border-[#0e6b4f] bg-[#edf6f2] px-2 py-1.5 text-xs"
+                                className={`block cursor-grab border-l-2 px-2 py-1.5 text-xs ${
+                                  highlightedAssignmentIds.has(assignment.id)
+                                    ? "border-[#9a6511] bg-[#fff4cc] ring-1 ring-[#d8aa3b]"
+                                    : "border-[#0e6b4f] bg-[#edf6f2]"
+                                }`}
                                 href={`#assignment-${assignment.id}`}
                               >
                                 <span className="font-semibold">
@@ -399,21 +458,21 @@ export default async function SchedulePage({
           href={`/schedules/${schedule.id}/pdf?type=school`}
         >
           <Download className="mr-2" size={16} />
-          PDF school
+          All PDFs
         </Link>
         <Link
           className="inline-flex h-9 items-center border border-[#cfd5d1] bg-white px-3 text-sm"
           href={`/schedules/${schedule.id}/pdf?type=class`}
         >
           <Download className="mr-2" size={16} />
-          PDF all classes
+          Class PDFs
         </Link>
         <Link
           className="inline-flex h-9 items-center border border-[#cfd5d1] bg-white px-3 text-sm"
           href={`/schedules/${schedule.id}/pdf?type=teacher`}
         >
           <Download className="mr-2" size={16} />
-          PDF all teachers
+          Teacher PDFs
         </Link>
         {view === "class" && entityId ? (
           <Link
@@ -421,7 +480,7 @@ export default async function SchedulePage({
             href={`/schedules/${schedule.id}/pdf?type=class&entity=${entityId}`}
           >
             <Download className="mr-2" size={16} />
-            PDF class
+            Current class PDF
           </Link>
         ) : null}
         {view === "teacher" && entityId ? (
@@ -430,7 +489,7 @@ export default async function SchedulePage({
             href={`/schedules/${schedule.id}/pdf?type=teacher&entity=${entityId}`}
           >
             <Download className="mr-2" size={16} />
-            PDF teacher
+            Current teacher PDF
           </Link>
         ) : null}
         <PrintButton />

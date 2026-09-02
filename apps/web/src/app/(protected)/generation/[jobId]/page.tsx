@@ -57,6 +57,12 @@ const slotPressureSchema = z.object({
 });
 
 const diagnosticDetailsSchema = z.object({
+  errors: z.array(z.string()).optional(),
+  groups: z.array(z.string()).optional(),
+  solverStatus: z.string().optional(),
+  timeLimitSeconds: z.number().int().positive().optional(),
+  objective: z.number().int().nonnegative().optional(),
+  breakdownTotal: z.number().int().nonnegative().optional(),
   conflicts: z
     .array(
       z.object({
@@ -98,6 +104,29 @@ const diagnosticDetailsSchema = z.object({
     .optional(),
 });
 const warningsSchema = z.array(z.string());
+const solverStageTelemetrySchema = z.object({
+  status: z.string(),
+  runtimeMs: z.number().int().nonnegative(),
+  score: z.number().int().nonnegative().nullable().optional(),
+  conflicts: z.number().int().nonnegative().nullable().optional(),
+  branches: z.number().int().nonnegative().nullable().optional(),
+});
+const responseMetadataSchema = z.object({
+  runtimeMs: z.number().int().nonnegative().optional(),
+  variableCount: z.number().int().nonnegative().optional(),
+  constraintCount: z.number().int().nonnegative().optional(),
+  warnings: z.array(z.string()).optional(),
+  solverTelemetry: z
+    .object({
+      stage1: solverStageTelemetrySchema,
+      stage2: solverStageTelemetrySchema.nullable().optional(),
+      stage2ImprovedStage1: z.boolean().nullable().optional(),
+      finalSource: z.enum(["STAGE1_FALLBACK", "STAGE2_OPTIMIZED", "NONE"]),
+      finalScore: z.number().int().nonnegative().nullable().optional(),
+      totalRuntimeMs: z.number().int().nonnegative(),
+    })
+    .optional(),
+});
 
 export default async function GenerationResultPage({
   params,
@@ -163,15 +192,19 @@ export default async function GenerationResultPage({
     string,
     number
   >;
+  const nonZeroPenalties = Object.entries(penaltyBreakdown)
+    .filter(([, penalty]) => penalty > 0)
+    .sort((left, right) => right[1] - left[1]);
+  const topPenalty = nonZeroPenalties[0];
   const alternativeWarnings =
     warningsSchema.safeParse(alternative?.warnings).data ?? [];
   const successful = job.status === "FEASIBLE" || job.status === "OPTIMAL";
   const timedOut = job.diagnostics.some(
     (diagnostic) => diagnostic.code === "SOLVER_TIME_LIMIT_REACHED",
   );
-  const responseMetadata = z
-    .object({ runtimeMs: z.number().int().nonnegative().optional() })
-    .safeParse(job.responseMetadata);
+  const responseMetadata = responseMetadataSchema.safeParse(
+    job.responseMetadata,
+  );
   const runtimeMs =
     alternative?.runtimeMs ??
     (responseMetadata.success ? responseMetadata.data.runtimeMs : undefined) ??
@@ -238,6 +271,55 @@ export default async function GenerationResultPage({
                 {diagnostic.code}
               </p>
               <p className="mt-1 text-sm font-medium">{diagnostic.summary}</p>
+              {diagnostic.details.success &&
+              (diagnostic.details.data.solverStatus ||
+                diagnostic.details.data.timeLimitSeconds ||
+                diagnostic.details.data.objective !== undefined ||
+                diagnostic.details.data.breakdownTotal !== undefined) ? (
+                <dl className="mt-3 grid gap-px overflow-hidden border border-[#e7eae7] bg-[#e7eae7] text-xs sm:grid-cols-4">
+                  {[
+                    ["Solver status", diagnostic.details.data.solverStatus],
+                    [
+                      "Time limit",
+                      diagnostic.details.data.timeLimitSeconds
+                        ? `${String(diagnostic.details.data.timeLimitSeconds)}s`
+                        : undefined,
+                    ],
+                    ["Objective", diagnostic.details.data.objective],
+                    ["Breakdown total", diagnostic.details.data.breakdownTotal],
+                  ]
+                    .filter((item) => item[1] !== undefined)
+                    .map(([label, value]) => (
+                      <div className="bg-white px-3 py-2" key={label}>
+                        <dt className="text-[#66706b]">{label}</dt>
+                        <dd className="mt-1 font-semibold">{value}</dd>
+                      </div>
+                    ))}
+                </dl>
+              ) : null}
+              {diagnostic.details.success &&
+              diagnostic.details.data.errors?.length ? (
+                <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-[#66706b]">
+                  {diagnostic.details.data.errors.map((error) => (
+                    <li key={error}>
+                      <code className="text-xs">{error}</code>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+              {diagnostic.details.success &&
+              diagnostic.details.data.groups?.length ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {diagnostic.details.data.groups.map((group) => (
+                    <code
+                      className="border border-[#e7eae7] bg-[#f8f1ef] px-2 py-1 text-xs"
+                      key={group}
+                    >
+                      {group}
+                    </code>
+                  ))}
+                </div>
+              ) : null}
               {diagnostic.details.success &&
               diagnostic.details.data.conflicts?.length ? (
                 <ul
@@ -549,6 +631,24 @@ export default async function GenerationResultPage({
               </form>
             </div>
           </div>
+          <div className="grid gap-px overflow-hidden border border-[#dce1dc] bg-[#dce1dc] text-sm sm:grid-cols-4">
+            {[
+              ["Assigned lessons", assignments.length],
+              ["Penalty categories", nonZeroPenalties.length],
+              ["Top penalty", topPenalty ? topPenalty[0] : "None"],
+              ["Warnings", alternativeWarnings.length],
+            ].map(([label, value]) => (
+              <div className="bg-white p-4" key={label}>
+                <p className="text-xs uppercase text-[#66706b]">{label}</p>
+                <p className="mt-2 font-semibold">{value}</p>
+                {label === "Top penalty" && topPenalty ? (
+                  <p className="mt-1 text-xs text-[#66706b]">
+                    {topPenalty[1]} points
+                  </p>
+                ) : null}
+              </div>
+            ))}
+          </div>
           <div className="divide-y divide-[#e7eae7] border border-[#dce1dc] bg-white">
             {Object.entries(penaltyBreakdown).map(([code, penalty]) => (
               <div
@@ -560,6 +660,24 @@ export default async function GenerationResultPage({
               </div>
             ))}
           </div>
+        </section>
+      ) : null}
+      {responseMetadata.success ? (
+        <section className="grid gap-px overflow-hidden border border-[#dce1dc] bg-[#dce1dc] text-sm sm:grid-cols-4">
+          {[
+            ["Runtime", `${String(runtimeMs)} ms`],
+            ["Variables", responseMetadata.data.variableCount ?? "-"],
+            ["Constraints", responseMetadata.data.constraintCount ?? "-"],
+            [
+              "Solver source",
+              responseMetadata.data.solverTelemetry?.finalSource ?? "-",
+            ],
+          ].map(([label, value]) => (
+            <div className="bg-white p-4" key={label}>
+              <p className="text-xs uppercase text-[#66706b]">{label}</p>
+              <p className="mt-2 font-semibold">{value}</p>
+            </div>
+          ))}
         </section>
       ) : null}
       {assignments.length > 0 ? (

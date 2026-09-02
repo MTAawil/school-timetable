@@ -3,6 +3,7 @@
 import {
   BookOpen,
   CalendarRange,
+  ClipboardCheck,
   GraduationCap,
   LayoutDashboard,
   Settings2,
@@ -19,6 +20,7 @@ const navigation = [
   { href: "/subjects", label: "Curriculum", icon: BookOpen },
   { href: "/teachers", label: "Teachers", icon: Users },
   { href: "/readiness", label: "Generate", icon: ShieldCheck },
+  { href: "/part-time-check", label: "Part-time check", icon: ClipboardCheck },
   { href: "/schedules", label: "Timetables", icon: CalendarRange },
 ] as const;
 
@@ -27,6 +29,9 @@ function isActive(pathname: string, href: string) {
     return (
       pathname.startsWith("/schedules") || pathname.startsWith("/generation")
     );
+  }
+  if (href === "/part-time-check") {
+    return pathname.startsWith("/part-time-check");
   }
   return pathname === href;
 }

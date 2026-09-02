@@ -350,9 +350,21 @@ export default async function SchedulePdfPage({
       : query.type === "class"
         ? "Class"
         : "Teacher";
+  const downloadLabel =
+    query.type === "school"
+      ? "Download all PDFs"
+      : query.entity
+        ? "Download PDF"
+        : query.type === "class"
+          ? "Download class PDFs"
+          : "Download teacher PDFs";
+  const browserTitle = `${schedule.school.name} - ${schedule.name} v${String(
+    schedule.version,
+  )} - ${titlePrefix} timetable`;
 
   return (
     <main className="pdf-export">
+      <title>{browserTitle}</title>
       <style>{`
         @page { size: A4 landscape; margin: 10mm; }
         .pdf-toolbar { align-items: center; background: #f7f8f5; border-bottom: 1px solid #dce1dc; display: flex; gap: 10px; justify-content: space-between; padding: 14px 18px; }
@@ -400,7 +412,7 @@ export default async function SchedulePdfPage({
           <Link className={buttonClass} href={`/schedules/${schedule.id}`}>
             Back
           </Link>
-          <PrintButton label="Download PDF" />
+          <PrintButton label={downloadLabel} />
         </div>
       </div>
       {(query.type === "school" || query.type === "class"

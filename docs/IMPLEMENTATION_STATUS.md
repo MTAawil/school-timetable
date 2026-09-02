@@ -910,6 +910,60 @@ local-development values only.
 - Next task: Task 10, infeasibility diagnostics, publishing, CSV and print
   exports, security hardening, and deployment documentation.
 
+### 2026-09-02 - Part-time mini-check and generation upgrades
+
+Task list:
+
+- [x] Add a separate part-time availability mini-check that tests only
+  part-time teacher assignments without creating a normal timetable.
+- [x] Keep the mini-check on the same solver contract and hard constraints used
+  by full generation, with its own diagnostics and audit trail.
+- [x] Improve failed-generation diagnostics so administrators see concrete
+  conflict/pressure details whenever the solver reports them.
+- [x] Add a success quality summary that makes the selected alternative easier
+  to judge before opening it as a draft.
+- [x] Improve PDF download actions so all-school, all-class, and all-teacher
+  exports are clearer to trigger and print/download.
+- [x] Add solver time presets that include the 180-second single-alternative
+  workflow used for stress checks.
+- [x] Add pre-generation warnings for tight part-time workloads and constrained
+  availability before the solver is run.
+- [x] Add schedule inspection filters or highlights that make generated
+  timetables easier to review.
+- [x] After each completed item, run a 180-second, one-alternative generation
+  check and record the result.
+
+Checks so far:
+
+- Task list baseline: `180s`, one alternative, solver returned `FEASIBLE`
+  with one alternative in `180468 ms`.
+- Part-time mini-check unit coverage: web Vitest suite passed, 17 tests.
+- Part-time mini-check completion: `180s`, one alternative, solver returned
+  `FEASIBLE` with one alternative in `180359 ms`.
+- Diagnostics display: web typecheck passed.
+- Diagnostics display completion: `180s`, one alternative, solver returned
+  `FEASIBLE` with one alternative in `180328 ms`.
+- Success quality summary: web typecheck passed.
+- PDF export labels and browser title: web typecheck passed.
+- PDF export completion: `180s`, one alternative, solver returned `FEASIBLE`
+  with one alternative in `180328 ms`.
+- Solver time preset: web Vitest suite passed, 17 tests; web typecheck passed.
+- Solver time preset completion: `180s`, one alternative, solver returned
+  `FEASIBLE` with one alternative in `180297 ms`.
+- Pre-generation part-time warnings: web typecheck passed.
+- Pre-generation warning completion: `180s`, one alternative, solver returned
+  `FEASIBLE` with one alternative in `180406 ms`.
+- Schedule inspection highlights: web typecheck passed.
+- Schedule inspection highlight completion: `180s`, one alternative, solver
+  returned `FEASIBLE` with one alternative in `180484 ms`.
+- Part-time mini-check audit trail: web typecheck passed.
+- Part-time mini-check audit completion: `180s`, one alternative, solver
+  returned `FEASIBLE` with one alternative in `180329 ms`.
+- Final verification: touched-file Prettier check passed; workspace lint,
+  TypeScript typecheck, unit tests, and production build passed. Python solver
+  tests were not run in this worktree because neither `uv` nor
+  `services/solver/.venv` is available; no solver code changed in this task.
+
 ### 2026-07-26 - Task 10 release hardening
 
 - Added deterministic infeasibility diagnostics for empty assignment domains

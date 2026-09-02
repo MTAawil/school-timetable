@@ -3,11 +3,11 @@
 import { Download, Printer } from "lucide-react";
 
 type PrintButtonProps = {
-  label?: "Print" | "Download PDF";
+  label?: string;
 };
 
 export function PrintButton({ label = "Print" }: PrintButtonProps) {
-  const Icon = label === "Download PDF" ? Download : Printer;
+  const Icon = label.toLowerCase().includes("download") ? Download : Printer;
 
   return (
     <button
