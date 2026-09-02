@@ -390,6 +390,28 @@ export default async function SchedulePage({
         >
           Export CSV
         </Link>
+        <Link
+          className="inline-flex h-9 items-center border border-[#cfd5d1] bg-white px-3 text-sm"
+          href={`/schedules/${schedule.id}/pdf?type=school`}
+        >
+          PDF school
+        </Link>
+        {view === "class" && entityId ? (
+          <Link
+            className="inline-flex h-9 items-center border border-[#cfd5d1] bg-white px-3 text-sm"
+            href={`/schedules/${schedule.id}/pdf?type=class&entity=${entityId}`}
+          >
+            PDF class
+          </Link>
+        ) : null}
+        {view === "teacher" && entityId ? (
+          <Link
+            className="inline-flex h-9 items-center border border-[#cfd5d1] bg-white px-3 text-sm"
+            href={`/schedules/${schedule.id}/pdf?type=teacher&entity=${entityId}`}
+          >
+            PDF teacher
+          </Link>
+        ) : null}
         <PrintButton />
         {schedule.status === "DRAFT" ? (
           <>

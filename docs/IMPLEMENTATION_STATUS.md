@@ -49,6 +49,18 @@ Current task: Feasibility-first CP-SAT staging.
 8. [x] Add focused tests for staging, timeout fallback, no-incumbent timeout,
        proven infeasibility, and regeneration lock/hint behavior.
 
+## Active export execution plan
+
+Current task: PDF timetable exports.
+
+1. [x] Reuse persisted schedule assignments and existing session-time helpers
+       for export rendering.
+2. [x] Add print-to-PDF views for whole-school, class, and teacher timetables.
+3. [x] Show class session numbers with actual times and class break markers.
+4. [x] Show teacher lesson times inside occupied cells and list teacher
+       availability/constraint notes at the bottom of each teacher timetable.
+5. [x] Link the exports from the schedule page and add focused tests.
+
 ### 2026-07-29 - Portable local database backup
 
 - Added Windows PowerShell backup and restore scripts using PostgreSQL custom
