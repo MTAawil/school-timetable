@@ -445,6 +445,34 @@ def test_allowed_main_double_can_be_distributed_when_needed() -> None:
     assert scored.breakdown["MAIN_DOUBLE_ADJACENCY"] == 12
 
 
+def test_main_double_adjacency_counts_extra_non_adjacent_session() -> None:
+    request = supervisor_request(weekly_sessions=3)
+    candidate = [
+        Assignment(
+            requirement_id="G7-A:MATH",
+            day_index=0,
+            period_index=0,
+            duration_periods=1,
+        ),
+        Assignment(
+            requirement_id="G7-A:MATH",
+            day_index=0,
+            period_index=1,
+            duration_periods=1,
+        ),
+        Assignment(
+            requirement_id="G7-A:MATH",
+            day_index=0,
+            period_index=3,
+            duration_periods=1,
+        ),
+    ]
+
+    scored = score_assignments(request, candidate)
+
+    assert scored.breakdown["MAIN_DOUBLE_ADJACENCY"] == 12
+
+
 def test_validator_rejects_repeated_non_main_subject() -> None:
     request = supervisor_request(
         weekly_sessions=2,

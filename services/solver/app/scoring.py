@@ -159,7 +159,7 @@ def score_assignments(request: SolveRequest, assignments: list[Assignment]) -> S
             request,
             requirement.class_section_id,
         )
-        has_adjacent_pair = any(
+        adjacent_pair_count = sum(
             right == left + 1
             and not _crosses_break(
                 left,
@@ -169,8 +169,7 @@ def score_assignments(request: SolveRequest, assignments: list[Assignment]) -> S
             )
             for left, right in zip(ordered, ordered[1:], strict=False)
         )
-        if not has_adjacent_pair:
-            raw["MAIN_DOUBLE_ADJACENCY"] += 1
+        raw["MAIN_DOUBLE_ADJACENCY"] += max(0, len(ordered) - 1 - adjacent_pair_count)
 
     for teacher in request.teachers:
         daily_counts = [

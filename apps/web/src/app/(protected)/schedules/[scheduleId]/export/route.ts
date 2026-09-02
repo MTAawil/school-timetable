@@ -60,7 +60,7 @@ export async function GET(
             assignment.durationPeriods,
           ),
       assignment.classSection.shortCode,
-      assignment.teachingRequirement.subject.shortCode,
+      assignment.teachingRequirement.subject.name,
       assignment.teacher.name,
       assignment.room?.name ?? "",
       assignment.durationPeriods,

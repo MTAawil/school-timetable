@@ -130,7 +130,7 @@ function assignmentCell(
   if (type === "teacher") {
     return (
       <div className="pdf-lesson">
-        <strong>{assignment.teachingRequirement.subject.shortCode}</strong>
+        <strong>{assignment.teachingRequirement.subject.name}</strong>
         <span>{assignment.classSection.shortCode}</span>
         <small>
           {assignmentSessionLabel(
@@ -145,7 +145,7 @@ function assignmentCell(
   }
   return (
     <div className="pdf-lesson">
-      <strong>{assignment.teachingRequirement.subject.shortCode}</strong>
+      <strong>{assignment.teachingRequirement.subject.name}</strong>
       <span>{assignment.teacher.name}</span>
       {assignment.isLocked ? <small>Locked</small> : null}
     </div>

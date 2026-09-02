@@ -52,10 +52,9 @@ const schoolWeekConfiguration = {
 
 const partTimeAvailabilityByTeacher = {
   "علي بندر": {
-    Monday: [1, 2, 3, 4],
-    Wednesday: [1, 2, 3, 4],
+    Tuesday: [1, 2, 3, 4],
     Thursday: [5, 6],
-    Friday: [5],
+    Friday: [1, 2, 3, 4],
   },
   "محمد عساف": {
     Monday: [2, 3, 4, 5, 6],
@@ -70,8 +69,8 @@ const partTimeAvailabilityByTeacher = {
   },
   "ناجي هاشم": {
     Monday: [1, 2, 3],
-    Wednesday: [1, 2, 3],
-    Friday: [1, 2, 3],
+    Tuesday: [1, 2, 3],
+    Thursday: [1, 2, 3],
   },
   "رباب العبد": {
     Monday: [1, 2, 3, 4, 5, 6],
@@ -96,14 +95,11 @@ const partTimeAvailabilityByTeacher = {
   },
   "منى وهبي": {
     Monday: [1, 2, 3, 4, 5, 6],
-    Tuesday: [1],
-    Thursday: [1],
-    Wednesday: [1, 2, 3, 4, 5, 6],
+    Tuesday: [1, 2, 3, 4, 5, 6],
     Friday: [1, 2, 3, 4],
   },
   "محمد عبدو": {
     Wednesday: [1, 2, 3, 4, 5, 6],
-    Thursday: [4],
     Friday: [1, 2, 3, 4, 5, 6],
   },
   "محمد جقمرة": {
@@ -116,7 +112,7 @@ const partTimeAvailabilityByTeacher = {
   "حسن ناجي": {
     Monday: [1, 2, 3, 4, 5],
     Wednesday: [1, 2, 3, 4, 5],
-    Thursday: [1, 2, 3],
+    Friday: [1, 2, 3],
   },
   "ريما عيسى": {
     Friday: [1, 2, 3, 4, 5, 6],
@@ -3294,8 +3290,27 @@ function curriculumKey(gradeLevelId: string, subjectId: string): string {
   return `${gradeLevelId}:${subjectId}`;
 }
 
-function isMainSubject(subjectName: string, weeklySessions: number): boolean {
+const upperSecondaryMainSubjectsByGrade = {
+  G11: ["MATH", "فيزياء"],
+  G12_LS: ["MATH", "فيزياء", "كيمياء", "بيولوجي"],
+  G12_GS: ["MATH", "فيزياء", "كيمياء", "بيولوجي"],
+  G12_ES: ["MATH", "اقتصاد", "اجتماع"],
+} satisfies Record<string, readonly string[]>;
+
+function isMainSubject(
+  subjectName: string,
+  weeklySessions: number,
+  metadata: ClassMetadata,
+): boolean {
   const normalized = subjectName.trim().toUpperCase();
+  const upperSecondaryMainSubjects =
+    upperSecondaryMainSubjectsByGrade[
+      metadata.gradeCode as keyof typeof upperSecondaryMainSubjectsByGrade
+    ];
+  if (upperSecondaryMainSubjects) {
+    return upperSecondaryMainSubjects.includes(normalized);
+  }
+
   return (
     weeklySessions > schoolWeekConfiguration.workingDayCount ||
     [
@@ -3628,7 +3643,7 @@ async function main(): Promise<void> {
       );
     }
 
-    const mainSubject = isMainSubject(detail.subject, detail.hours);
+    const mainSubject = isMainSubject(detail.subject, detail.hours, metadata);
     const allowDoubleSession = mainSubject;
     const key = curriculumKey(gradeLevelId, subjectId);
     let gradeCurriculumId = gradeCurriculumIds.get(key);
@@ -3793,7 +3808,7 @@ async function main(): Promise<void> {
     ["PART_TIME_COMPACTNESS", 10],
     ["PART_TIME_DISTRIBUTION_RELAXATION", 10000],
     ["TEACHER_CONSECUTIVE_PREFERENCE", 3],
-    ["MAIN_DOUBLE_ADJACENCY", 12],
+    ["MAIN_DOUBLE_ADJACENCY", 50],
     ["SUBJECT_SPREAD", 0],
     ["REPEATED_SUBJECT_DAY", 0],
     ["SUBJECT_CONSECUTIVE_PREFERENCE", 8],

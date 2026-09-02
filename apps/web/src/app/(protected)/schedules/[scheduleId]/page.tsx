@@ -300,10 +300,7 @@ export default async function SchedulePage({
                               >
                                 <span className="font-semibold">
                                   {assignment.classSection.shortCode} ·{" "}
-                                  {
-                                    assignment.teachingRequirement.subject
-                                      .shortCode
-                                  }
+                                  {assignment.teachingRequirement.subject.name}
                                 </span>
                                 <span className="mt-0.5 block text-[#66706b]">
                                   {assignment.teacher.name}
@@ -354,7 +351,7 @@ export default async function SchedulePage({
                     href={`#assignment-${assignment.id}`}
                   >
                     {assignment.classSection.shortCode} ·{" "}
-                    {assignment.teachingRequirement.subject.shortCode}
+                    {assignment.teachingRequirement.subject.name}
                   </a>
                 </DraggableAssignment>
               ))
@@ -465,7 +462,7 @@ export default async function SchedulePage({
                 <div>
                   <p className="font-semibold">
                     {assignment.classSection.shortCode} ·{" "}
-                    {assignment.teachingRequirement.subject.shortCode}
+                    {assignment.teachingRequirement.subject.name}
                   </p>
                   <p className="mt-1 text-xs text-[#66706b]">
                     {assignment.teacher.name}
@@ -536,7 +533,7 @@ export default async function SchedulePage({
                       .map((item) => (
                         <option key={item.id} value={item.id}>
                           {item.classSection.shortCode} ·{" "}
-                          {item.teachingRequirement.subject.shortCode}
+                          {item.teachingRequirement.subject.name}
                         </option>
                       ))}
                   </select>
