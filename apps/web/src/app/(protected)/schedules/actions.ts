@@ -40,6 +40,26 @@ const solverAssignmentSchema = z.object({
   durationPeriods: z.number().int().positive(),
   roomId: z.string().nullable(),
 });
+const solverStageTelemetrySchema = z.object({
+  status: z.string(),
+  runtimeMs: z.number().int().nonnegative(),
+  score: z.number().int().nonnegative().nullable().optional(),
+  conflicts: z.number().int().nonnegative().nullable().optional(),
+  branches: z.number().int().nonnegative().nullable().optional(),
+});
+const solverTelemetrySchema = z.object({
+  stage1: solverStageTelemetrySchema,
+  stage2: solverStageTelemetrySchema.nullable().optional(),
+  stage2ImprovedStage1: z.boolean().nullable().optional(),
+  finalSource: z.enum(["STAGE1_FALLBACK", "STAGE2_OPTIMIZED", "NONE"]),
+  finalScore: z.number().int().nonnegative().nullable().optional(),
+  totalRuntimeMs: z.number().int().nonnegative(),
+});
+const missingSolverTelemetry = {
+  stage1: { status: "NOT_REPORTED", runtimeMs: 0 },
+  finalSource: "NONE",
+  totalRuntimeMs: 0,
+} satisfies z.infer<typeof solverTelemetrySchema>;
 const regenerationResponseSchema = z.object({
   jobId: z.string(),
   inputFingerprint: z.string(),
@@ -75,6 +95,9 @@ const regenerationResponseSchema = z.object({
   warnings: z.array(z.string()),
   variableCount: z.number().int().nonnegative(),
   constraintCount: z.number().int().nonnegative(),
+  solverTelemetry: solverTelemetrySchema
+    .optional()
+    .default(missingSolverTelemetry),
 });
 
 function jsonValue(value: unknown): Prisma.InputJsonValue {
@@ -557,6 +580,7 @@ export async function regenerateSchedule(formData: FormData): Promise<void> {
             movementPenalty: alternative.movementPenalty,
             movedAssignments: alternative.movedAssignments,
             warnings: result.warnings,
+            solverTelemetry: result.solverTelemetry,
           }),
           completedAt: new Date(),
         },

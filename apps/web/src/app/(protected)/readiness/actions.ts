@@ -20,6 +20,28 @@ const assignmentSchema = z.object({
   roomId: z.string().nullable(),
 });
 
+const solverStageTelemetrySchema = z.object({
+  status: z.string(),
+  runtimeMs: z.number().int().nonnegative(),
+  score: z.number().int().nonnegative().nullable().optional(),
+  conflicts: z.number().int().nonnegative().nullable().optional(),
+  branches: z.number().int().nonnegative().nullable().optional(),
+});
+
+const solverTelemetrySchema = z.object({
+  stage1: solverStageTelemetrySchema,
+  stage2: solverStageTelemetrySchema.nullable().optional(),
+  stage2ImprovedStage1: z.boolean().nullable().optional(),
+  finalSource: z.enum(["STAGE1_FALLBACK", "STAGE2_OPTIMIZED", "NONE"]),
+  finalScore: z.number().int().nonnegative().nullable().optional(),
+  totalRuntimeMs: z.number().int().nonnegative(),
+});
+const missingSolverTelemetry = {
+  stage1: { status: "NOT_REPORTED", runtimeMs: 0 },
+  finalSource: "NONE",
+  totalRuntimeMs: 0,
+} satisfies z.infer<typeof solverTelemetrySchema>;
+
 const solveResponseSchema = z.object({
   schemaVersion: z.literal(2),
   jobId: z.string(),
@@ -42,6 +64,9 @@ const solveResponseSchema = z.object({
   warnings: z.array(z.string()),
   variableCount: z.number().int().nonnegative(),
   constraintCount: z.number().int().nonnegative(),
+  solverTelemetry: solverTelemetrySchema
+    .optional()
+    .default(missingSolverTelemetry),
 });
 
 const generationOptionsSchema = z.object({
@@ -162,6 +187,7 @@ export async function generateTimetable(formData: FormData): Promise<void> {
             variableCount: solverResult.variableCount,
             constraintCount: solverResult.constraintCount,
             warnings: solverResult.warnings,
+            solverTelemetry: solverResult.solverTelemetry,
           }),
           completedAt: new Date(),
         },
