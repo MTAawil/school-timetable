@@ -366,7 +366,7 @@ export default async function SchedulePdfPage({
     <main className="pdf-export">
       <title>{browserTitle}</title>
       <style>{`
-        @page { size: A4 landscape; margin: 10mm; }
+        @page { size: A4 landscape; margin: 0; }
         .pdf-toolbar { align-items: center; background: #f7f8f5; border-bottom: 1px solid #dce1dc; display: flex; gap: 10px; justify-content: space-between; padding: 14px 18px; }
         .pdf-toolbar h1 { color: #132b24; font-size: 18px; font-weight: 700; margin: 0; }
         .pdf-toolbar p { color: #66706b; font-size: 12px; margin: 4px 0 0; }
@@ -398,7 +398,7 @@ export default async function SchedulePdfPage({
           .pdf-export, .pdf-export * { visibility: visible; }
           .pdf-export { background: white; left: 0; position: absolute; top: 0; width: 100%; }
           .pdf-toolbar { display: none; }
-          .pdf-page { padding: 0; }
+          .pdf-page { box-sizing: border-box; min-height: 100vh; padding: 10mm; }
         }
       `}</style>
       <div className="pdf-toolbar print:hidden">
