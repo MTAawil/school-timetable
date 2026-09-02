@@ -943,6 +943,19 @@ def test_full_time_teacher_cannot_have_more_than_two_internal_free_sessions() ->
     )
 
 
+def test_full_time_teacher_internal_gap_is_a_solver_hard_constraint() -> None:
+    request = supervisor_request(weekly_sessions=2, sessions_per_day=6)
+    payload = request.model_dump(by_alias=True)
+    payload["requirements"][0]["fixedSlots"] = [
+        {"dayIndex": 0, "periodIndex": 0},
+        {"dayIndex": 0, "periodIndex": 4},
+    ]
+    request = SolveRequest.model_validate(payload)
+    response = solve(request)
+
+    assert response.status == "INFEASIBLE"
+
+
 def test_full_time_teacher_allows_two_internal_free_sessions() -> None:
     request = supervisor_request(weekly_sessions=2, sessions_per_day=6)
     candidate = [

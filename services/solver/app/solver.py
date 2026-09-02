@@ -532,6 +532,136 @@ def solve(request: SolveRequest) -> SolveResponse:
             model.add(sum(used_variables) >= requirement.distinct_day_minimum)
             constraints += 1
 
+    occupied_indicator: dict[tuple[str, int, int], cp_model.IntVar] = {}
+    for teacher in request.teachers:
+        total_periods = sum(
+            requirement.occurrence_count * requirement.occurrence_duration
+            for requirement in request.requirements
+            if requirement.teacher_id == teacher.id and not requirement.shared_teaching_group_id
+        )
+        total_periods += sum(
+            requirement.occurrence_count * requirement.occurrence_duration
+            for requirement in request.requirements
+            if requirement.teacher_id == teacher.id
+            and requirement.shared_teaching_group_id
+            and requirement.shared_teaching_group_id
+            == next(
+                (
+                    group_id
+                    for group_id, members in shared_requirements.items()
+                    if requirement.id in members
+                ),
+                None,
+            )
+            and requirement.id == shared_requirements[requirement.shared_teaching_group_id][0]
+        )
+        for day in days:
+            daily_indicators: list[cp_model.IntVar] = []
+            for period in teaching_periods:
+                lesson_candidates = occupancy.get(("teacher_load", teacher.id, day, period), [])
+                if not lesson_candidates:
+                    continue
+                occupied = model.new_bool_var(f"occupied_{teacher.id}_{day}_{period}")
+                model.add(occupied == sum(lesson_candidates))
+                constraints += 1
+                occupied_indicator[(teacher.id, day, period)] = occupied
+                daily_indicators.append(occupied)
+                raw_terms["TEACHER_CONSECUTIVE_PREFERENCE"].append(occupied)
+
+            if teacher.employment_type == "FULL_TIME":
+                max_internal_idle_gap = 2
+                blocked_gap_length = max_internal_idle_gap + 1
+                for start_rank in range(0, len(teaching_periods) - blocked_gap_length + 1):
+                    window = teaching_periods[start_rank : start_rank + blocked_gap_length]
+                    before = [
+                        occupied_indicator[(teacher.id, day, earlier)]
+                        for earlier in teaching_periods[:start_rank]
+                        if (teacher.id, day, earlier) in occupied_indicator
+                    ]
+                    after = [
+                        occupied_indicator[(teacher.id, day, later)]
+                        for later in teaching_periods[start_rank + blocked_gap_length :]
+                        if (teacher.id, day, later) in occupied_indicator
+                    ]
+                    if not before or not after:
+                        continue
+                    has_before = model.new_bool_var(
+                        f"full_time_gap_before_{teacher.id}_{day}_{start_rank}"
+                    )
+                    has_after = model.new_bool_var(
+                        f"full_time_gap_after_{teacher.id}_{day}_{start_rank}"
+                    )
+                    window_occupied = [
+                        occupied_indicator[(teacher.id, day, period)]
+                        for period in window
+                        if (teacher.id, day, period) in occupied_indicator
+                    ]
+                    model.add_max_equality(has_before, before)
+                    model.add_max_equality(has_after, after)
+                    model.add(sum(window_occupied) >= has_before + has_after - 1)
+                    constraints += 3
+
+            for index, period in enumerate(teaching_periods):
+                current = occupied_indicator.get((teacher.id, day, period))
+                before = [
+                    occupied_indicator[(teacher.id, day, earlier)]
+                    for earlier in teaching_periods[:index]
+                    if (teacher.id, day, earlier) in occupied_indicator
+                ]
+                after = [
+                    occupied_indicator[(teacher.id, day, later)]
+                    for later in teaching_periods[index + 1 :]
+                    if (teacher.id, day, later) in occupied_indicator
+                ]
+                if current is None or not before or not after:
+                    continue
+                has_before = model.new_bool_var(f"before_{teacher.id}_{day}_{period}")
+                has_after = model.new_bool_var(f"after_{teacher.id}_{day}_{period}")
+                gap = model.new_bool_var(f"gap_{teacher.id}_{day}_{period}")
+                model.add_max_equality(has_before, before)
+                model.add_max_equality(has_after, after)
+                model.add(gap <= has_before)
+                model.add(gap <= has_after)
+                model.add(gap + current <= 1)
+                model.add(gap >= has_before + has_after - current - 1)
+                constraints += 6
+                raw_terms["TEACHER_GAP"].append(gap)
+                if teacher.employment_type == "PART_TIME":
+                    raw_terms["PART_TIME_COMPACTNESS"].append(gap)
+
+            for left, right in zip(teaching_periods, teaching_periods[1:], strict=False):
+                if right != left + 1:
+                    continue
+                left_var = occupied_indicator.get((teacher.id, day, left))
+                right_var = occupied_indicator.get((teacher.id, day, right))
+                if left_var is None or right_var is None:
+                    continue
+                adjacent = model.new_bool_var(f"adjacent_{teacher.id}_{day}_{left}")
+                model.add(adjacent <= left_var)
+                model.add(adjacent <= right_var)
+                model.add(adjacent >= left_var + right_var - 1)
+                constraints += 3
+                raw_terms["TEACHER_CONSECUTIVE_PREFERENCE"].append(-adjacent)
+
+            if days and total_periods > 0:
+                imbalance = model.new_int_var(
+                    0,
+                    total_periods * len(days),
+                    f"imbalance_{teacher.id}_{day}",
+                )
+                model.add_abs_equality(
+                    imbalance,
+                    sum(daily_indicators) * len(days) - total_periods,
+                )
+                constraints += 1
+                balance_code = (
+                    "FULL_TIME_DAILY_BALANCE"
+                    if request.schema_version == 2 and teacher.employment_type == "FULL_TIME"
+                    else "DAILY_WORKLOAD_BALANCE"
+                )
+                if request.schema_version == 1 or teacher.employment_type == "FULL_TIME":
+                    raw_terms[balance_code].append(imbalance)
+
     existing_positions = {
         (
             assignment.requirement_id,
@@ -666,136 +796,6 @@ def solve(request: SolveRequest) -> SolveResponse:
                     raw_terms["LATE_HEAVY_SUBJECT"].append(late_penalty * variable)
             if request.schema_version == 2 and requirement.is_main_subject and rank >= 4:
                 raw_terms["MAIN_SUBJECT_LATE_SESSION"].append(variable)
-
-    occupied_indicator: dict[tuple[str, int, int], cp_model.IntVar] = {}
-    for teacher in request.teachers:
-        total_periods = sum(
-            requirement.occurrence_count * requirement.occurrence_duration
-            for requirement in request.requirements
-            if requirement.teacher_id == teacher.id and not requirement.shared_teaching_group_id
-        )
-        total_periods += sum(
-            requirement.occurrence_count * requirement.occurrence_duration
-            for requirement in request.requirements
-            if requirement.teacher_id == teacher.id
-            and requirement.shared_teaching_group_id
-            and requirement.shared_teaching_group_id
-            == next(
-                (
-                    group_id
-                    for group_id, members in shared_requirements.items()
-                    if requirement.id in members
-                ),
-                None,
-            )
-            and requirement.id == shared_requirements[requirement.shared_teaching_group_id][0]
-        )
-        for day in days:
-            daily_indicators: list[cp_model.IntVar] = []
-            for period in teaching_periods:
-                lesson_candidates = occupancy.get(("teacher_load", teacher.id, day, period), [])
-                if not lesson_candidates:
-                    continue
-                occupied = model.new_bool_var(f"occupied_{teacher.id}_{day}_{period}")
-                model.add(occupied == sum(lesson_candidates))
-                constraints += 1
-                occupied_indicator[(teacher.id, day, period)] = occupied
-                daily_indicators.append(occupied)
-                raw_terms["TEACHER_CONSECUTIVE_PREFERENCE"].append(occupied)
-
-            if teacher.employment_type == "FULL_TIME":
-                max_internal_idle_gap = 2
-                blocked_gap_length = max_internal_idle_gap + 1
-                for start in range(0, len(teaching_periods) - blocked_gap_length + 1):
-                    window = teaching_periods[start : start + blocked_gap_length]
-                    before = [
-                        occupied_indicator[(teacher.id, day, earlier)]
-                        for earlier in teaching_periods[:start]
-                        if (teacher.id, day, earlier) in occupied_indicator
-                    ]
-                    after = [
-                        occupied_indicator[(teacher.id, day, later)]
-                        for later in teaching_periods[start + blocked_gap_length :]
-                        if (teacher.id, day, later) in occupied_indicator
-                    ]
-                    if not before or not after:
-                        continue
-                    has_before = model.new_bool_var(
-                        f"full_time_gap_before_{teacher.id}_{day}_{start}"
-                    )
-                    has_after = model.new_bool_var(
-                        f"full_time_gap_after_{teacher.id}_{day}_{start}"
-                    )
-                    window_occupied = [
-                        occupied_indicator[(teacher.id, day, period)]
-                        for period in window
-                        if (teacher.id, day, period) in occupied_indicator
-                    ]
-                    model.add_max_equality(has_before, before)
-                    model.add_max_equality(has_after, after)
-                    model.add(sum(window_occupied) >= has_before + has_after - 1)
-                    constraints += 3
-
-            for index, period in enumerate(teaching_periods):
-                current = occupied_indicator.get((teacher.id, day, period))
-                before = [
-                    occupied_indicator[(teacher.id, day, earlier)]
-                    for earlier in teaching_periods[:index]
-                    if (teacher.id, day, earlier) in occupied_indicator
-                ]
-                after = [
-                    occupied_indicator[(teacher.id, day, later)]
-                    for later in teaching_periods[index + 1 :]
-                    if (teacher.id, day, later) in occupied_indicator
-                ]
-                if current is None or not before or not after:
-                    continue
-                has_before = model.new_bool_var(f"before_{teacher.id}_{day}_{period}")
-                has_after = model.new_bool_var(f"after_{teacher.id}_{day}_{period}")
-                gap = model.new_bool_var(f"gap_{teacher.id}_{day}_{period}")
-                model.add_max_equality(has_before, before)
-                model.add_max_equality(has_after, after)
-                model.add(gap <= has_before)
-                model.add(gap <= has_after)
-                model.add(gap + current <= 1)
-                model.add(gap >= has_before + has_after - current - 1)
-                constraints += 6
-                raw_terms["TEACHER_GAP"].append(gap)
-                if teacher.employment_type == "PART_TIME":
-                    raw_terms["PART_TIME_COMPACTNESS"].append(gap)
-
-            for left, right in zip(teaching_periods, teaching_periods[1:], strict=False):
-                if right != left + 1:
-                    continue
-                left_var = occupied_indicator.get((teacher.id, day, left))
-                right_var = occupied_indicator.get((teacher.id, day, right))
-                if left_var is None or right_var is None:
-                    continue
-                adjacent = model.new_bool_var(f"adjacent_{teacher.id}_{day}_{left}")
-                model.add(adjacent <= left_var)
-                model.add(adjacent <= right_var)
-                model.add(adjacent >= left_var + right_var - 1)
-                constraints += 3
-                raw_terms["TEACHER_CONSECUTIVE_PREFERENCE"].append(-adjacent)
-
-            if days and total_periods > 0:
-                imbalance = model.new_int_var(
-                    0,
-                    total_periods * len(days),
-                    f"imbalance_{teacher.id}_{day}",
-                )
-                model.add_abs_equality(
-                    imbalance,
-                    sum(daily_indicators) * len(days) - total_periods,
-                )
-                constraints += 1
-                balance_code = (
-                    "FULL_TIME_DAILY_BALANCE"
-                    if request.schema_version == 2 and teacher.employment_type == "FULL_TIME"
-                    else "DAILY_WORKLOAD_BALANCE"
-                )
-                if request.schema_version == 1 or teacher.employment_type == "FULL_TIME":
-                    raw_terms[balance_code].append(imbalance)
 
     for requirement in request.requirements:
         requirement_used = [
