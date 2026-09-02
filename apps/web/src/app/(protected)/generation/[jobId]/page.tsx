@@ -32,6 +32,30 @@ const overlapSideSchema = z.object({
   endsAtMinutes: z.number().int().nonnegative(),
 });
 
+const slotPressureSchema = z.object({
+  classCapacity: z.number().int().nonnegative(),
+  required: z.number().int().nonnegative(),
+  tightestRequirements: z.array(
+    z.object({
+      requirementId: z.string(),
+      subjectName: z.string(),
+      teacherName: z.string(),
+      teacherEmploymentType: z.enum(["FULL_TIME", "PART_TIME"]),
+      weeklySessions: z.number().int().nonnegative(),
+      compatibleStarts: z.number().int().nonnegative(),
+      availableSlotCount: z.number().int().nonnegative(),
+      shownSlotCount: z.number().int().nonnegative(),
+      availableSlots: z.array(
+        z.object({
+          dayIndex: z.number().int().nonnegative(),
+          dayName: z.string(),
+          session: z.number().int().positive(),
+        }),
+      ),
+    }),
+  ),
+});
+
 const diagnosticDetailsSchema = z.object({
   conflicts: z
     .array(
@@ -53,6 +77,7 @@ const diagnosticDetailsSchema = z.object({
       }),
     )
     .optional(),
+  slotPressure: slotPressureSchema.nullable().optional(),
   resourceType: z.enum(["CLASS_SECTION", "TEACHER"]).optional(),
   resourceName: z.string().optional(),
   required: z.number().int().nonnegative().optional(),
@@ -361,6 +386,76 @@ export default async function GenerationResultPage({
                             <td className="px-3 py-2">
                               {minuteLabel(example.right.startsAtMinutes)}-
                               {minuteLabel(example.right.endsAtMinutes)}
+                            </td>
+                          </tr>
+                        ),
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              ) : null}
+              {diagnostic.details.success &&
+              diagnostic.details.data.slotPressure ? (
+                <div className="mt-3 overflow-x-auto border border-[#e7eae7]">
+                  <div className="border-b border-[#e7eae7] bg-[#f8f1ef] px-3 py-2 text-xs text-[#66706b]">
+                    Required {diagnostic.details.data.slotPressure.required}{" "}
+                    lessons into{" "}
+                    {diagnostic.details.data.slotPressure.classCapacity} class
+                    slots. Tightest subjects are shown first.
+                  </div>
+                  <table className="w-full min-w-[900px] border-collapse text-left text-xs">
+                    <thead className="bg-[#f8f1ef] font-semibold text-[#66706b]">
+                      <tr>
+                        <th className="border-b border-[#e7eae7] px-3 py-2">
+                          Subject
+                        </th>
+                        <th className="border-b border-[#e7eae7] px-3 py-2">
+                          Teacher
+                        </th>
+                        <th className="border-b border-[#e7eae7] px-3 py-2">
+                          Sessions
+                        </th>
+                        <th className="border-b border-[#e7eae7] px-3 py-2">
+                          Valid starts
+                        </th>
+                        <th className="border-b border-[#e7eae7] px-3 py-2">
+                          Available class slots
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#e7eae7]">
+                      {diagnostic.details.data.slotPressure.tightestRequirements.map(
+                        (requirement) => (
+                          <tr key={requirement.requirementId}>
+                            <td className="px-3 py-2">
+                              {requirement.subjectName}
+                            </td>
+                            <td className="px-3 py-2">
+                              {requirement.teacherName} ·{" "}
+                              {requirement.teacherEmploymentType === "PART_TIME"
+                                ? "part time"
+                                : "full time"}
+                            </td>
+                            <td className="px-3 py-2">
+                              {requirement.weeklySessions}
+                            </td>
+                            <td className="px-3 py-2">
+                              {requirement.compatibleStarts}
+                            </td>
+                            <td className="px-3 py-2">
+                              {requirement.availableSlots
+                                .map(
+                                  (slot) =>
+                                    `${slot.dayName} S${String(slot.session)}`,
+                                )
+                                .join(", ")}
+                              {requirement.availableSlotCount >
+                              requirement.shownSlotCount
+                                ? `, +${String(
+                                    requirement.availableSlotCount -
+                                      requirement.shownSlotCount,
+                                  )} more`
+                                : ""}
                             </td>
                           </tr>
                         ),

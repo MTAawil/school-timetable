@@ -306,6 +306,94 @@ def test_teacher_packing_diagnostic_includes_overlap_examples() -> None:
     ]
 
 
+def test_class_packing_diagnostic_includes_slot_pressure() -> None:
+    payload = supervisor_request(
+        weekly_sessions=5,
+        is_main_subject=False,
+        allow_double_session=False,
+        sessions_per_day=1,
+    ).model_dump(by_alias=True)
+    payload["teachers"].append(
+        {
+            "id": "limited",
+            "name": "Limited",
+            "employmentType": "PART_TIME",
+            "weeklyTeachingSessions": 1,
+            "maxLessonsPerDay": 1,
+            "maxConsecutiveLessons": 1,
+        }
+    )
+    payload["subjects"].append({"id": "SCI", "name": "SCI"})
+    payload["requirements"].append(
+        {
+            "id": "G7-A:SCI",
+            "classSectionId": "G7-A",
+            "subjectId": "SCI",
+            "teacherId": "limited",
+            "weeklySessions": 1,
+            "isMainSubject": False,
+            "allowDoubleSession": False,
+            "fixedSlots": [],
+            "forbiddenSlots": [],
+        }
+    )
+    payload["availability"] = [
+        {
+            "entityType": "TEACHER",
+            "entityId": "limited",
+            "dayIndex": day,
+            "periodIndex": 0,
+            "state": "UNAVAILABLE",
+        }
+        for day in range(1, 5)
+    ]
+    request = SolveRequest.model_validate(payload)
+
+    diagnostic = _resource_packing_diagnostic(
+        request,
+        resource_type="CLASS_SECTION",
+        resource_id="G7-A",
+        requirements=request.requirements,
+    )
+
+    assert diagnostic is not None
+    assert diagnostic["code"] == "CLASS_PACKING_CONFLICT"
+    assert diagnostic["slotPressure"] == {
+        "classCapacity": 5,
+        "required": 6,
+        "tightestRequirements": [
+            {
+                "requirementId": "G7-A:SCI",
+                "subjectName": "SCI",
+                "teacherName": "Limited",
+                "teacherEmploymentType": "PART_TIME",
+                "weeklySessions": 1,
+                "compatibleStarts": 1,
+                "availableSlots": [{"dayIndex": 0, "dayName": "Day 0", "session": 1}],
+                "availableSlotCount": 1,
+                "shownSlotCount": 1,
+            },
+            {
+                "requirementId": "G7-A:MATH",
+                "subjectName": "MATH",
+                "teacherName": "Teacher",
+                "teacherEmploymentType": "FULL_TIME",
+                "weeklySessions": 5,
+                "compatibleStarts": 5,
+                "availableSlots": [
+                    {"dayIndex": 0, "dayName": "Day 0", "session": 1},
+                    {"dayIndex": 1, "dayName": "Day 1", "session": 1},
+                    {"dayIndex": 2, "dayName": "Day 2", "session": 1},
+                    {"dayIndex": 3, "dayName": "Day 3", "session": 1},
+                    {"dayIndex": 4, "dayName": "Day 4", "session": 1},
+                ],
+                "availableSlotCount": 5,
+                "shownSlotCount": 5,
+            },
+        ],
+    }
+
+
 def test_optional_main_double_is_adjacent_and_does_not_cross_break() -> None:
     request = supervisor_request()
 

@@ -22,6 +22,7 @@ from app.validator import validate_assignments
 MAX_STRUCTURAL_DIAGNOSTICS = 5
 MAX_DIAGNOSTIC_REQUIREMENTS = 12
 MAX_DIAGNOSTIC_OVERLAPS = 8
+MAX_DIAGNOSTIC_SLOTS = 20
 
 
 @dataclass(frozen=True)
@@ -1231,6 +1232,65 @@ def _teacher_overlap_examples(
     return examples
 
 
+def _class_slot_pressure(
+    request: SolveRequest,
+    class_section_id: str,
+    requirements: list[Requirement],
+) -> dict[str, object]:
+    enabled_teaching_slots = {
+        (slot.day_index, slot.period_index)
+        for slot in request.calendar.enabled_slots
+        if any(
+            period.index == slot.period_index and period.is_teaching
+            for period in request.calendar.periods
+        )
+    }
+    subjects = {item.id: item for item in request.subjects}
+    teachers = {item.id: item for item in request.teachers}
+    days = {item.index: item.name for item in request.calendar.days}
+    details: list[dict[str, object]] = []
+    for requirement in requirements:
+        choices = compatible_choices(request, requirement, 0)
+        slots = [
+            {
+                "dayIndex": choice.day,
+                "dayName": days.get(choice.day, f"Day {choice.day + 1}"),
+                "session": choice.period + 1,
+            }
+            for choice in choices[:MAX_DIAGNOSTIC_SLOTS]
+        ]
+        details.append(
+            {
+                "requirementId": requirement.id,
+                "subjectName": subjects[requirement.subject_id].name,
+                "teacherName": teachers[requirement.teacher_id].name,
+                "teacherEmploymentType": teachers[requirement.teacher_id].employment_type,
+                "weeklySessions": requirement.occurrence_count,
+                "compatibleStarts": len(choices),
+                "availableSlots": slots,
+                "availableSlotCount": len(choices),
+                "shownSlotCount": len(slots),
+            }
+        )
+
+    def pressure_sort_key(item: dict[str, object]) -> tuple[int, int, str]:
+        available_slot_count = item["availableSlotCount"]
+        weekly_sessions = item["weeklySessions"]
+        subject_name = item["subjectName"]
+        return (
+            available_slot_count if isinstance(available_slot_count, int) else 0,
+            -(weekly_sessions if isinstance(weekly_sessions, int) else 0),
+            subject_name if isinstance(subject_name, str) else "",
+        )
+
+    details.sort(key=pressure_sort_key)
+    return {
+        "classCapacity": len(enabled_teaching_slots),
+        "required": sum(requirement.occurrence_count for requirement in requirements),
+        "tightestRequirements": details[:MAX_DIAGNOSTIC_REQUIREMENTS],
+    }
+
+
 def _resource_packing_diagnostic(
     request: SolveRequest,
     *,
@@ -1375,6 +1435,11 @@ def _resource_packing_diagnostic(
             _teacher_overlap_examples(request, resource_id, requirements)
             if resource_type == "TEACHER"
             else []
+        ),
+        "slotPressure": (
+            _class_slot_pressure(request, resource_id, requirements)
+            if resource_type == "CLASS_SECTION"
+            else None
         ),
     }
 
