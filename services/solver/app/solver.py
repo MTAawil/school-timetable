@@ -703,6 +703,39 @@ def solve(request: SolveRequest) -> SolveResponse:
                 daily_indicators.append(occupied)
                 raw_terms["TEACHER_CONSECUTIVE_PREFERENCE"].append(occupied)
 
+            if teacher.employment_type == "FULL_TIME":
+                max_internal_idle_gap = 2
+                blocked_gap_length = max_internal_idle_gap + 1
+                for start in range(0, len(teaching_periods) - blocked_gap_length + 1):
+                    window = teaching_periods[start : start + blocked_gap_length]
+                    before = [
+                        occupied_indicator[(teacher.id, day, earlier)]
+                        for earlier in teaching_periods[:start]
+                        if (teacher.id, day, earlier) in occupied_indicator
+                    ]
+                    after = [
+                        occupied_indicator[(teacher.id, day, later)]
+                        for later in teaching_periods[start + blocked_gap_length :]
+                        if (teacher.id, day, later) in occupied_indicator
+                    ]
+                    if not before or not after:
+                        continue
+                    has_before = model.new_bool_var(
+                        f"full_time_gap_before_{teacher.id}_{day}_{start}"
+                    )
+                    has_after = model.new_bool_var(
+                        f"full_time_gap_after_{teacher.id}_{day}_{start}"
+                    )
+                    window_occupied = [
+                        occupied_indicator[(teacher.id, day, period)]
+                        for period in window
+                        if (teacher.id, day, period) in occupied_indicator
+                    ]
+                    model.add_max_equality(has_before, before)
+                    model.add_max_equality(has_after, after)
+                    model.add(sum(window_occupied) >= has_before + has_after - 1)
+                    constraints += 3
+
             for index, period in enumerate(teaching_periods):
                 current = occupied_indicator.get((teacher.id, day, period))
                 before = [

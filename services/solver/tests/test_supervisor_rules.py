@@ -918,3 +918,46 @@ def test_teacher_collision_uses_class_clock_intervals() -> None:
     assert response.status in {"FEASIBLE", "OPTIMAL"}
     generated = response.alternatives[0].assignments
     assert validate_assignments(request, generated) == []
+
+
+def test_full_time_teacher_cannot_have_more_than_two_internal_free_sessions() -> None:
+    request = supervisor_request(weekly_sessions=2, sessions_per_day=6)
+    candidate = [
+        Assignment(
+            requirement_id="G7-A:MATH",
+            day_index=0,
+            period_index=0,
+            duration_periods=1,
+        ),
+        Assignment(
+            requirement_id="G7-A:MATH",
+            day_index=0,
+            period_index=4,
+            duration_periods=1,
+        ),
+    ]
+
+    assert "FULL_TIME_TEACHER_INTERNAL_GAP:teacher" in validate_assignments(
+        request,
+        candidate,
+    )
+
+
+def test_full_time_teacher_allows_two_internal_free_sessions() -> None:
+    request = supervisor_request(weekly_sessions=2, sessions_per_day=6)
+    candidate = [
+        Assignment(
+            requirement_id="G7-A:MATH",
+            day_index=0,
+            period_index=0,
+            duration_periods=1,
+        ),
+        Assignment(
+            requirement_id="G7-A:MATH",
+            day_index=0,
+            period_index=3,
+            duration_periods=1,
+        ),
+    ]
+
+    assert validate_assignments(request, candidate) == []

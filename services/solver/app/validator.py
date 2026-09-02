@@ -77,6 +77,7 @@ def validate_assignments(
     teaching_session_by_period = {
         period: session for session, period in enumerate(teaching_periods, start=1)
     }
+    teaching_rank_by_period = {period: rank for rank, period in enumerate(teaching_periods)}
     unavailable = {
         (rule.entity_type, rule.entity_id, rule.day_index, rule.period_index)
         for rule in request.availability
@@ -289,6 +290,18 @@ def validate_assignments(
                     if run > teacher.max_consecutive_lessons:
                         errors.append(f"TEACHER_MAX_CONSECUTIVE:{teacher.id}")
                     previous = period
+        if teacher.employment_type == "FULL_TIME":
+            for (teacher_id, _day), periods in teacher_periods.items():
+                if teacher_id != teacher.id:
+                    continue
+                ordered = sorted(
+                    teaching_rank_by_period[period]
+                    for period in periods
+                    if period in teaching_rank_by_period
+                )
+                for left_rank, right_rank in zip(ordered, ordered[1:], strict=False):
+                    if right_rank - left_rank - 1 > 2:
+                        errors.append(f"FULL_TIME_TEACHER_INTERNAL_GAP:{teacher.id}")
     for class_section in request.class_sections:
         if class_section.max_lessons_per_day and any(
             count > class_section.max_lessons_per_day

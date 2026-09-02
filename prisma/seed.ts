@@ -3491,7 +3491,7 @@ async function main(): Promise<void> {
         name: teacherName,
         shortCode: stableCode("T", teacherIndex),
         employmentType:
-          teacherName in partTimeAvailabilityByTeacher || weeklyHours < 15
+          teacherName in partTimeAvailabilityByTeacher || weeklyHours <= 20
             ? "PART_TIME"
             : "FULL_TIME",
         weeklyTeachingSessions: weeklyHours,

@@ -153,6 +153,9 @@ The redesigned solver must enforce:
     sessions for that class; it does not remove either teaching session from
     the timetable. The value is a teaching-session number, not a physical
     `periodIndex`. Null uses the school's default break position.
+16. A full-time teacher may not have more than two consecutive internal free
+    teaching sessions between lessons on the same day. Free time before the
+    first lesson or after the last lesson is allowed.
 
 Rooms are omitted from new redesign snapshots. Existing schema-version-1 room
 behavior remains unchanged for historical reproducibility.
