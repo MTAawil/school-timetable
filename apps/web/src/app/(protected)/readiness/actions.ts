@@ -72,7 +72,7 @@ const solveResponseSchema = z.object({
 const generationOptionsSchema = z.object({
   alternativeCount: z.coerce.number().int().min(1).max(5),
   maxQualityDegradationPercent: z.coerce.number().int().min(0).max(100),
-  timeLimitSeconds: z.coerce.number().int().min(30).max(180),
+  timeLimitSeconds: z.coerce.number().int().min(30).max(300),
 });
 
 function jsonValue(value: unknown): Prisma.InputJsonValue {

@@ -192,7 +192,7 @@ export default async function ReadinessPage() {
                 defaultValue="120"
                 name="timeLimitSeconds"
               >
-                {[30, 60, 120, 180].map((seconds) => (
+                {[30, 60, 120, 180, 300].map((seconds) => (
                   <option key={seconds} value={seconds}>
                     {seconds} seconds
                   </option>
