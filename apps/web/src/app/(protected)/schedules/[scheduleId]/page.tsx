@@ -1,5 +1,12 @@
 import { getDatabase, type SolverSnapshot } from "@school-timetable/database";
-import { Lock, LockOpen, Redo2, RefreshCw, Undo2 } from "lucide-react";
+import {
+  Download,
+  Lock,
+  LockOpen,
+  Redo2,
+  RefreshCw,
+  Undo2,
+} from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -391,13 +398,29 @@ export default async function SchedulePage({
           className="inline-flex h-9 items-center border border-[#cfd5d1] bg-white px-3 text-sm"
           href={`/schedules/${schedule.id}/pdf?type=school`}
         >
+          <Download className="mr-2" size={16} />
           PDF school
+        </Link>
+        <Link
+          className="inline-flex h-9 items-center border border-[#cfd5d1] bg-white px-3 text-sm"
+          href={`/schedules/${schedule.id}/pdf?type=class`}
+        >
+          <Download className="mr-2" size={16} />
+          PDF all classes
+        </Link>
+        <Link
+          className="inline-flex h-9 items-center border border-[#cfd5d1] bg-white px-3 text-sm"
+          href={`/schedules/${schedule.id}/pdf?type=teacher`}
+        >
+          <Download className="mr-2" size={16} />
+          PDF all teachers
         </Link>
         {view === "class" && entityId ? (
           <Link
             className="inline-flex h-9 items-center border border-[#cfd5d1] bg-white px-3 text-sm"
             href={`/schedules/${schedule.id}/pdf?type=class&entity=${entityId}`}
           >
+            <Download className="mr-2" size={16} />
             PDF class
           </Link>
         ) : null}
@@ -406,6 +429,7 @@ export default async function SchedulePage({
             className="inline-flex h-9 items-center border border-[#cfd5d1] bg-white px-3 text-sm"
             href={`/schedules/${schedule.id}/pdf?type=teacher&entity=${entityId}`}
           >
+            <Download className="mr-2" size={16} />
             PDF teacher
           </Link>
         ) : null}
