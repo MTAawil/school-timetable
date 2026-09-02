@@ -15,6 +15,8 @@ from app.models import (
     Requirement,
     SolveRequest,
     SolveResponse,
+    SolverStageTelemetry,
+    SolverTelemetry,
 )
 from app.scoring import SOFT_CONSTRAINT_CODES, score_assignments
 from app.validator import validate_assignments
@@ -101,6 +103,48 @@ def input_fingerprint(request: SolveRequest) -> str:
     )
     canonical = json.dumps(data, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     return hashlib.sha256(canonical.encode()).hexdigest()
+
+
+def _solver_metric(solver: cp_model.CpSolver, names: tuple[str, ...]) -> int | None:
+    for name in names:
+        try:
+            metric = getattr(solver, name, None)
+        except RuntimeError:
+            continue
+        if callable(metric):
+            try:
+                return int(metric())
+            except RuntimeError:
+                continue
+        if isinstance(metric, int):
+            return metric
+    return None
+
+
+def _status_name(solver: cp_model.CpSolver, status: cp_model.CpSolverStatus) -> str:
+    name = getattr(solver, "status_name", None)
+    if callable(name):
+        return str(name(status))
+    name = getattr(solver, "StatusName", None)
+    if callable(name):
+        return str(name(status))
+    return str(status)
+
+
+def _stage_telemetry(
+    *,
+    solver: cp_model.CpSolver | None,
+    status: str,
+    runtime_ms: int,
+    score: int | None = None,
+) -> SolverStageTelemetry:
+    return SolverStageTelemetry(
+        status=status,
+        runtime_ms=runtime_ms,
+        score=score,
+        conflicts=(_solver_metric(solver, ("num_conflicts", "NumConflicts")) if solver else None),
+        branches=_solver_metric(solver, ("num_branches", "NumBranches")) if solver else None,
+    )
 
 
 def compatible_choices(
@@ -488,6 +532,104 @@ def solve(request: SolveRequest) -> SolveResponse:
             model.add(sum(used_variables) >= requirement.distinct_day_minimum)
             constraints += 1
 
+    existing_positions = {
+        (
+            assignment.requirement_id,
+            assignment.day_index,
+            assignment.period_index,
+            assignment.room_id,
+        )
+        for assignment in request.existing_assignments
+    }
+    stage1_limit_seconds = max(1.0, request.options.time_limit_seconds * 0.55)
+    stage1_solver = cp_model.CpSolver()
+    stage1_solver.parameters.max_time_in_seconds = stage1_limit_seconds
+    stage1_solver.parameters.random_seed = request.options.random_seed
+    stage1_solver.parameters.num_search_workers = 8
+    stage1_started = time.monotonic()
+    stage1_status_code = stage1_solver.solve(model)
+    stage1_runtime_ms = round((time.monotonic() - stage1_started) * 1000)
+    stage1_status = _status_name(stage1_solver, stage1_status_code)
+    stage1_assignments: list[Assignment] | None = None
+    stage1_score: int | None = None
+    stage1_objective: int | None = None
+    if stage1_status_code == cp_model.INFEASIBLE:
+        stage1_telemetry = _stage_telemetry(
+            solver=stage1_solver,
+            status=stage1_status,
+            runtime_ms=stage1_runtime_ms,
+        )
+        return _infeasible(
+            request,
+            started,
+            len(variables),
+            constraints,
+            solver_telemetry=SolverTelemetry(
+                stage1=stage1_telemetry,
+                stage2=None,
+                stage2_improved_stage1=None,
+                final_source="NONE",
+                final_score=None,
+                total_runtime_ms=round((time.monotonic() - started) * 1000),
+            ),
+        )
+    if stage1_status_code in (cp_model.FEASIBLE, cp_model.OPTIMAL):
+        stage1_selected = {
+            choice
+            for choice, variable in variables.items()
+            if stage1_solver.boolean_value(variable)
+        }
+        candidate_assignments = _assignments_from_choices(stage1_selected)
+        validation_errors = validate_assignments(request, candidate_assignments)
+        if validation_errors:
+            stage1_telemetry = _stage_telemetry(
+                solver=stage1_solver,
+                status=stage1_status,
+                runtime_ms=stage1_runtime_ms,
+            )
+            return SolveResponse(
+                schema_version=request.schema_version,
+                job_id=request.job_id,
+                input_fingerprint=input_fingerprint(request),
+                status="FAILED",
+                runtime_ms=round((time.monotonic() - started) * 1000),
+                alternatives=[],
+                diagnostics=[
+                    {
+                        "code": "HARD_FEASIBILITY_VALIDATION_FAILED",
+                        "errors": validation_errors,
+                    }
+                ],
+                warnings=[],
+                variable_count=len(variables),
+                constraint_count=constraints,
+                solver_telemetry=SolverTelemetry(
+                    stage1=stage1_telemetry,
+                    stage2=None,
+                    stage2_improved_stage1=None,
+                    final_source="NONE",
+                    final_score=None,
+                    total_runtime_ms=round((time.monotonic() - started) * 1000),
+                ),
+            )
+        stage1_assignments = candidate_assignments
+        stage1_score = score_assignments(request, stage1_assignments).total
+        stage1_objective = stage1_score + (
+            sum(
+                1
+                for assignment in stage1_assignments
+                if (
+                    assignment.requirement_id,
+                    assignment.day_index,
+                    assignment.period_index,
+                    assignment.room_id,
+                )
+                not in existing_positions
+            )
+            if request.options.use_existing_schedule_hint
+            else 0
+        )
+
     period_rank = {period: rank for rank, period in enumerate(teaching_periods)}
     first_period = teaching_periods[0] if teaching_periods else -1
     last_period = teaching_periods[-1] if teaching_periods else -1
@@ -648,15 +790,6 @@ def solve(request: SolveRequest) -> SolveResponse:
                 )
             )
     quality_expression = sum(weighted_terms)
-    existing_positions = {
-        (
-            assignment.requirement_id,
-            assignment.day_index,
-            assignment.period_index,
-            assignment.room_id,
-        )
-        for assignment in request.existing_assignments
-    }
     movement_terms = [
         variable
         for choice, variable in variables.items()
@@ -673,7 +806,30 @@ def solve(request: SolveRequest) -> SolveResponse:
     objective_expression = quality_expression + movement_expression
     if weighted_terms or movement_terms:
         model.minimize(objective_expression)
-    if request.options.use_existing_schedule_hint:
+    if stage1_assignments is not None:
+        stage1_positions = {
+            (
+                assignment.requirement_id,
+                assignment.day_index,
+                assignment.period_index,
+                assignment.room_id,
+            )
+            for assignment in stage1_assignments
+        }
+        for choice, variable in variables.items():
+            model.add_hint(
+                variable,
+                int(
+                    (
+                        choice.requirement_id,
+                        choice.day,
+                        choice.period,
+                        choice.room_id,
+                    )
+                    in stage1_positions
+                ),
+            )
+    elif request.options.use_existing_schedule_hint:
         for choice, variable in variables.items():
             model.add_hint(
                 variable,
@@ -689,16 +845,103 @@ def solve(request: SolveRequest) -> SolveResponse:
             )
 
     solver = cp_model.CpSolver()
-    solver.parameters.max_time_in_seconds = request.options.time_limit_seconds
+    remaining_seconds = request.options.time_limit_seconds - (time.monotonic() - started)
+    solver.parameters.max_time_in_seconds = max(0.0, remaining_seconds)
     solver.parameters.random_seed = request.options.random_seed
     solver.parameters.num_search_workers = 8
     first_started = time.monotonic()
-    status = solver.solve(model)
+    if solver.parameters.max_time_in_seconds > 0:
+        status = solver.solve(model)
+        status_name = _status_name(solver, status)
+    else:
+        status = cp_model.UNKNOWN
+        status_name = "SKIPPED_TIME_LIMIT"
     first_runtime_ms = round((time.monotonic() - first_started) * 1000)
+    stage1_telemetry = _stage_telemetry(
+        solver=stage1_solver,
+        status=stage1_status,
+        runtime_ms=stage1_runtime_ms,
+        score=stage1_score,
+    )
+    stage2_score: int | None = None
+    stage2_telemetry = _stage_telemetry(
+        solver=solver,
+        status=status_name,
+        runtime_ms=first_runtime_ms,
+    )
     if status == cp_model.INFEASIBLE:
-        return _infeasible(request, started, len(variables), constraints)
+        return _infeasible(
+            request,
+            started,
+            len(variables),
+            constraints,
+            solver_telemetry=SolverTelemetry(
+                stage1=stage1_telemetry,
+                stage2=stage2_telemetry,
+                stage2_improved_stage1=False,
+                final_source="NONE",
+                final_score=None,
+                total_runtime_ms=round((time.monotonic() - started) * 1000),
+            ),
+        )
     if status not in (cp_model.FEASIBLE, cp_model.OPTIMAL):
-        status_name = solver.status_name(status)
+        if status == cp_model.UNKNOWN and stage1_assignments is not None:
+            fallback_score = score_assignments(request, stage1_assignments)
+            fallback_movement_penalty = (
+                sum(
+                    1
+                    for assignment in stage1_assignments
+                    if (
+                        assignment.requirement_id,
+                        assignment.day_index,
+                        assignment.period_index,
+                        assignment.room_id,
+                    )
+                    not in existing_positions
+                )
+                if request.options.use_existing_schedule_hint
+                else 0
+            )
+            total_runtime_ms = round((time.monotonic() - started) * 1000)
+            return SolveResponse(
+                schema_version=request.schema_version,
+                job_id=request.job_id,
+                input_fingerprint=input_fingerprint(request),
+                status="FEASIBLE",
+                runtime_ms=total_runtime_ms,
+                alternatives=[
+                    Alternative(
+                        rank=1,
+                        solver_status="FEASIBLE",
+                        total_penalty=fallback_score.total,
+                        diversity_score=0,
+                        penalty_breakdown=fallback_score.breakdown,
+                        assignments=stage1_assignments,
+                        movement_penalty=fallback_movement_penalty,
+                        moved_assignments=(
+                            _moved_assignments(request.existing_assignments, stage1_assignments)
+                            if request.options.use_existing_schedule_hint
+                            else []
+                        ),
+                        runtime_ms=stage1_runtime_ms,
+                        warnings=_part_time_distribution_warnings(request, stage1_assignments),
+                    )
+                ],
+                diagnostics=[],
+                warnings=[
+                    "Optimization reached the time limit after a hard-feasible timetable was found."
+                ],
+                variable_count=len(variables),
+                constraint_count=constraints,
+                solver_telemetry=SolverTelemetry(
+                    stage1=stage1_telemetry,
+                    stage2=stage2_telemetry,
+                    stage2_improved_stage1=False,
+                    final_source="STAGE1_FALLBACK",
+                    final_score=fallback_score.total,
+                    total_runtime_ms=total_runtime_ms,
+                ),
+            )
         return SolveResponse(
             schema_version=request.schema_version,
             job_id=request.job_id,
@@ -726,25 +969,49 @@ def solve(request: SolveRequest) -> SolveResponse:
             warnings=[],
             variable_count=len(variables),
             constraint_count=constraints,
+            solver_telemetry=SolverTelemetry(
+                stage1=stage1_telemetry,
+                stage2=stage2_telemetry,
+                stage2_improved_stage1=False,
+                final_source="NONE",
+                final_score=None,
+                total_runtime_ms=round((time.monotonic() - started) * 1000),
+            ),
         )
 
     selected = {choice for choice, variable in variables.items() if solver.boolean_value(variable)}
     assignments = _assignments_from_choices(selected)
     validation_errors = validate_assignments(request, assignments)
     if validation_errors:
+        total_runtime_ms = round((time.monotonic() - started) * 1000)
         return SolveResponse(
             schema_version=request.schema_version,
             job_id=request.job_id,
             input_fingerprint=input_fingerprint(request),
             status="FAILED",
-            runtime_ms=round((time.monotonic() - started) * 1000),
+            runtime_ms=total_runtime_ms,
             alternatives=[],
             diagnostics=[{"code": "POST_SOLVE_VALIDATION_FAILED", "errors": validation_errors}],
             warnings=[],
             variable_count=len(variables),
             constraint_count=constraints,
+            solver_telemetry=SolverTelemetry(
+                stage1=stage1_telemetry,
+                stage2=stage2_telemetry,
+                stage2_improved_stage1=False,
+                final_source="NONE",
+                final_score=None,
+                total_runtime_ms=total_runtime_ms,
+            ),
         )
     score = score_assignments(request, assignments)
+    stage2_score = score.total
+    stage2_telemetry = _stage_telemetry(
+        solver=solver,
+        status=status_name,
+        runtime_ms=first_runtime_ms,
+        score=stage2_score,
+    )
     movement_penalty = (
         sum(
             1
@@ -764,12 +1031,13 @@ def solve(request: SolveRequest) -> SolveResponse:
         movement_penalty if request.options.use_existing_schedule_hint else 0
     )
     if (weighted_terms or movement_terms) and round(solver.objective_value) != expected_objective:
+        total_runtime_ms = round((time.monotonic() - started) * 1000)
         return SolveResponse(
             schema_version=request.schema_version,
             job_id=request.job_id,
             input_fingerprint=input_fingerprint(request),
             status="FAILED",
-            runtime_ms=round((time.monotonic() - started) * 1000),
+            runtime_ms=total_runtime_ms,
             alternatives=[],
             diagnostics=[
                 {
@@ -781,6 +1049,16 @@ def solve(request: SolveRequest) -> SolveResponse:
             warnings=[],
             variable_count=len(variables),
             constraint_count=constraints,
+            solver_telemetry=SolverTelemetry(
+                stage1=stage1_telemetry,
+                stage2=stage2_telemetry,
+                stage2_improved_stage1=(
+                    expected_objective < stage1_objective if stage1_objective is not None else None
+                ),
+                final_source="NONE",
+                final_score=None,
+                total_runtime_ms=total_runtime_ms,
+            ),
         )
     first_status: Literal["FEASIBLE", "OPTIMAL"] = (
         "OPTIMAL" if status == cp_model.OPTIMAL else "FEASIBLE"
@@ -840,12 +1118,13 @@ def solve(request: SolveRequest) -> SolveResponse:
         alternative_assignments = _assignments_from_choices(alternative_selected)
         alternative_errors = validate_assignments(request, alternative_assignments)
         if alternative_errors:
+            total_runtime_ms = round((time.monotonic() - started) * 1000)
             return SolveResponse(
                 schema_version=request.schema_version,
                 job_id=request.job_id,
                 input_fingerprint=input_fingerprint(request),
                 status="FAILED",
-                runtime_ms=round((time.monotonic() - started) * 1000),
+                runtime_ms=total_runtime_ms,
                 alternatives=[],
                 diagnostics=[
                     {
@@ -857,15 +1136,28 @@ def solve(request: SolveRequest) -> SolveResponse:
                 warnings=[],
                 variable_count=len(variables),
                 constraint_count=constraints,
+                solver_telemetry=SolverTelemetry(
+                    stage1=stage1_telemetry,
+                    stage2=stage2_telemetry,
+                    stage2_improved_stage1=(
+                        expected_objective < stage1_objective
+                        if stage1_objective is not None
+                        else None
+                    ),
+                    final_source="NONE",
+                    final_score=None,
+                    total_runtime_ms=total_runtime_ms,
+                ),
             )
         alternative_score = score_assignments(request, alternative_assignments)
         if alternative_score.total > quality_limit:
+            total_runtime_ms = round((time.monotonic() - started) * 1000)
             return SolveResponse(
                 schema_version=request.schema_version,
                 job_id=request.job_id,
                 input_fingerprint=input_fingerprint(request),
                 status="FAILED",
-                runtime_ms=round((time.monotonic() - started) * 1000),
+                runtime_ms=total_runtime_ms,
                 alternatives=[],
                 diagnostics=[
                     {
@@ -878,6 +1170,18 @@ def solve(request: SolveRequest) -> SolveResponse:
                 warnings=[],
                 variable_count=len(variables),
                 constraint_count=constraints,
+                solver_telemetry=SolverTelemetry(
+                    stage1=stage1_telemetry,
+                    stage2=stage2_telemetry,
+                    stage2_improved_stage1=(
+                        expected_objective < stage1_objective
+                        if stage1_objective is not None
+                        else None
+                    ),
+                    final_source="NONE",
+                    final_score=None,
+                    total_runtime_ms=total_runtime_ms,
+                ),
             )
         diversity_score = sum(
             len(alternative_selected - previous) for previous in previous_selections
@@ -933,6 +1237,16 @@ def solve(request: SolveRequest) -> SolveResponse:
         warnings=warnings,
         variable_count=len(variables),
         constraint_count=constraints,
+        solver_telemetry=SolverTelemetry(
+            stage1=stage1_telemetry,
+            stage2=stage2_telemetry,
+            stage2_improved_stage1=(
+                expected_objective < stage1_objective if stage1_objective is not None else None
+            ),
+            final_source="STAGE2_OPTIMIZED",
+            final_score=score.total,
+            total_runtime_ms=round((time.monotonic() - started) * 1000),
+        ),
     )
 
 
@@ -1618,17 +1932,32 @@ def _diagnose_infeasibility(request: SolveRequest) -> list[dict[str, object]]:
 
 
 def _infeasible(
-    request: SolveRequest, started: float, variable_count: int, constraint_count: int
+    request: SolveRequest,
+    started: float,
+    variable_count: int,
+    constraint_count: int,
+    *,
+    solver_telemetry: SolverTelemetry | None = None,
 ) -> SolveResponse:
+    total_runtime_ms = round((time.monotonic() - started) * 1000)
     return SolveResponse(
         schema_version=request.schema_version,
         job_id=request.job_id,
         input_fingerprint=input_fingerprint(request),
         status="INFEASIBLE",
-        runtime_ms=round((time.monotonic() - started) * 1000),
+        runtime_ms=total_runtime_ms,
         alternatives=[],
         diagnostics=_diagnose_infeasibility(request),
         warnings=[],
         variable_count=variable_count,
         constraint_count=constraint_count,
+        solver_telemetry=solver_telemetry
+        or SolverTelemetry(
+            stage1=_stage_telemetry(solver=None, status="NOT_RUN", runtime_ms=0),
+            stage2=None,
+            stage2_improved_stage1=None,
+            final_source="NONE",
+            final_score=None,
+            total_runtime_ms=total_runtime_ms,
+        ),
     )

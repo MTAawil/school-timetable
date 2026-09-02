@@ -55,6 +55,7 @@ const partTimeAvailabilityByTeacher = {
     Monday: [1, 2, 3, 4],
     Wednesday: [1, 2, 3, 4],
     Thursday: [5, 6],
+    Friday: [5],
   },
   "محمد عساف": {
     Monday: [2, 3, 4, 5, 6],
@@ -95,11 +96,14 @@ const partTimeAvailabilityByTeacher = {
   },
   "منى وهبي": {
     Monday: [1, 2, 3, 4, 5, 6],
+    Tuesday: [1],
+    Thursday: [1],
     Wednesday: [1, 2, 3, 4, 5, 6],
     Friday: [1, 2, 3, 4],
   },
   "محمد عبدو": {
     Wednesday: [1, 2, 3, 4, 5, 6],
+    Thursday: [4],
     Friday: [1, 2, 3, 4, 5, 6],
   },
   "محمد جقمرة": {
@@ -112,7 +116,7 @@ const partTimeAvailabilityByTeacher = {
   "حسن ناجي": {
     Monday: [1, 2, 3, 4, 5],
     Wednesday: [1, 2, 3, 4, 5],
-    Friday: [1, 2, 3],
+    Thursday: [1, 2, 3],
   },
   "ريما عيسى": {
     Friday: [1, 2, 3, 4, 5, 6],

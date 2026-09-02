@@ -157,6 +157,8 @@ def test_fixture_g_keeps_locks_and_reports_regeneration_moves() -> None:
     assert validate_assignments(SolveRequest.model_validate(payload), regenerated.assignments) == []
     assert len(regenerated.moved_assignments) >= fixture["expectedMinimumMovedAssignments"]
     assert regenerated.movement_penalty >= fixture["expectedMinimumMovedAssignments"]
+    assert response.solver_telemetry.stage1.status in {"FEASIBLE", "OPTIMAL"}
+    assert response.solver_telemetry.final_source == "STAGE2_OPTIMIZED"
 
 
 def test_infeasible_response_contains_deterministic_diagnostics_only() -> None:
@@ -190,3 +192,71 @@ def test_solver_timeout_is_not_reported_as_infeasible(monkeypatch: Any) -> None:
             "timeLimitSeconds": request.options.time_limit_seconds,
         }
     ]
+    assert response.solver_telemetry.stage1.status == "UNKNOWN"
+    assert response.solver_telemetry.stage2 is not None
+    assert response.solver_telemetry.stage2.status == "UNKNOWN"
+    assert response.solver_telemetry.final_source == "NONE"
+
+
+def test_stage_one_has_no_soft_objective_and_stage_two_keeps_objective(
+    monkeypatch: Any,
+) -> None:
+    original_solve = cp_model.CpSolver.solve
+    objective_sizes: list[int] = []
+
+    def record_objective_size(self: cp_model.CpSolver, model: cp_model.CpModel) -> int:
+        objective_sizes.append(len(model.proto.objective.vars))
+        return original_solve(self, model)
+
+    monkeypatch.setattr(cp_model.CpSolver, "solve", record_objective_size)
+    request = SolveRequest.model_validate(load_fixture())
+
+    response = solve(request)
+
+    assert response.status in {"FEASIBLE", "OPTIMAL"}
+    assert objective_sizes[0] == 0
+    assert objective_sizes[1] > 0
+
+
+def test_stage_one_feasible_stage_two_timeout_returns_valid_fallback(
+    monkeypatch: Any,
+) -> None:
+    original_solve = cp_model.CpSolver.solve
+    call_count = 0
+
+    def solve_first_stage_only(self: cp_model.CpSolver, model: cp_model.CpModel) -> int:
+        nonlocal call_count
+        call_count += 1
+        if call_count == 1:
+            return original_solve(self, model)
+        return cp_model.UNKNOWN
+
+    monkeypatch.setattr(cp_model.CpSolver, "solve", solve_first_stage_only)
+    request = SolveRequest.model_validate(load_fixture())
+
+    response = solve(request)
+
+    assert response.status == "FEASIBLE"
+    assert len(response.alternatives) == 1
+    assert validate_assignments(request, response.alternatives[0].assignments) == []
+    assert response.diagnostics == []
+    assert response.warnings == [
+        "Optimization reached the time limit after a hard-feasible timetable was found."
+    ]
+    assert response.solver_telemetry.stage1.status in {"FEASIBLE", "OPTIMAL"}
+    assert response.solver_telemetry.stage2 is not None
+    assert response.solver_telemetry.stage2.status == "UNKNOWN"
+    assert response.solver_telemetry.final_source == "STAGE1_FALLBACK"
+
+
+def test_proven_stage_one_infeasible_is_reported_as_infeasible(monkeypatch: Any) -> None:
+    monkeypatch.setattr(cp_model.CpSolver, "solve", lambda self, model: cp_model.INFEASIBLE)
+    request = SolveRequest.model_validate(load_fixture())
+
+    response = solve(request)
+
+    assert response.status == "INFEASIBLE"
+    assert response.alternatives == []
+    assert response.solver_telemetry.stage1.status == "INFEASIBLE"
+    assert response.solver_telemetry.stage2 is None
+    assert response.solver_telemetry.final_source == "NONE"

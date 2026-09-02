@@ -27,6 +27,28 @@ Stable single-school MVP complete on `main`. Supervisor workflow redesign R7 is
 complete on `feature/supervisor-workflow-redesign`; R8 verification is in
 progress.
 
+## Active solver-hardening execution plan
+
+Current task: Feasibility-first CP-SAT staging.
+
+1. [x] Run the existing hard CP-SAT model with no quality or movement objective
+       before optimization.
+2. [x] Give Stage 1 roughly 55% of the configured total time limit, but move to
+       Stage 2 immediately when the first complete timetable is found.
+3. [x] Validate any Stage 1 incumbent with the existing independent validator
+       and preserve it as a complete fallback timetable.
+4. [x] Use one Stage 2 hint source: the validated Stage 1 timetable when
+       available, otherwise the existing regeneration schedule hint.
+5. [x] Preserve the existing quality and movement penalties exactly for Stage 2;
+       existing assignments remain the movement baseline and locked assignments
+       remain hard constraints.
+6. [x] Return the validated Stage 1 incumbent as `FEASIBLE` if Stage 2 is
+       `UNKNOWN`, and keep no-incumbent `UNKNOWN` distinct from `INFEASIBLE`.
+7. [x] Return structured solver telemetry for benchmarking stage status,
+       runtimes, scores, improvements, conflicts, and branches.
+8. [x] Add focused tests for staging, timeout fallback, no-incumbent timeout,
+       proven infeasibility, and regeneration lock/hint behavior.
+
 ### 2026-07-29 - Portable local database backup
 
 - Added Windows PowerShell backup and restore scripts using PostgreSQL custom

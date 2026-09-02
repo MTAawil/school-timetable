@@ -222,6 +222,23 @@ class Alternative(ContractModel):
     warnings: list[str]
 
 
+class SolverStageTelemetry(ContractModel):
+    status: str
+    runtime_ms: int
+    score: int | None = None
+    conflicts: int | None = None
+    branches: int | None = None
+
+
+class SolverTelemetry(ContractModel):
+    stage1: SolverStageTelemetry
+    stage2: SolverStageTelemetry | None = None
+    stage2_improved_stage1: bool | None = None
+    final_source: Literal["STAGE1_FALLBACK", "STAGE2_OPTIMIZED", "NONE"]
+    final_score: int | None = None
+    total_runtime_ms: int
+
+
 class SolveResponse(ContractModel):
     schema_version: Literal[1, 2]
     job_id: str
@@ -233,6 +250,7 @@ class SolveResponse(ContractModel):
     warnings: list[str]
     variable_count: int
     constraint_count: int
+    solver_telemetry: SolverTelemetry
 
 
 class ValidateRequest(ContractModel):
