@@ -2,20 +2,39 @@ import { AlertTriangle, CheckCircle2, ClipboardCheck } from "lucide-react";
 import Link from "next/link";
 import { z } from "zod";
 
-import { PageHeading, buttonClass, inputClass } from "@/components/setup-ui";
+import { getDatabase } from "@school-timetable/database";
+
+import { runPartTimeCheck } from "@/app/(protected)/part-time-check/actions";
+import { GenerationSubmitStatus } from "@/components/generation-submit-status";
+import { PageHeading, inputClass } from "@/components/setup-ui";
 import { verifySession } from "@/lib/auth/dal";
 import {
   analyzePartTimeTeacherPressure,
   buildPartTimeCheckSnapshot,
-  recordPartTimeCheckAudit,
-  solvePartTimeCheck,
   validatePartTimeCheckSnapshot,
 } from "@/lib/part-time-check";
 import { getCurrentReadiness } from "@/lib/readiness";
 
 const querySchema = z.object({
-  run: z.enum(["1"]).optional(),
+  error: z.string().optional(),
+  result: z.uuid().optional(),
   timeLimitSeconds: z.coerce.number().int().min(30).max(300).default(60),
+});
+const storedResultSchema = z.object({
+  status: z.enum(["FEASIBLE", "OPTIMAL", "INFEASIBLE", "FAILED"]),
+  runtimeMs: z.number().int().nonnegative(),
+  alternativeCount: z.number().int().nonnegative(),
+  assignmentCount: z.number().int().nonnegative(),
+  teacherCount: z.number().int().nonnegative(),
+  requirementCount: z.number().int().nonnegative(),
+  inputFingerprint: z.string(),
+  diagnostics: z.array(
+    z.object({
+      code: z.string().optional(),
+      summary: z.string().optional(),
+    }),
+  ),
+  warnings: z.array(z.string()),
 });
 
 export default async function PartTimeCheckPage({
@@ -36,18 +55,19 @@ export default async function PartTimeCheckPage({
     (sum, requirement) => sum + requirement.weeklySessions,
     0,
   );
-  const result =
-    query.run === "1" && readiness.ready && snapshot.requirements.length > 0
-      ? await solvePartTimeCheck(snapshot)
-      : null;
-  if (result) {
-    await recordPartTimeCheckAudit({
-      schoolId: user.schoolId,
-      userId: user.id,
-      snapshot,
-      result,
-    });
-  }
+  const auditResult = query.result
+    ? await getDatabase().auditLog.findFirst({
+        where: {
+          id: query.result,
+          schoolId: user.schoolId,
+          action: "PART_TIME_AVAILABILITY_CHECK_RUN",
+        },
+        select: { details: true, createdAt: true },
+      })
+    : null;
+  const result = auditResult
+    ? storedResultSchema.safeParse(auditResult.details).data
+    : null;
   const successful =
     result?.status === "FEASIBLE" || result?.status === "OPTIMAL";
 
@@ -84,8 +104,10 @@ export default async function PartTimeCheckPage({
             </p>
           </div>
         </div>
-        <form className="mt-5 flex flex-wrap items-end gap-3">
-          <input name="run" type="hidden" value="1" />
+        <form
+          action={runPartTimeCheck}
+          className="mt-5 flex flex-wrap items-end gap-3"
+        >
           <label className="w-full max-w-56 text-sm">
             <span className="mb-1 block text-[#66706b]">Solver time limit</span>
             <select
@@ -100,14 +122,18 @@ export default async function PartTimeCheckPage({
               ))}
             </select>
           </label>
-          <button
-            className={buttonClass}
-            disabled={snapshot.requirements.length === 0}
-          >
-            Check part timers
-          </button>
+          <GenerationSubmitStatus
+            label="Check part timers"
+            pendingTitle="Checking part timers"
+          />
         </form>
       </section>
+
+      {query.error ? (
+        <section className="border border-[#e3b7b2] bg-[#fff5f4] p-5 text-sm text-[#8e2020]">
+          Part-time check could not run: <code>{query.error}</code>
+        </section>
+      ) : null}
 
       {snapshot.requirements.length === 0 ? (
         <section className="border border-[#e4bd73] bg-[#fff9e9] p-5 text-sm text-[#5f4a12]">
@@ -153,8 +179,10 @@ export default async function PartTimeCheckPage({
             </h2>
             <p className="mt-1 text-sm text-[#66706b]">
               {result.status} | {String(result.runtimeMs)} ms |{" "}
-              {String(result.alternatives[0]?.assignments.length ?? 0)} lessons
-              placed
+              {String(result.assignmentCount)} lessons placed
+              {auditResult
+                ? ` | ${auditResult.createdAt.toLocaleString()}`
+                : ""}
             </p>
           </div>
         </section>

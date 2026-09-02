@@ -192,7 +192,7 @@ export async function recordPartTimeCheckAudit({
   snapshot: SupervisorSolverSnapshot;
   result: PartTimeSolveResult;
 }) {
-  await getDatabase().auditLog.create({
+  return getDatabase().auditLog.create({
     data: {
       schoolId,
       userId,
@@ -207,7 +207,10 @@ export async function recordPartTimeCheckAudit({
         teacherCount: snapshot.teachers.length,
         requirementCount: snapshot.requirements.length,
         inputFingerprint: fingerprintSnapshot(snapshot),
+        diagnostics: result.diagnostics,
+        warnings: result.warnings,
       }),
     },
+    select: { id: true },
   });
 }

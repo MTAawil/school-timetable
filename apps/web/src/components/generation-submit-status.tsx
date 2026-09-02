@@ -14,7 +14,7 @@ export function generationStageForElapsed(elapsedSeconds: number): string {
   return "Solver is evaluating constraints and timetable options";
 }
 
-function GenerationProgressDialog() {
+function GenerationProgressDialog({ title }: { title: string }) {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
   useEffect(() => {
@@ -42,7 +42,7 @@ function GenerationProgressDialog() {
           />
           <div className="min-w-0 flex-1">
             <h2 id="generation-progress-title" className="font-semibold">
-              Generating timetable
+              {title}
             </h2>
             <p className="mt-2 text-sm font-medium text-[#36413c]">
               {generationStageForElapsed(elapsedSeconds)}
@@ -72,8 +72,10 @@ function GenerationProgressDialog() {
 
 export function GenerationSubmitStatus({
   label = "Generate timetable",
+  pendingTitle = "Generating timetable",
 }: {
   label?: string;
+  pendingTitle?: string;
 }) {
   const { pending } = useFormStatus();
 
@@ -86,7 +88,7 @@ export function GenerationSubmitStatus({
       >
         {pending ? "Generating..." : label}
       </button>
-      {pending ? <GenerationProgressDialog /> : null}
+      {pending ? <GenerationProgressDialog title={pendingTitle} /> : null}
     </>
   );
 }
