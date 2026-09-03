@@ -52,7 +52,7 @@ const schoolWeekConfiguration = {
 
 const partTimeAvailabilityByTeacher = {
   "علي بندر": {
-    Tuesday: [1, 2, 3, 4],
+    Wednesday: [1, 2, 3, 4],
     Thursday: [5, 6],
     Friday: [1, 2, 3, 4],
   },
@@ -80,7 +80,7 @@ const partTimeAvailabilityByTeacher = {
   "رؤى الحاج حسن": {
     Monday: [1, 2, 3, 4, 5, 6],
     Wednesday: [1, 2, 3, 4, 5, 6],
-    Friday: [1, 2, 3, 4, 5, 6],
+    Thursday: [1, 2, 3, 4, 5, 6],
   },
   "صبحي حمية": {
     Monday: [1, 2, 3, 4, 5, 6],
@@ -117,12 +117,52 @@ const partTimeAvailabilityByTeacher = {
   "ريما عيسى": {
     Friday: [1, 2, 3, 4, 5, 6],
   },
+  "الشيخ علي سبيتي": {
+    Tuesday: [5, 6],
+    Wednesday: [5, 6],
+    Thursday: [5, 6],
+  },
+  "احمد الحركة": {
+    Thursday: [1, 2, 3, 4, 5, 6],
+  },
 } satisfies Record<string, Partial<Record<DayName, readonly number[]>>>;
 
-const seededUnavailableSessionsByTeacher = {
-  "عادل رزق": [3, 4],
-  "نزيه طي": [3, 4],
-} satisfies Record<string, readonly number[]>;
+const explicitUnavailableSessionsByTeacher = {
+  "عادل رزق": {
+    Monday: [3, 4, 6],
+    Tuesday: [3, 4, 6],
+    Wednesday: [3, 4, 6],
+    Thursday: [3, 4, 6],
+    Friday: [3, 4, 6],
+  },
+  "نزيه طي": {
+    Monday: [3, 4, 6],
+    Tuesday: [3, 4, 6],
+    Wednesday: [3, 4, 6],
+    Thursday: [3, 4, 6],
+    Friday: [3, 4, 6],
+  },
+  "لينا خليل": {
+    Monday: [6],
+    Wednesday: [6],
+    Friday: [6],
+  },
+  "ميساء الحسيني": {
+    Tuesday: [6],
+    Wednesday: [6],
+    Thursday: [6],
+  },
+  "فاطمة يحفوفي": {
+    Monday: [1, 6],
+    Tuesday: [1, 6],
+    Wednesday: [1, 6],
+    Thursday: [1, 6],
+    Friday: [1, 6],
+  },
+  "نور بليبل": {
+    Friday: [1, 2, 3, 4, 5, 6],
+  },
+} satisfies Record<string, Partial<Record<DayName, readonly number[]>>>;
 
 const gradesSevenToTwelveClasses = [
   "SE",
@@ -2195,42 +2235,42 @@ const teacherDetails: TeacherDetail[] = [
     sourceRow: 193,
   },
   {
-    teacher: "محمد جمال الدين",
+    teacher: "الشيخ علي سبيتي",
     subject: "دين",
     className: "EB 7",
     hours: 1,
     sourceRow: 4,
   },
   {
-    teacher: "محمد جمال الدين",
+    teacher: "الشيخ علي سبيتي",
     subject: "دين",
     className: "EB 8",
     hours: 1,
     sourceRow: 68,
   },
   {
-    teacher: "محمد جمال الدين",
+    teacher: "الشيخ علي سبيتي",
     subject: "دين",
     className: "Grade 7 A",
     hours: 1,
     sourceRow: 328,
   },
   {
-    teacher: "محمد جمال الدين",
+    teacher: "الشيخ علي سبيتي",
     subject: "دين",
     className: "Grade 7 B",
     hours: 1,
     sourceRow: 339,
   },
   {
-    teacher: "محمد جمال الدين",
+    teacher: "الشيخ علي سبيتي",
     subject: "دين",
     className: "Grade 8 A",
     hours: 1,
     sourceRow: 350,
   },
   {
-    teacher: "محمد جمال الدين",
+    teacher: "الشيخ علي سبيتي",
     subject: "دين",
     className: "Grade 8 B",
     hours: 1,
@@ -3147,6 +3187,22 @@ const sharedTeachingCombinations: SharedTeachingCombination[] = [
     sourceRow: 0,
   },
   {
+    teacher: "عادل رزق",
+    subject: "رياضة",
+    anchorClassName: "Grade 1 A",
+    sharedClassNames: ["EB1"],
+    hours: 2,
+    sourceRow: 0,
+  },
+  {
+    teacher: "عادل رزق",
+    subject: "رياضة",
+    anchorClassName: "Grade 4 C",
+    sharedClassNames: ["EB 4"],
+    hours: 1,
+    sourceRow: 0,
+  },
+  {
     teacher: "فاطمة يحفوفي",
     subject: "دين",
     anchorClassName: "Grade 3 A",
@@ -3170,17 +3226,71 @@ const sharedTeachingCombinations: SharedTeachingCombination[] = [
     hours: 1,
     sourceRow: 0,
   },
+  {
+    teacher: "نزيه طي",
+    subject: "رياضة",
+    anchorClassName: "Grade 5 C",
+    sharedClassNames: ["EB 5"],
+    hours: 1,
+    sourceRow: 0,
+  },
+  {
+    teacher: "نزيه طي",
+    subject: "رياضة",
+    anchorClassName: "Grade 6 C",
+    sharedClassNames: ["EB 6"],
+    hours: 1,
+    sourceRow: 0,
+  },
+  {
+    teacher: "نزيه طي",
+    subject: "رياضة",
+    anchorClassName: "Grade 7 A",
+    sharedClassNames: ["EB 7"],
+    hours: 1,
+    sourceRow: 0,
+  },
+  {
+    teacher: "نزيه طي",
+    subject: "رياضة",
+    anchorClassName: "Grade 10 A",
+    sharedClassNames: ["ES 1"],
+    hours: 1,
+    sourceRow: 0,
+  },
+  {
+    teacher: "نزيه طي",
+    subject: "رياضة",
+    anchorClassName: "Grade 11 A",
+    sharedClassNames: ["ES 2"],
+    hours: 1,
+    sourceRow: 0,
+  },
 ];
+
+const teacherDetailKeys = new Set(
+  teacherDetails.map(
+    (detail) =>
+      `${detail.teacher}:${detail.subject}:${normalizeClassCode(detail.className)}`,
+  ),
+);
 
 const sharedTeachingDetails: TeacherDetail[] =
   sharedTeachingCombinations.flatMap((combination) =>
-    combination.sharedClassNames.map((className) => ({
-      teacher: combination.teacher,
-      subject: combination.subject,
-      className,
-      hours: combination.hours,
-      sourceRow: combination.sourceRow,
-    })),
+    combination.sharedClassNames
+      .filter(
+        (className) =>
+          !teacherDetailKeys.has(
+            `${combination.teacher}:${combination.subject}:${normalizeClassCode(className)}`,
+          ),
+      )
+      .map((className) => ({
+        teacher: combination.teacher,
+        subject: combination.subject,
+        className,
+        hours: combination.hours,
+        sourceRow: combination.sourceRow,
+      })),
   );
 
 function time(value: string): Date {
@@ -3485,6 +3595,20 @@ async function main(): Promise<void> {
       (teacherHours.get(detail.teacher) ?? 0) + detail.hours,
     );
   }
+  for (const combination of sharedTeachingCombinations) {
+    for (const className of combination.sharedClassNames) {
+      if (
+        teacherDetailKeys.has(
+          `${combination.teacher}:${combination.subject}:${normalizeClassCode(className)}`,
+        )
+      ) {
+        teacherHours.set(
+          combination.teacher,
+          (teacherHours.get(combination.teacher) ?? 0) - combination.hours,
+        );
+      }
+    }
+  }
 
   const teacherIds = new Map<string, string>();
   for (const [teacherIndex, [teacherName, weeklyHours]] of [
@@ -3555,8 +3679,8 @@ async function main(): Promise<void> {
   }
 
   const seededUnavailableRules = [];
-  for (const [teacherName, unavailableSessions] of Object.entries(
-    seededUnavailableSessionsByTeacher,
+  for (const [teacherName, unavailableByDay] of Object.entries(
+    explicitUnavailableSessionsByTeacher,
   )) {
     const teacherId = teacherIds.get(teacherName);
     if (!teacherId) {
@@ -3565,6 +3689,7 @@ async function main(): Promise<void> {
       );
     }
     for (const day of dayRecords) {
+      const unavailableSessions = unavailableByDay[day.name as DayName] ?? [];
       for (const session of unavailableSessions) {
         const periodIndex = teachingPeriodBySession.get(session);
         if (periodIndex === undefined) {
@@ -3580,7 +3705,7 @@ async function main(): Promise<void> {
           dayIndex: day.dayIndex,
           periodIndex,
           state: "UNAVAILABLE" as const,
-          reason: "Sport cannot be scheduled in sessions 3 or 4.",
+          reason: "Seeded explicit teacher restriction.",
         });
       }
     }
