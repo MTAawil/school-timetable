@@ -15,7 +15,18 @@ import {
 
 const paramsSchema = z.object({ scheduleId: z.uuid() });
 const searchSchema = z.object({
-  type: z.enum(["school", "class", "teacher"]).default("school"),
+  type: z
+    .enum([
+      "school",
+      "class",
+      "teacher",
+      "teacher-full-time",
+      "teacher-part-time",
+      "subject-counts",
+      "restrictions",
+      "shared",
+    ])
+    .default("school"),
   entity: z.uuid().optional(),
 });
 
@@ -40,7 +51,13 @@ type ScheduleAssignment = {
   teachingRequirement: { subject: { name: string; shortCode: string } };
 };
 
-type ExportEntity = { id: string; name: string; shortCode?: string };
+type ExportType = z.infer<typeof searchSchema>["type"];
+type ExportEntity = {
+  id: string;
+  name: string;
+  shortCode?: string;
+  employmentType?: "FULL_TIME" | "PART_TIME";
+};
 type AvailabilityNote = {
   entityId: string;
   dayIndex: number;
@@ -48,9 +65,84 @@ type AvailabilityNote = {
   state: "AVAILABLE" | "PREFERRED" | "DISLIKED" | "UNAVAILABLE";
   reason: string | null;
 };
+type Day = { dayIndex: number; name: string };
+type SubjectCountRow = {
+  className: string;
+  classCode: string;
+  gradeName: string;
+  displayOrder: number;
+  subjectName: string;
+  weeklySessions: number;
+};
+type RestrictionRow = {
+  teacherName: string;
+  employmentType: "FULL_TIME" | "PART_TIME";
+  weeklyTeachingSessions: number;
+  maxLessonsPerDay: number | null;
+  maxConsecutiveLessons: number | null;
+  notes: AvailabilityNote[];
+};
+type SharedSessionRow = {
+  teacherName: string;
+  subjectName: string;
+  weeklySessions: number;
+  classes: string[];
+};
 
 function uniqueById<T extends { id: string }>(items: T[]): T[] {
   return Array.from(new Map(items.map((item) => [item.id, item])).values());
+}
+
+function downloadHref(
+  scheduleId: string,
+  query: { type: ExportType; entity?: string },
+) {
+  const params = new URLSearchParams({ type: query.type });
+  if (query.entity) params.set("entity", query.entity);
+  return `/schedules/${scheduleId}/pdf/download?${params.toString()}`;
+}
+
+function formatSessionList(sessions: number[]): string {
+  return sessions.length > 0
+    ? sessions.map((session) => `S${String(session)}`).join(", ")
+    : "None";
+}
+
+function formatAvailabilityByDay({
+  days,
+  periodIndexes,
+  notes,
+  mode,
+}: {
+  days: Day[];
+  periodIndexes: number[];
+  notes: AvailabilityNote[];
+  mode: "available" | "unavailable";
+}): string {
+  const unavailable = new Set(
+    notes
+      .filter((note) => note.state === "UNAVAILABLE")
+      .map((note) => `${String(note.dayIndex)}:${String(note.periodIndex)}`),
+  );
+  const parts = days.map((day) => {
+    const sessions = periodIndexes
+      .filter((periodIndex) => {
+        const isUnavailable = unavailable.has(
+          `${String(day.dayIndex)}:${String(periodIndex)}`,
+        );
+        return mode === "available" ? !isUnavailable : isUnavailable;
+      })
+      .map((periodIndex) => periodIndex + 1);
+    return `${day.name}: ${formatSessionList(sessions)}`;
+  });
+  return parts.join("; ");
+}
+
+function cycleName(displayOrder: number): string {
+  if (displayOrder <= 3) return "Cycle 1";
+  if (displayOrder <= 6) return "Cycle 2";
+  if (displayOrder <= 9) return "Cycle 3";
+  return "Secondary";
 }
 
 function teacherAvailabilitySummary({
@@ -81,31 +173,21 @@ function teacherAvailabilitySummary({
     );
   }
 
-  const noteKey = (dayIndex: number, periodIndex: number) =>
-    `${String(dayIndex)}:${String(periodIndex)}`;
-  const unavailable = new Set(
-    notes
-      .filter((note) => note.state === "UNAVAILABLE")
-      .map((note) => noteKey(note.dayIndex, note.periodIndex)),
-  );
-  if (unavailable.size > 0) {
-    const availableByDay = days
-      .map((day) => {
-        const sessions = periodIndexes
-          .filter(
-            (periodIndex) =>
-              !unavailable.has(noteKey(day.dayIndex, periodIndex)),
-          )
-          .map((periodIndex) => String(periodIndex + 1));
-        return sessions.length > 0
-          ? `${day.name}: S${sessions.join(", S")}`
-          : null;
-      })
-      .filter((line): line is string => line !== null);
+  if (notes.some((note) => note.state === "UNAVAILABLE")) {
     lines.push(
-      availableByDay.length > 0
-        ? `Hard availability: ${availableByDay.join("; ")}`
-        : "Hard availability: no teaching slots available",
+      teacher.employmentType === "PART_TIME"
+        ? `Available: ${formatAvailabilityByDay({
+            days,
+            periodIndexes,
+            notes,
+            mode: "available",
+          })}`
+        : `Unavailable: ${formatAvailabilityByDay({
+            days,
+            periodIndexes,
+            notes,
+            mode: "unavailable",
+          })}`,
     );
   }
 
@@ -239,13 +321,200 @@ function Timetable({
       {notes && notes.length > 0 ? (
         <footer className="pdf-notes">
           <h3>Teacher notes</h3>
-          <ul>
+          <dl>
             {notes.map((note) => (
-              <li key={note}>{note}</li>
+              <div key={note}>
+                <dt>{note.includes(":") ? note.split(":")[0] : "Note"}</dt>
+                <dd>
+                  {note.includes(":")
+                    ? note.slice(note.indexOf(":") + 1).trim()
+                    : note}
+                </dd>
+              </div>
             ))}
-          </ul>
+          </dl>
         </footer>
       ) : null}
+    </section>
+  );
+}
+
+function SubjectCountsReport({
+  rows,
+  schoolName,
+  scheduleName,
+}: {
+  rows: SubjectCountRow[];
+  schoolName: string;
+  scheduleName: string;
+}) {
+  const cycleNames = ["Cycle 1", "Cycle 2", "Cycle 3", "Secondary"];
+  return (
+    <>
+      {cycleNames.map((name) => {
+        const cycleRows = rows.filter(
+          (row) => cycleName(row.displayOrder) === name,
+        );
+        if (cycleRows.length === 0) return null;
+        return (
+          <section className="pdf-page pdf-report" key={name}>
+            <header className="pdf-page-header">
+              <div>
+                <h2>{name} subject counts</h2>
+                <p>
+                  {schoolName} - {scheduleName}
+                </p>
+              </div>
+              <span>Sessions per class</span>
+            </header>
+            <table className="pdf-report-table">
+              <thead>
+                <tr>
+                  <th>Class</th>
+                  <th>Grade</th>
+                  <th>Subject</th>
+                  <th>Sessions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {cycleRows.map((row) => (
+                  <tr key={`${row.classCode}:${row.subjectName}`}>
+                    <td>{row.classCode}</td>
+                    <td>{row.gradeName}</td>
+                    <td>{row.subjectName}</td>
+                    <td>{String(row.weeklySessions)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        );
+      })}
+    </>
+  );
+}
+
+function RestrictionsReport({
+  rows,
+  days,
+  periodIndexes,
+  schoolName,
+  scheduleName,
+}: {
+  rows: RestrictionRow[];
+  days: Day[];
+  periodIndexes: number[];
+  schoolName: string;
+  scheduleName: string;
+}) {
+  return (
+    <section className="pdf-page pdf-report">
+      <header className="pdf-page-header">
+        <div>
+          <h2>Teacher restrictions</h2>
+          <p>
+            {schoolName} - {scheduleName}
+          </p>
+        </div>
+        <span>All teachers</span>
+      </header>
+      <table className="pdf-report-table">
+        <thead>
+          <tr>
+            <th>Teacher</th>
+            <th>Type</th>
+            <th>Load</th>
+            <th>Hard availability</th>
+            <th>Limits</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.teacherName}>
+              <td>{row.teacherName}</td>
+              <td>
+                {row.employmentType === "PART_TIME" ? "Part-time" : "Full-time"}
+              </td>
+              <td>{String(row.weeklyTeachingSessions)}</td>
+              <td>
+                {row.notes.some((note) => note.state === "UNAVAILABLE")
+                  ? row.employmentType === "PART_TIME"
+                    ? `Available: ${formatAvailabilityByDay({
+                        days,
+                        periodIndexes,
+                        notes: row.notes,
+                        mode: "available",
+                      })}`
+                    : `Unavailable: ${formatAvailabilityByDay({
+                        days,
+                        periodIndexes,
+                        notes: row.notes,
+                        mode: "unavailable",
+                      })}`
+                  : "No hard restrictions"}
+              </td>
+              <td>
+                {[
+                  row.maxLessonsPerDay === null
+                    ? null
+                    : `Max/day ${String(row.maxLessonsPerDay)}`,
+                  row.maxConsecutiveLessons === null
+                    ? null
+                    : `Max consecutive ${String(row.maxConsecutiveLessons)}`,
+                ]
+                  .filter((item): item is string => item !== null)
+                  .join("; ") || "None"}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+  );
+}
+
+function SharedSessionsReport({
+  rows,
+  schoolName,
+  scheduleName,
+}: {
+  rows: SharedSessionRow[];
+  schoolName: string;
+  scheduleName: string;
+}) {
+  return (
+    <section className="pdf-page pdf-report">
+      <header className="pdf-page-header">
+        <div>
+          <h2>Shared sessions</h2>
+          <p>
+            {schoolName} - {scheduleName}
+          </p>
+        </div>
+        <span>دمج</span>
+      </header>
+      <table className="pdf-report-table">
+        <thead>
+          <tr>
+            <th>Teacher</th>
+            <th>Subject</th>
+            <th>Classes</th>
+            <th>Sessions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr
+              key={`${row.teacherName}:${row.subjectName}:${row.classes.join("+")}`}
+            >
+              <td>{row.teacherName}</td>
+              <td>{row.subjectName}</td>
+              <td>{row.classes.join(" + ")}</td>
+              <td>{String(row.weeklySessions)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </section>
   );
 }
@@ -307,10 +576,14 @@ export default async function SchedulePdfPage({
     assignments.map((assignment) => ({
       id: assignment.teacher.id,
       name: assignment.teacher.name,
+      employmentType: assignment.teacher.employmentType,
     })),
   ).sort((left, right) => left.name.localeCompare(right.name));
   const teacherIds =
-    query.type === "teacher" && query.entity
+    (query.type === "teacher" ||
+      query.type === "teacher-full-time" ||
+      query.type === "teacher-part-time") &&
+    query.entity
       ? [query.entity]
       : teacherEntities.map((teacher) => teacher.id);
   const availability = await db.availabilityRule.findMany({
@@ -337,19 +610,129 @@ export default async function SchedulePdfPage({
   const selectedTeachers =
     query.type === "teacher" && query.entity
       ? teacherEntities.filter((item) => item.id === query.entity)
-      : teacherEntities;
+      : query.type === "teacher-full-time"
+        ? teacherEntities.filter((item) => item.employmentType === "FULL_TIME")
+        : query.type === "teacher-part-time"
+          ? teacherEntities.filter(
+              (item) => item.employmentType === "PART_TIME",
+            )
+          : teacherEntities;
   if (
     (query.type === "class" && selectedClasses.length === 0) ||
     (query.type === "teacher" && selectedTeachers.length === 0)
   ) {
     notFound();
   }
+  const subjectCountRows: SubjectCountRow[] =
+    query.type === "subject-counts"
+      ? (
+          await db.classCurriculum.findMany({
+            where: {
+              schoolId: user.schoolId,
+              termId: schedule.termId,
+              isActive: true,
+            },
+            include: {
+              classSection: { include: { gradeLevel: true } },
+              subject: true,
+            },
+            orderBy: [
+              { classSection: { gradeLevel: { displayOrder: "asc" } } },
+              { classSection: { shortCode: "asc" } },
+              { subject: { name: "asc" } },
+            ],
+          })
+        ).map((row) => ({
+          className: row.classSection.sectionName,
+          classCode: row.classSection.shortCode,
+          gradeName:
+            row.classSection.gradeLevel?.name ?? row.classSection.grade,
+          displayOrder:
+            row.classSection.gradeLevel?.displayOrder ??
+            Number(row.classSection.grade.match(/\d+/u)?.[0] ?? 99),
+          subjectName: row.subject.name,
+          weeklySessions: row.weeklySessions,
+        }))
+      : [];
+  const restrictionTeachers =
+    query.type === "restrictions"
+      ? await db.teacher.findMany({
+          where: { schoolId: user.schoolId, isActive: true, deletedAt: null },
+          orderBy: { name: "asc" },
+        })
+      : [];
+  const restrictionAvailability =
+    query.type === "restrictions" && restrictionTeachers.length > 0
+      ? await db.availabilityRule.findMany({
+          where: {
+            schoolId: user.schoolId,
+            termId: schedule.termId,
+            entityType: "TEACHER",
+            entityId: { in: restrictionTeachers.map((teacher) => teacher.id) },
+          },
+          orderBy: [
+            { entityId: "asc" },
+            { dayIndex: "asc" },
+            { periodIndex: "asc" },
+          ],
+        })
+      : [];
+  const restrictionRows: RestrictionRow[] = restrictionTeachers.map(
+    (teacher) => ({
+      teacherName: teacher.name,
+      employmentType: teacher.employmentType,
+      weeklyTeachingSessions: teacher.weeklyTeachingSessions,
+      maxLessonsPerDay: teacher.maxLessonsPerDay,
+      maxConsecutiveLessons: teacher.maxConsecutiveLessons,
+      notes: restrictionAvailability
+        .filter((note) => note.entityId === teacher.id)
+        .map((note) => ({
+          entityId: note.entityId,
+          dayIndex: note.dayIndex,
+          periodIndex: note.periodIndex,
+          state: note.state,
+          reason: note.reason,
+        })),
+    }),
+  );
+  const sharedSessionRows: SharedSessionRow[] =
+    query.type === "shared"
+      ? (
+          await db.sharedTeachingGroup.findMany({
+            where: { schoolId: user.schoolId, termId: schedule.termId },
+            include: {
+              teacher: true,
+              subject: true,
+              members: { include: { classSection: true } },
+            },
+            orderBy: [
+              { teacher: { name: "asc" } },
+              { subject: { name: "asc" } },
+            ],
+          })
+        ).map((group) => ({
+          teacherName: group.teacher.name,
+          subjectName: group.subject.name,
+          weeklySessions: group.weeklySessions,
+          classes: group.members
+            .map((member) => member.classSection.shortCode)
+            .sort((left, right) => left.localeCompare(right)),
+        }))
+      : [];
   const titlePrefix =
     query.type === "school"
       ? "Whole School"
       : query.type === "class"
         ? "Class"
-        : "Teacher";
+        : query.type === "teacher" ||
+            query.type === "teacher-full-time" ||
+            query.type === "teacher-part-time"
+          ? "Teacher"
+          : query.type === "subject-counts"
+            ? "Subject Counts"
+            : query.type === "restrictions"
+              ? "Teacher Restrictions"
+              : "Shared Sessions";
   const downloadLabel =
     query.type === "school"
       ? "Download all PDFs"
@@ -357,7 +740,13 @@ export default async function SchedulePdfPage({
         ? "Download PDF"
         : query.type === "class"
           ? "Download class PDFs"
-          : "Download teacher PDFs";
+          : query.type === "teacher-full-time"
+            ? "Download full-time teacher PDFs"
+            : query.type === "teacher-part-time"
+              ? "Download part-time teacher PDFs"
+              : query.type === "teacher"
+                ? "Download teacher PDFs"
+                : "Download PDF";
   const browserTitle = `${schedule.school.name} - ${schedule.name} v${String(
     schedule.version,
   )} - ${titlePrefix} timetable`;
@@ -366,7 +755,7 @@ export default async function SchedulePdfPage({
     <main className="pdf-export">
       <title>{browserTitle}</title>
       <style>{`
-        @page { size: A4 landscape; margin: 0; }
+        @page { size: A4 landscape; margin: 8mm; }
         .pdf-toolbar { align-items: center; background: #f7f8f5; border-bottom: 1px solid #dce1dc; display: flex; gap: 10px; justify-content: space-between; padding: 14px 18px; }
         .pdf-toolbar h1 { color: #132b24; font-size: 18px; font-weight: 700; margin: 0; }
         .pdf-toolbar p { color: #66706b; font-size: 12px; margin: 4px 0 0; }
@@ -389,16 +778,25 @@ export default async function SchedulePdfPage({
         .pdf-lesson small { color: #516159; display: block; font-size: 8px; line-height: 1.25; margin-top: 3px; }
         .pdf-empty { color: #9ba59f; font-size: 10px; }
         .pdf-break th, .pdf-break td { background: #fff6db; color: #72520a; font-size: 11px; font-weight: 700; height: auto; text-align: center; }
-        .pdf-notes { border-top: 1px solid #dce1dc; margin-top: 10px; padding-top: 8px; }
+        .pdf-notes { border-top: 1px solid #dce1dc; margin-top: 10px; padding-top: 8px; page-break-inside: avoid; }
         .pdf-notes h3 { font-size: 12px; margin: 0 0 5px; }
-        .pdf-notes ul { display: grid; font-size: 9px; gap: 3px 18px; grid-template-columns: repeat(2, minmax(0, 1fr)); line-height: 1.45; margin: 0; padding-left: 16px; }
+        .pdf-notes dl { display: grid; font-size: 9px; gap: 4px 14px; grid-template-columns: 120px minmax(0, 1fr); line-height: 1.35; margin: 0; }
+        .pdf-notes div { display: contents; }
+        .pdf-notes dt { color: #132b24; font-weight: 700; white-space: nowrap; }
+        .pdf-notes dd { margin: 0; overflow-wrap: anywhere; }
+        .pdf-report-table { border-collapse: collapse; font-size: 10px; table-layout: fixed; width: 100%; }
+        .pdf-report-table th, .pdf-report-table td { border: 1px solid #cfd5d1; padding: 5px 6px; text-align: left; vertical-align: top; word-break: normal; overflow-wrap: anywhere; }
+        .pdf-report-table th { background: #132b24; color: white; font-weight: 700; }
+        .pdf-report-table tbody tr:nth-child(even) td { background: #f7f8f5; }
+        .pdf-report-table td:last-child, .pdf-report-table th:last-child { text-align: center; }
+        .pdf-report .pdf-page-header { margin-bottom: 12px; }
         @media print {
           body { background: white; }
           body * { visibility: hidden; }
           .pdf-export, .pdf-export * { visibility: visible; }
           .pdf-export { background: white; left: 0; position: absolute; top: 0; width: 100%; }
           .pdf-toolbar { display: none; }
-          .pdf-page { box-sizing: border-box; min-height: 100vh; padding: 10mm; }
+          .pdf-page { box-sizing: border-box; min-height: auto; padding: 0; }
         }
       `}</style>
       <div className="pdf-toolbar print:hidden">
@@ -412,9 +810,41 @@ export default async function SchedulePdfPage({
           <Link className={buttonClass} href={`/schedules/${schedule.id}`}>
             Back
           </Link>
-          <PrintButton label={downloadLabel} />
+          <Link
+            className={buttonClass}
+            href={downloadHref(schedule.id, {
+              type: query.type,
+              entity: query.entity,
+            })}
+          >
+            {downloadLabel}
+          </Link>
+          <PrintButton />
         </div>
       </div>
+      {query.type === "subject-counts" ? (
+        <SubjectCountsReport
+          rows={subjectCountRows}
+          scheduleName={`${schedule.name} v${String(schedule.version)}`}
+          schoolName={schedule.school.name}
+        />
+      ) : null}
+      {query.type === "restrictions" ? (
+        <RestrictionsReport
+          days={days}
+          periodIndexes={periodIndexes}
+          rows={restrictionRows}
+          scheduleName={`${schedule.name} v${String(schedule.version)}`}
+          schoolName={schedule.school.name}
+        />
+      ) : null}
+      {query.type === "shared" ? (
+        <SharedSessionsReport
+          rows={sharedSessionRows}
+          scheduleName={`${schedule.name} v${String(schedule.version)}`}
+          schoolName={schedule.school.name}
+        />
+      ) : null}
       {(query.type === "school" || query.type === "class"
         ? selectedClasses
         : []
@@ -433,7 +863,10 @@ export default async function SchedulePdfPage({
           type="class"
         />
       ))}
-      {(query.type === "school" || query.type === "teacher"
+      {(query.type === "school" ||
+      query.type === "teacher" ||
+      query.type === "teacher-full-time" ||
+      query.type === "teacher-part-time"
         ? selectedTeachers
         : []
       ).map((teacher) => {

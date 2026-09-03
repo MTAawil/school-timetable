@@ -455,29 +455,57 @@ export default async function SchedulePage({
         </Link>
         <Link
           className="inline-flex h-9 items-center border border-[#cfd5d1] bg-white px-3 text-sm"
-          href={`/schedules/${schedule.id}/pdf?type=school`}
+          href={`/schedules/${schedule.id}/pdf/download?type=school`}
         >
           <Download className="mr-2" size={16} />
           All PDFs
         </Link>
         <Link
           className="inline-flex h-9 items-center border border-[#cfd5d1] bg-white px-3 text-sm"
-          href={`/schedules/${schedule.id}/pdf?type=class`}
+          href={`/schedules/${schedule.id}/pdf/download?type=class`}
         >
           <Download className="mr-2" size={16} />
           Class PDFs
         </Link>
         <Link
           className="inline-flex h-9 items-center border border-[#cfd5d1] bg-white px-3 text-sm"
-          href={`/schedules/${schedule.id}/pdf?type=teacher`}
+          href={`/schedules/${schedule.id}/pdf/download?type=teacher-full-time`}
         >
           <Download className="mr-2" size={16} />
-          Teacher PDFs
+          Full-time teacher PDFs
+        </Link>
+        <Link
+          className="inline-flex h-9 items-center border border-[#cfd5d1] bg-white px-3 text-sm"
+          href={`/schedules/${schedule.id}/pdf/download?type=teacher-part-time`}
+        >
+          <Download className="mr-2" size={16} />
+          Part-time teacher PDFs
+        </Link>
+        <Link
+          className="inline-flex h-9 items-center border border-[#cfd5d1] bg-white px-3 text-sm"
+          href={`/schedules/${schedule.id}/pdf/download?type=subject-counts`}
+        >
+          <Download className="mr-2" size={16} />
+          Subject counts PDF
+        </Link>
+        <Link
+          className="inline-flex h-9 items-center border border-[#cfd5d1] bg-white px-3 text-sm"
+          href={`/schedules/${schedule.id}/pdf/download?type=restrictions`}
+        >
+          <Download className="mr-2" size={16} />
+          Teacher restrictions PDF
+        </Link>
+        <Link
+          className="inline-flex h-9 items-center border border-[#cfd5d1] bg-white px-3 text-sm"
+          href={`/schedules/${schedule.id}/pdf/download?type=shared`}
+        >
+          <Download className="mr-2" size={16} />
+          Shared sessions PDF
         </Link>
         {view === "class" && entityId ? (
           <Link
             className="inline-flex h-9 items-center border border-[#cfd5d1] bg-white px-3 text-sm"
-            href={`/schedules/${schedule.id}/pdf?type=class&entity=${entityId}`}
+            href={`/schedules/${schedule.id}/pdf/download?type=class&entity=${entityId}`}
           >
             <Download className="mr-2" size={16} />
             Current class PDF
@@ -486,7 +514,7 @@ export default async function SchedulePage({
         {view === "teacher" && entityId ? (
           <Link
             className="inline-flex h-9 items-center border border-[#cfd5d1] bg-white px-3 text-sm"
-            href={`/schedules/${schedule.id}/pdf?type=teacher&entity=${entityId}`}
+            href={`/schedules/${schedule.id}/pdf/download?type=teacher&entity=${entityId}`}
           >
             <Download className="mr-2" size={16} />
             Current teacher PDF
