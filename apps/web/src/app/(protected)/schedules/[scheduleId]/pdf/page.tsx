@@ -539,7 +539,7 @@ export default async function SchedulePdfPage({
           teacher: true,
         },
       },
-      term: { include: { days: true } },
+      term: { include: { days: true, periods: true } },
       school: true,
     },
   });
@@ -554,6 +554,12 @@ export default async function SchedulePdfPage({
     .filter((period) => period.isTeaching)
     .map((period) => period.index)
     .sort((left, right) => left - right);
+  const teachingSessionIndexByPhysicalPeriod = new Map(
+    schedule.term.periods
+      .filter((period) => period.isTeaching)
+      .sort((left, right) => left.periodIndex - right.periodIndex)
+      .map((period, index) => [period.periodIndex, index]),
+  );
   const assignments = schedule.assignments.filter(
     (
       item,
@@ -596,13 +602,22 @@ export default async function SchedulePdfPage({
     },
     orderBy: [{ entityId: "asc" }, { dayIndex: "asc" }, { periodIndex: "asc" }],
   });
-  const availabilityNotes: AvailabilityNote[] = availability.map((note) => ({
-    entityId: note.entityId,
-    dayIndex: note.dayIndex,
-    periodIndex: note.periodIndex,
-    state: note.state,
-    reason: note.reason,
-  }));
+  const availabilityNotes: AvailabilityNote[] = availability
+    .map((note) => {
+      const sessionIndex = teachingSessionIndexByPhysicalPeriod.get(
+        note.periodIndex,
+      );
+      return sessionIndex === undefined
+        ? null
+        : {
+            entityId: note.entityId,
+            dayIndex: note.dayIndex,
+            periodIndex: sessionIndex,
+            state: note.state,
+            reason: note.reason,
+          };
+    })
+    .filter((note): note is AvailabilityNote => note !== null);
 
   const selectedClasses =
     query.type === "class" && query.entity
@@ -687,13 +702,21 @@ export default async function SchedulePdfPage({
       maxConsecutiveLessons: teacher.maxConsecutiveLessons,
       notes: restrictionAvailability
         .filter((note) => note.entityId === teacher.id)
-        .map((note) => ({
-          entityId: note.entityId,
-          dayIndex: note.dayIndex,
-          periodIndex: note.periodIndex,
-          state: note.state,
-          reason: note.reason,
-        })),
+        .map((note) => {
+          const sessionIndex = teachingSessionIndexByPhysicalPeriod.get(
+            note.periodIndex,
+          );
+          return sessionIndex === undefined
+            ? null
+            : {
+                entityId: note.entityId,
+                dayIndex: note.dayIndex,
+                periodIndex: sessionIndex,
+                state: note.state,
+                reason: note.reason,
+              };
+        })
+        .filter((note): note is AvailabilityNote => note !== null),
     }))
     .filter(
       (teacher) =>
