@@ -246,7 +246,7 @@ function Timetable({
   notes,
 }: {
   title: string;
-  subtitle: string;
+  subtitle?: string;
   days: { dayIndex: number; name: string }[];
   periodIndexes: number[];
   assignments: ScheduleAssignment[];
@@ -270,9 +270,8 @@ function Timetable({
       <header className="pdf-page-header">
         <div>
           <h2>{title}</h2>
-          <p>{subtitle}</p>
+          {subtitle ? <p>{subtitle}</p> : null}
         </div>
-        <span>Weekly timetable</span>
       </header>
       <table className="pdf-grid">
         <thead>
@@ -572,13 +571,15 @@ export default async function SchedulePdfPage({
   ).sort((left, right) =>
     (left.shortCode ?? left.name).localeCompare(right.shortCode ?? right.name),
   );
-  const teacherEntities: ExportEntity[] = uniqueById(
-    assignments.map((assignment) => ({
-      id: assignment.teacher.id,
-      name: assignment.teacher.name,
-      employmentType: assignment.teacher.employmentType,
-    })),
-  ).sort((left, right) => left.name.localeCompare(right.name));
+  const allTeachers = await db.teacher.findMany({
+    where: { schoolId: user.schoolId, isActive: true, deletedAt: null },
+    orderBy: { name: "asc" },
+  });
+  const teacherEntities: ExportEntity[] = allTeachers.map((teacher) => ({
+    id: teacher.id,
+    name: teacher.name,
+    employmentType: teacher.employmentType,
+  }));
   const teacherIds =
     (query.type === "teacher" ||
       query.type === "teacher-full-time" ||
@@ -677,8 +678,8 @@ export default async function SchedulePdfPage({
           ],
         })
       : [];
-  const restrictionRows: RestrictionRow[] = restrictionTeachers.map(
-    (teacher) => ({
+  const restrictionRows: RestrictionRow[] = restrictionTeachers
+    .map((teacher) => ({
       teacherName: teacher.name,
       employmentType: teacher.employmentType,
       weeklyTeachingSessions: teacher.weeklyTeachingSessions,
@@ -693,8 +694,13 @@ export default async function SchedulePdfPage({
           state: note.state,
           reason: note.reason,
         })),
-    }),
-  );
+    }))
+    .filter(
+      (teacher) =>
+        teacher.notes.length > 0 ||
+        teacher.maxLessonsPerDay !== null ||
+        teacher.maxConsecutiveLessons !== null,
+    );
   const sharedSessionRows: SharedSessionRow[] =
     query.type === "shared"
       ? (
@@ -858,7 +864,6 @@ export default async function SchedulePdfPage({
           key={`class-${classSection.id}`}
           periodIndexes={periodIndexes}
           snapshot={snapshot}
-          subtitle={`${schedule.school.name} - ${schedule.name} v${String(schedule.version)}`}
           title={`${classSection.shortCode ?? classSection.name} - Class timetable`}
           type="class"
         />
@@ -893,8 +898,7 @@ export default async function SchedulePdfPage({
             }
             periodIndexes={periodIndexes}
             snapshot={snapshot}
-            subtitle={`${schedule.school.name} - ${schedule.name} v${String(schedule.version)}`}
-            title={`${teacher.name} - Teacher timetable`}
+            title={teacher.name}
             type="teacher"
           />
         );
