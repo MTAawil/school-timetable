@@ -851,9 +851,14 @@ export default async function SchedulePdfPage({
   const browserTitle = `${schedule.school.name} - ${schedule.name} v${String(
     schedule.version,
   )} - ${titlePrefix} timetable`;
+  const hasPdfBranding = query.type !== "school";
 
   return (
-    <main className="pdf-export">
+    <main
+      className={
+        hasPdfBranding ? "pdf-export pdf-export-branded" : "pdf-export"
+      }
+    >
       <title>{browserTitle}</title>
       <style>{`
         @page { size: A4 landscape; margin: 8mm; }
@@ -863,6 +868,9 @@ export default async function SchedulePdfPage({
         .pdf-actions { display: flex; gap: 8px; }
         .pdf-page { background: white; color: #1d2520; break-after: page; padding: 10mm; }
         .pdf-page:last-child { break-after: auto; }
+        .pdf-export-branded .pdf-page { overflow: hidden; position: relative; }
+        .pdf-export-branded .pdf-page::after { background: url("/al-massar-logo.png") center / contain no-repeat; bottom: 7mm; content: ""; height: 34mm; opacity: 0.08; pointer-events: none; position: absolute; right: 8mm; width: 34mm; z-index: 0; }
+        .pdf-export-branded .pdf-page > * { position: relative; z-index: 1; }
         .pdf-page-header { align-items: end; border-bottom: 2px solid #132b24; display: flex; justify-content: space-between; margin-bottom: 10px; padding-bottom: 8px; }
         .pdf-page-header h2 { font-size: 20px; line-height: 1.2; margin: 0; }
         .pdf-page-header p, .pdf-page-header span { color: #66706b; font-size: 11px; margin: 3px 0 0; }
