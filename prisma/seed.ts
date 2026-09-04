@@ -210,6 +210,32 @@ const gradesOneToSixClasses = [
   "1A",
 ] as const;
 
+const englishLanguageTeachers = new Set([
+  "اية ناصر",
+  "سارة خليل",
+  "زينة حاوي",
+  "زينب محسن",
+  "ريم حمادة",
+  "ميساء غصن",
+  "نور شغري",
+  "هالة جلوان",
+]);
+
+const frenshLanguageTeachers = new Set([
+  "رانيا ابراهيم",
+  "ليلى السيد",
+  "هدى زين الدين",
+]);
+
+function normalizeSeedSubject(teacher: string, subject: string): string {
+  if (subject !== "ENGLISH French") return subject;
+  if (englishLanguageTeachers.has(teacher)) return "English";
+  if (frenshLanguageTeachers.has(teacher)) return "Frensh";
+  throw new Error(
+    `Cannot split ENGLISH French for unknown teacher ${teacher}.`,
+  );
+}
+
 const teacherDetails: TeacherDetail[] = [
   {
     teacher: "احمد الحركة",
@@ -3271,7 +3297,7 @@ const sharedTeachingCombinations: SharedTeachingCombination[] = [
 const teacherDetailKeys = new Set(
   teacherDetails.map(
     (detail) =>
-      `${detail.teacher}:${detail.subject}:${normalizeClassCode(detail.className)}`,
+      `${detail.teacher}:${normalizeSeedSubject(detail.teacher, detail.subject)}:${normalizeClassCode(detail.className)}`,
   ),
 );
 
@@ -3281,17 +3307,24 @@ const sharedTeachingDetails: TeacherDetail[] =
       .filter(
         (className) =>
           !teacherDetailKeys.has(
-            `${combination.teacher}:${combination.subject}:${normalizeClassCode(className)}`,
+            `${combination.teacher}:${normalizeSeedSubject(combination.teacher, combination.subject)}:${normalizeClassCode(className)}`,
           ),
       )
       .map((className) => ({
         teacher: combination.teacher,
-        subject: combination.subject,
+        subject: normalizeSeedSubject(combination.teacher, combination.subject),
         className,
         hours: combination.hours,
         sourceRow: combination.sourceRow,
       })),
   );
+
+const normalizedTeacherDetails: TeacherDetail[] = teacherDetails.map(
+  (detail) => ({
+    ...detail,
+    subject: normalizeSeedSubject(detail.teacher, detail.subject),
+  }),
+);
 
 function time(value: string): Date {
   return new Date(`1970-01-01T${value}:00.000Z`);
@@ -3432,6 +3465,8 @@ function isMainSubject(
       "ARABIC",
       "ENGLISH",
       "ENGLISH FRENCH",
+      "FRENSH",
+      "FRENCH",
       "MATH",
       "MATHEMATICS",
       "لغة عربية",
@@ -3587,7 +3622,10 @@ async function main(): Promise<void> {
     }
   }
 
-  const allTeacherDetails = [...teacherDetails, ...sharedTeachingDetails];
+  const allTeacherDetails = [
+    ...normalizedTeacherDetails,
+    ...sharedTeachingDetails,
+  ];
   const teacherHours = new Map<string, number>();
   for (const detail of teacherDetails) {
     teacherHours.set(
