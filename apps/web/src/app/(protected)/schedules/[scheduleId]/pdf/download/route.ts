@@ -34,6 +34,8 @@ function localChromePath(): string | undefined {
   return existsSync(path) ? path : undefined;
 }
 
+const pdfNavigationTimeoutMs = 120_000;
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ scheduleId: string }> },
@@ -67,7 +69,31 @@ export async function GET(
       ]);
     }
     const page = await context.newPage();
-    await page.goto(pdfUrl.toString(), { waitUntil: "networkidle" });
+    page.setDefaultNavigationTimeout(pdfNavigationTimeoutMs);
+    await page.goto(pdfUrl.toString(), {
+      timeout: pdfNavigationTimeoutMs,
+      waitUntil: "domcontentloaded",
+    });
+    await page
+      .waitForLoadState("networkidle", { timeout: 10_000 })
+      .catch(() => {
+        // Large multi-page reports can keep the dev server busy enough that
+        // networkidle is not a reliable readiness signal. The explicit font/image
+        // wait below is what the PDF needs before rendering.
+      });
+    await page.evaluate(async () => {
+      await document.fonts.ready;
+      await Promise.all(
+        Array.from(document.images).map(
+          (image) =>
+            image.complete ||
+            new Promise<void>((resolve) => {
+              image.addEventListener("load", () => resolve(), { once: true });
+              image.addEventListener("error", () => resolve(), { once: true });
+            }),
+        ),
+      );
+    });
     const pdf = await page.pdf({
       displayHeaderFooter: false,
       format: "A4",
