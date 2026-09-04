@@ -48,7 +48,13 @@ type ScheduleAssignment = {
     maxLessonsPerDay: number | null;
     maxConsecutiveLessons: number | null;
   };
-  teachingRequirement: { subject: { name: string; shortCode: string } };
+  teachingRequirement: {
+    sharedTeachingGroupId: string | null;
+    subject: { name: string; shortCode: string };
+    sharedTeachingGroup: {
+      members: { classSection: { shortCode: string } }[];
+    } | null;
+  };
 };
 
 type ExportType = z.infer<typeof searchSchema>["type"];
@@ -67,10 +73,9 @@ type AvailabilityNote = {
 };
 type Day = { dayIndex: number; name: string };
 type SubjectCountRow = {
-  className: string;
   classCode: string;
-  gradeName: string;
   displayOrder: number;
+  sectionLabel: string;
   subjectName: string;
   weeklySessions: number;
 };
@@ -145,6 +150,32 @@ function cycleName(displayOrder: number): string {
   return "Secondary";
 }
 
+function sectionRank(sectionLabel: string, classCode: string): number {
+  if (sectionLabel === "EB" || classCode.startsWith("EB")) return 0;
+  if (sectionLabel === "A" || classCode.endsWith("A")) return 1;
+  if (sectionLabel === "B" || classCode.endsWith("B")) return 2;
+  if (sectionLabel === "C" || classCode.endsWith("C")) return 3;
+  if (sectionLabel === "LS" || classCode === "LS") return 1;
+  if (sectionLabel === "ES" || classCode === "ES") return 2;
+  if (sectionLabel === "SV" || classCode === "SV") return 3;
+  return 10;
+}
+
+function subjectCountClassCompare(
+  left: Pick<SubjectCountRow, "classCode" | "displayOrder" | "sectionLabel">,
+  right: Pick<SubjectCountRow, "classCode" | "displayOrder" | "sectionLabel">,
+): number {
+  if (left.displayOrder !== right.displayOrder) {
+    return left.displayOrder - right.displayOrder;
+  }
+  const sectionDifference =
+    sectionRank(left.sectionLabel, left.classCode) -
+    sectionRank(right.sectionLabel, right.classCode);
+  return sectionDifference !== 0
+    ? sectionDifference
+    : left.classCode.localeCompare(right.classCode);
+}
+
 function teacherAvailabilitySummary({
   teacher,
   notes,
@@ -210,10 +241,18 @@ function assignmentCell(
 ) {
   if (!assignment) return <span className="pdf-empty">Free</span>;
   if (type === "teacher") {
+    const sharedClasses =
+      assignment.teachingRequirement.sharedTeachingGroup?.members
+        .map((member) => member.classSection.shortCode)
+        .sort((left, right) => left.localeCompare(right)) ?? [];
     return (
       <div className="pdf-lesson">
         <strong>{assignment.teachingRequirement.subject.name}</strong>
-        <span>{assignment.classSection.shortCode}</span>
+        <span className={sharedClasses.length > 1 ? "pdf-shared-label" : ""}>
+          {sharedClasses.length > 1
+            ? `Shared: ${sharedClasses.join(" + ")}`
+            : assignment.classSection.shortCode}
+        </span>
         <small>
           {assignmentSessionLabel(
             snapshot,
@@ -355,6 +394,23 @@ function SubjectCountsReport({
           (row) => cycleName(row.displayOrder) === name,
         );
         if (cycleRows.length === 0) return null;
+        const classes = uniqueById(
+          cycleRows.map((row) => ({
+            id: row.classCode,
+            classCode: row.classCode,
+            displayOrder: row.displayOrder,
+            sectionLabel: row.sectionLabel,
+          })),
+        ).sort(subjectCountClassCompare);
+        const subjectNames = Array.from(
+          new Set(cycleRows.map((row) => row.subjectName)),
+        ).sort((left, right) => left.localeCompare(right));
+        const sessionsBySubjectAndClass = new Map(
+          cycleRows.map((row) => [
+            `${row.subjectName}:${row.classCode}`,
+            row.weeklySessions,
+          ]),
+        );
         return (
           <section className="pdf-page pdf-report" key={name}>
             <header className="pdf-page-header">
@@ -366,22 +422,30 @@ function SubjectCountsReport({
               </div>
               <span>Sessions per class</span>
             </header>
-            <table className="pdf-report-table">
+            <table className="pdf-report-table pdf-subject-counts-table">
               <thead>
                 <tr>
-                  <th>Class</th>
-                  <th>Grade</th>
-                  <th>Subject</th>
-                  <th>Sessions</th>
+                  <th>Subject / Class</th>
+                  {classes.map((classSection) => (
+                    <th key={classSection.classCode}>
+                      {classSection.classCode}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
-                {cycleRows.map((row) => (
-                  <tr key={`${row.classCode}:${row.subjectName}`}>
-                    <td>{row.classCode}</td>
-                    <td>{row.gradeName}</td>
-                    <td>{row.subjectName}</td>
-                    <td>{String(row.weeklySessions)}</td>
+                {subjectNames.map((subjectName) => (
+                  <tr key={subjectName}>
+                    <th>{subjectName}</th>
+                    {classes.map((classSection) => (
+                      <td key={`${subjectName}:${classSection.classCode}`}>
+                        {String(
+                          sessionsBySubjectAndClass.get(
+                            `${subjectName}:${classSection.classCode}`,
+                          ) ?? 0,
+                        )}
+                      </td>
+                    ))}
                   </tr>
                 ))}
               </tbody>
@@ -534,7 +598,16 @@ export default async function SchedulePdfPage({
     include: {
       assignments: {
         include: {
-          teachingRequirement: { include: { subject: true } },
+          teachingRequirement: {
+            include: {
+              subject: true,
+              sharedTeachingGroup: {
+                include: {
+                  members: { include: { classSection: true } },
+                },
+              },
+            },
+          },
           classSection: true,
           teacher: true,
         },
@@ -659,13 +732,12 @@ export default async function SchedulePdfPage({
             ],
           })
         ).map((row) => ({
-          className: row.classSection.sectionName,
           classCode: row.classSection.shortCode,
-          gradeName:
-            row.classSection.gradeLevel?.name ?? row.classSection.grade,
           displayOrder:
             row.classSection.gradeLevel?.displayOrder ??
             Number(row.classSection.grade.match(/\d+/u)?.[0] ?? 99),
+          sectionLabel:
+            row.classSection.sectionLabel ?? row.classSection.shortCode,
           subjectName: row.subject.name,
           weeklySessions: row.weeklySessions,
         }))
@@ -804,6 +876,7 @@ export default async function SchedulePdfPage({
         .pdf-lesson { background: #edf6f2; border-left: 3px solid #0e6b4f; min-height: 44px; padding: 5px; }
         .pdf-lesson strong { display: block; font-size: 11px; line-height: 1.25; }
         .pdf-lesson span { display: block; font-size: 10px; line-height: 1.3; margin-top: 2px; }
+        .pdf-lesson .pdf-shared-label { color: #0e6b4f; font-weight: 700; }
         .pdf-lesson small { color: #516159; display: block; font-size: 8px; line-height: 1.25; margin-top: 3px; }
         .pdf-empty { color: #9ba59f; font-size: 10px; }
         .pdf-break th, .pdf-break td { background: #fff6db; color: #72520a; font-size: 11px; font-weight: 700; height: auto; text-align: center; }
@@ -818,6 +891,10 @@ export default async function SchedulePdfPage({
         .pdf-report-table th { background: #132b24; color: white; font-weight: 700; }
         .pdf-report-table tbody tr:nth-child(even) td { background: #f7f8f5; }
         .pdf-report-table td:last-child, .pdf-report-table th:last-child { text-align: center; }
+        .pdf-subject-counts-table { font-size: 9px; table-layout: auto; }
+        .pdf-subject-counts-table th, .pdf-subject-counts-table td { padding: 4px 5px; text-align: center; }
+        .pdf-subject-counts-table th:first-child { min-width: 110px; text-align: left; }
+        .pdf-subject-counts-table tbody th { white-space: nowrap; }
         .pdf-report .pdf-page-header { margin-bottom: 12px; }
         @media print {
           body { background: white; }
