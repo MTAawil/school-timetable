@@ -33,6 +33,8 @@ Examples:
 - A locked lesson cannot be moved.
 - A special room cannot host two lessons simultaneously.
 - Break periods cannot contain lessons.
+- A teacher cannot have more than two internal free teaching sessions between
+  their first and last lesson on a day.
 
 ### Soft constraints
 Preferences that can be violated at a measurable cost.
@@ -40,7 +42,7 @@ Preferences that can be violated at a measurable cost.
 Examples:
 
 - Avoid first period for a teacher.
-- Avoid teacher gaps.
+- Minimize teacher gaps within the hard daily maximum.
 - Avoid more than three consecutive lessons.
 - Spread a subject across different days.
 - Prefer mathematics and science earlier in the day.
@@ -774,6 +776,7 @@ Solver:
 - Distinct days.
 - Subject spread.
 - Teacher gaps.
+- Teacher daily internal gap maximum.
 - Locked regeneration.
 - Infeasible datasets.
 - Determinism for a fixed seed and time-independent settings.

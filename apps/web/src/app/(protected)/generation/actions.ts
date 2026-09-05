@@ -112,14 +112,13 @@ export async function openAlternativeAsDraft(
             weeklyOccurrences: curriculum.weeklySessions,
             durationPeriods: 1,
             minOccurrencesPerDay: 0,
-            maxOccurrencesPerDay:
-              curriculum.isMainSubject && curriculum.allowDoubleSession ? 2 : 1,
-            minimumDistinctDays:
-              curriculum.isMainSubject && curriculum.allowDoubleSession
+            maxOccurrencesPerDay: curriculum.allowDoubleSession ? 2 : 1,
+            minimumDistinctDays: curriculum.allowDoubleSession
+              ? curriculum.isMainSubject
                 ? Math.ceil(curriculum.weeklySessions / 2)
-                : curriculum.weeklySessions,
-            allowMultipleOccurrencesSameDay:
-              curriculum.isMainSubject && curriculum.allowDoubleSession,
+                : curriculum.weeklySessions - 1
+              : curriculum.weeklySessions,
+            allowMultipleOccurrencesSameDay: curriculum.allowDoubleSession,
             isActive: false,
             notes: "Version-2 schedule compatibility record.",
           },

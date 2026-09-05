@@ -133,7 +133,7 @@ class Requirement(ContractModel):
     @property
     def daily_occurrence_limit(self) -> int:
         if self.weekly_sessions is not None:
-            return 2 if self.is_main_subject and self.allow_double_session else 1
+            return 2 if self.allow_double_session else 1
         return self.max_occurrences_per_day or 1
 
     @property

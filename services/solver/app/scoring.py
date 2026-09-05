@@ -9,14 +9,12 @@ SOFT_CONSTRAINT_CODES = (
     "TEACHER_GAP",
     "PART_TIME_COMPACTNESS",
     "TEACHER_CONSECUTIVE_PREFERENCE",
-    "MAIN_DOUBLE_ADJACENCY",
     "SUBJECT_SPREAD",
     "REPEATED_SUBJECT_DAY",
     "LATE_HEAVY_SUBJECT",
     "MAIN_SUBJECT_LATE_SESSION",
     "DAILY_WORKLOAD_BALANCE",
     "FULL_TIME_DAILY_BALANCE",
-    "PART_TIME_DISTRIBUTION_RELAXATION",
 )
 
 
@@ -25,28 +23,6 @@ class Score:
     total: int
     breakdown: dict[str, int]
     raw: dict[str, int]
-
-
-def _class_break_after_session(request: SolveRequest, class_section_id: str) -> int | None:
-    class_section = next(item for item in request.class_sections if item.id == class_section_id)
-    if class_section.recess_after_session is not None:
-        return class_section.recess_after_session
-    return request.week_configuration.break_after_session if request.week_configuration else None
-
-
-def _crosses_break(
-    left_period: int,
-    right_period: int,
-    break_after_session: int | None,
-    teaching_session_by_period: dict[int, int],
-) -> bool:
-    left_session = teaching_session_by_period.get(left_period)
-    right_session = teaching_session_by_period.get(right_period)
-    return (
-        break_after_session is not None
-        and left_session == break_after_session
-        and right_session == break_after_session + 1
-    )
 
 
 def score_assignments(request: SolveRequest, assignments: list[Assignment]) -> Score:
@@ -61,9 +37,6 @@ def score_assignments(request: SolveRequest, assignments: list[Assignment]) -> S
     first_period = teaching_periods[0] if teaching_periods else -1
     last_period = teaching_periods[-1] if teaching_periods else -1
     period_rank = {period: rank for rank, period in enumerate(teaching_periods)}
-    teaching_session_by_period = {
-        period: session for session, period in enumerate(teaching_periods, start=1)
-    }
     availability = {
         (rule.entity_type, rule.entity_id, rule.day_index, rule.period_index): rule.state
         for rule in request.availability
@@ -76,15 +49,11 @@ def score_assignments(request: SolveRequest, assignments: list[Assignment]) -> S
     raw: Counter[str] = Counter()
     occupied_by_teacher: dict[tuple[str, int], set[int]] = defaultdict(set)
     subject_days: dict[str, list[int]] = defaultdict(list)
-    subject_periods_by_day: dict[tuple[str, int], list[int]] = defaultdict(list)
 
     for assignment in assignments:
         requirement = requirements[assignment.requirement_id]
         subject = subjects[requirement.subject_id]
         subject_days[requirement.id].append(assignment.day_index)
-        subject_periods_by_day[(requirement.id, assignment.day_index)].append(
-            assignment.period_index
-        )
         for offset in range(assignment.duration_periods):
             period = assignment.period_index + offset
             occupied_by_teacher[(requirement.teacher_id, assignment.day_index)].add(period)
@@ -127,50 +96,6 @@ def score_assignments(request: SolveRequest, assignments: list[Assignment]) -> S
         repeats = len(selected_days) - len(set(selected_days))
         raw["SUBJECT_SPREAD"] += repeats
         raw["REPEATED_SUBJECT_DAY"] += repeats
-    for requirement_id, selected_days in subject_days.items():
-        requirement = requirements[requirement_id]
-        if (
-            request.schema_version != 2
-            or teachers[requirement.teacher_id].employment_type != "PART_TIME"
-        ):
-            continue
-        distinct_day_shortage = max(
-            0,
-            requirement.distinct_day_minimum - len(set(selected_days)),
-        )
-        daily_excess = sum(
-            max(0, len(periods) - requirement.daily_occurrence_limit)
-            for (current_requirement_id, _day), periods in subject_periods_by_day.items()
-            if current_requirement_id == requirement_id
-        )
-        raw["PART_TIME_DISTRIBUTION_RELAXATION"] += distinct_day_shortage + daily_excess
-
-    for (requirement_id, _day), daily_subject_periods in subject_periods_by_day.items():
-        requirement = requirements[requirement_id]
-        if (
-            request.schema_version != 2
-            or not requirement.is_main_subject
-            or not requirement.allow_double_session
-            or len(daily_subject_periods) < 2
-        ):
-            continue
-        ordered = sorted(daily_subject_periods)
-        subject_break_after_session = _class_break_after_session(
-            request,
-            requirement.class_section_id,
-        )
-        adjacent_pair_count = sum(
-            right == left + 1
-            and not _crosses_break(
-                left,
-                right,
-                subject_break_after_session,
-                teaching_session_by_period,
-            )
-            for left, right in zip(ordered, ordered[1:], strict=False)
-        )
-        raw["MAIN_DOUBLE_ADJACENCY"] += max(0, len(ordered) - 1 - adjacent_pair_count)
-
     for teacher in request.teachers:
         daily_counts = [
             len(occupied_by_teacher.get((teacher.id, day), set())) for day in working_days

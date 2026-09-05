@@ -26,24 +26,10 @@ export const softConstraints = [
     defaultWeight: 10,
   },
   {
-    code: "PART_TIME_DISTRIBUTION_RELAXATION",
-    label: "Part-time distribution exception",
-    description:
-      "Strongly prefer normal subject spread, but allow a part-time teacher's subject to repeat on a day when availability forces it.",
-    defaultWeight: 10000,
-  },
-  {
     code: "TEACHER_CONSECUTIVE_PREFERENCE",
     label: "Compact lesson blocks",
     description: "Prefer fewer separate teaching blocks during each day.",
     defaultWeight: 3,
-  },
-  {
-    code: "MAIN_DOUBLE_ADJACENCY",
-    label: "Consecutive double sessions",
-    description:
-      "Prefer same-day main subject pairs to be consecutive when the timetable allows it.",
-    defaultWeight: 12,
   },
   {
     code: "SUBJECT_SPREAD",

@@ -40,17 +40,14 @@ describe("supervisor setup domain", () => {
     );
   });
 
-  it("allows double sessions only for main subjects", () => {
+  it("allows double-session capacity for non-main subjects", () => {
     const result = curriculumSemanticsSchema.safeParse({
       weeklySessions: 2,
       isMainSubject: false,
       allowDoubleSession: true,
     });
 
-    expect(result.success).toBe(false);
-    expect(result.error?.issues[0]?.message).toBe(
-      "DOUBLE_SESSION_REQUIRES_MAIN_SUBJECT",
-    );
+    expect(result.success).toBe(true);
   });
 
   it("reports exact declared and allocated workload mismatches", () => {

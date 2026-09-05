@@ -33,6 +33,7 @@ const issueDestinations: Record<string, string> = {
   TEACHER_WORKLOAD_MISMATCH: "/teachers",
   NON_MAIN_DAILY_CAPACITY_SHORTAGE: "/subjects",
   DOUBLE_REQUIRED_BUT_DISABLED: "/subjects",
+  MAIN_DOUBLE_ADJACENCY_SHORTAGE: "/teachers",
   MAIN_DAILY_CAPACITY_SHORTAGE: "/subjects",
 };
 

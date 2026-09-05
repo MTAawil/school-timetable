@@ -15,11 +15,28 @@
       checks and display generated session labels with their actual times.
 - [x] Prefer main subjects in sessions 1-4 with a weighted soft constraint while
       still allowing later sessions when needed for feasibility.
-- [x] Allow part-time teacher subject distribution to relax with a named heavy
-      penalty when hard availability leaves too few days for strict spreading.
+- [x] Keep class-subject daily frequency and distinct-day rules hard for
+      part-time teachers.
 - [x] Report concrete same-day teacher clock-overlap examples in packing
       diagnostics and avoid treating matching clock times on different days as
       collisions.
+
+## Active hard-rule correction plan
+
+Current task: Main-subject daily limits and required doubles.
+
+1. [x] Remove part-time distribution relaxation from schema-version-2 hard
+       daily frequency and distinct-day rules.
+2. [x] Require every main class-subject with at least two weekly sessions to
+       include one same-day consecutive double that does not cross the class
+       break.
+3. [x] Enforce the same rules in CP-SAT model construction and independent
+       post-solve validation.
+4. [x] Enforce at most two internal teacher gaps per day as a hard constraint.
+5. [x] Allow explicitly double-enabled non-main class-subjects to use at most
+       one doubled day per week.
+6. [x] Update solver contract documentation and focused solver tests.
+7. [x] Run focused solver formatting, linting, typing, and tests.
 
 ## Current phase
 

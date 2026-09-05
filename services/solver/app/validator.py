@@ -3,15 +3,6 @@ from collections import Counter
 from app.models import Assignment, SolveRequest
 
 
-def _part_time_distribution_can_relax(request: SolveRequest, requirement_id: str) -> bool:
-    if request.schema_version != 2:
-        return False
-    requirements = {item.id: item for item in request.requirements}
-    teachers = {item.id: item for item in request.teachers}
-    requirement = requirements[requirement_id]
-    return teachers[requirement.teacher_id].employment_type == "PART_TIME"
-
-
 def _crosses_break(
     left_period: int,
     right_period: int,
@@ -93,6 +84,7 @@ def validate_assignments(
     rooms = {room.id: room for room in request.rooms}
     group_positions: dict[str, dict[str, set[tuple[int, int]]]] = {}
     teacher_event_seen: set[tuple[str, int, int]] = set()
+    teacher_occupied_groups: dict[tuple[str, int, int], set[str | None]] = {}
     teacher_events: dict[tuple[str, int], list[tuple[Assignment, str | None, tuple[int, int]]]] = {}
 
     for requirement in request.requirements:
@@ -133,10 +125,7 @@ def validate_assignments(
             if (day, period) not in enabled or period not in teaching:
                 errors.append(f"INVALID_SLOT:{current_requirement.id}")
             for kind, entity_id in (
-                (
-                    "TEACHER",
-                    None,
-                ),
+                ("TEACHER", current_requirement.teacher_id),
                 ("CLASS_SECTION", current_requirement.class_section_id),
                 ("ROOM", assignment.room_id),
             ):
@@ -144,6 +133,13 @@ def validate_assignments(
                     continue
                 if (kind, entity_id, day, period) in unavailable:
                     errors.append(f"UNAVAILABLE:{kind}:{entity_id}")
+                if kind == "TEACHER":
+                    group_id = current_requirement.shared_teaching_group_id
+                    groups = teacher_occupied_groups.setdefault((entity_id, day, period), set())
+                    if groups and (group_id is None or any(item != group_id for item in groups)):
+                        errors.append(f"COLLISION:{kind}:{entity_id}")
+                    groups.add(group_id)
+                    continue
                 key = (kind, entity_id, day, period)
                 if key in occupied:
                     errors.append(f"COLLISION:{kind}:{entity_id}")
@@ -214,12 +210,11 @@ def validate_assignments(
     for requirement in request.requirements:
         if (
             not allow_incomplete
-            and not _part_time_distribution_can_relax(request, requirement.id)
             and len(days_by_requirement.get(requirement.id, set()))
             < requirement.distinct_day_minimum
         ):
             errors.append(f"DISTINCT_DAYS:{requirement.id}")
-        if not _part_time_distribution_can_relax(request, requirement.id) and any(
+        if any(
             count > requirement.daily_occurrence_limit
             for (requirement_id, _day), count in daily_counts.items()
             if requirement_id == requirement.id
@@ -237,13 +232,47 @@ def validate_assignments(
             for daily in assignments_by_day.values():
                 if len(daily) < 2:
                     continue
-                if _part_time_distribution_can_relax(request, requirement.id):
-                    continue
                 if not requirement.is_main_subject:
-                    errors.append(f"SUBJECT_DAILY_REPEAT:{class_section.name}:{subject.name}")
+                    if not requirement.allow_double_session:
+                        errors.append(f"SUBJECT_DAILY_REPEAT:{class_section.name}:{subject.name}")
                     continue
                 if not requirement.allow_double_session:
                     errors.append(f"MAIN_DOUBLE_DISABLED:{requirement.id}")
+            if (
+                not requirement.is_main_subject
+                and requirement.allow_double_session
+                and sum(1 for daily in assignments_by_day.values() if len(daily) >= 2) > 1
+            ):
+                errors.append(f"NON_MAIN_DOUBLE_LIMIT:{requirement.id}")
+            assigned_count = sum(len(daily) for daily in assignments_by_day.values())
+            if (
+                requirement.is_main_subject
+                and requirement.occurrence_count >= 2
+                and (not allow_incomplete or assigned_count >= requirement.occurrence_count)
+            ):
+                has_adjacent_pair = False
+                subject_break_after_session = _class_break_after_session(
+                    request,
+                    requirement.class_section_id,
+                )
+                for daily in assignments_by_day.values():
+                    daily_periods = sorted(assignment.period_index for assignment in daily)
+                    has_adjacent_pair = any(
+                        teaching_rank_by_period.get(right, -1)
+                        - teaching_rank_by_period.get(left, -1)
+                        == 1
+                        and not _crosses_break(
+                            left,
+                            right,
+                            subject_break_after_session,
+                            teaching_session_by_period,
+                        )
+                        for left, right in zip(daily_periods, daily_periods[1:], strict=False)
+                    )
+                    if has_adjacent_pair:
+                        break
+                if not has_adjacent_pair:
+                    errors.append(f"MAIN_DOUBLE_REQUIRED:{requirement.id}")
     for teacher in request.teachers:
         if request.schema_version == 2:
             counted_groups: set[str] = set()
@@ -302,6 +331,22 @@ def validate_assignments(
                 for left_rank, right_rank in zip(ordered, ordered[1:], strict=False):
                     if right_rank - left_rank - 1 > 2:
                         errors.append(f"FULL_TIME_TEACHER_INTERNAL_GAP:{teacher.id}")
+        for (teacher_id, _day), periods in teacher_periods.items():
+            if teacher_id != teacher.id:
+                continue
+            ordered = sorted(
+                teaching_rank_by_period[period]
+                for period in periods
+                if period in teaching_rank_by_period
+            )
+            if len(ordered) < 2:
+                continue
+            internal_gaps = sum(
+                right_rank - left_rank - 1
+                for left_rank, right_rank in zip(ordered, ordered[1:], strict=False)
+            )
+            if internal_gaps > 2:
+                errors.append(f"TEACHER_MAX_INTERNAL_GAPS_PER_DAY:{teacher.id}")
     for class_section in request.class_sections:
         if class_section.max_lessons_per_day and any(
             count > class_section.max_lessons_per_day

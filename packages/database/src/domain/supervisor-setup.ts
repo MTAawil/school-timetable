@@ -122,15 +122,6 @@ export const curriculumSemanticsSchema = z
     weeklySessions: z.number().int().positive(),
     isMainSubject: z.boolean(),
     allowDoubleSession: z.boolean(),
-  })
-  .superRefine((curriculum, context) => {
-    if (curriculum.allowDoubleSession && !curriculum.isMainSubject) {
-      context.addIssue({
-        code: "custom",
-        path: ["allowDoubleSession"],
-        message: "DOUBLE_SESSION_REQUIRES_MAIN_SUBJECT",
-      });
-    }
   });
 
 export type TeacherWorkload = {

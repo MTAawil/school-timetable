@@ -182,7 +182,11 @@ Required uniqueness:
 
 - `(schoolId, termId, gradeLevelId, subjectId)`
 
-`allowDoubleSession` must be false when `isMainSubject` is false.
+`allowDoubleSession` may be true for either main or non-main rows. For main
+rows it permits two same-day sessions and the solver also requires at least one
+consecutive same-day double when the row has two or more weekly sessions. For
+non-main rows it is a limited capacity allowance: at most one day in the week
+may contain two sessions for that class-subject.
 
 ### ClassCurriculum
 

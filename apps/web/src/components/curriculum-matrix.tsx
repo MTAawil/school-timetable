@@ -201,9 +201,6 @@ export function CurriculumMatrix({
                               updateCell(key, (current) => ({
                                 ...current,
                                 isMainSubject: event.target.checked,
-                                allowDoubleSession: event.target.checked
-                                  ? current.allowDoubleSession
-                                  : false,
                               }))
                             }
                             aria-label={`${classSection.name} ${subject.name} main subject`}
@@ -212,10 +209,9 @@ export function CurriculumMatrix({
                         </td>
                         <td className="px-4 py-3 text-center">
                           <input
-                            className="size-4 accent-[#0e6b4f] disabled:opacity-30"
+                            className="size-4 accent-[#0e6b4f]"
                             name={`double:${key}`}
                             type="checkbox"
-                            disabled={!cell.isMainSubject}
                             checked={cell.allowDoubleSession}
                             onChange={(event) =>
                               updateCell(key, (current) => ({

@@ -26,6 +26,7 @@ export type ReadinessIssueCode =
   | "TEACHER_WORKLOAD_MISMATCH"
   | "NON_MAIN_DAILY_CAPACITY_SHORTAGE"
   | "DOUBLE_REQUIRED_BUT_DISABLED"
+  | "MAIN_DOUBLE_ADJACENCY_SHORTAGE"
   | "MAIN_DAILY_CAPACITY_SHORTAGE";
 
 export type ReadinessIssue = {
@@ -103,6 +104,76 @@ function teachingPositions(snapshot: SolverSnapshot): Position[] {
         workingDays.has(slot.dayIndex) && teachingPeriods.has(slot.periodIndex),
     )
     .map(({ dayIndex, periodIndex }) => ({ dayIndex, periodIndex }));
+}
+
+function hasCompatibleAdjacentDouble(
+  snapshot: SupervisorSolverSnapshot,
+  requirement: SupervisorSolverSnapshot["requirements"][number],
+) {
+  if (!snapshot.weekConfiguration || !requirement.teacherId) {
+    return false;
+  }
+  const workingDays = snapshot.calendar.days
+    .filter((day) => day.isWorking)
+    .map((day) => day.index);
+  const teachingPeriods = snapshot.calendar.periods
+    .filter((period) => period.isTeaching)
+    .map((period) => period.index)
+    .sort((left, right) => left - right);
+  const enabled = new Set(
+    snapshot.calendar.enabledSlots.map((slot) =>
+      positionKey(slot.dayIndex, slot.periodIndex),
+    ),
+  );
+  const teacherUnavailable = unavailableSet(
+    snapshot,
+    "TEACHER",
+    requirement.teacherId,
+  );
+  const classUnavailable = unavailableSet(
+    snapshot,
+    "CLASS_SECTION",
+    requirement.classSectionId,
+  );
+  const forbidden = new Set(
+    requirement.forbiddenSlots.map((slot) =>
+      positionKey(slot.dayIndex, slot.periodIndex),
+    ),
+  );
+  const classSection = snapshot.classSections.find(
+    (item) => item.id === requirement.classSectionId,
+  );
+  const breakAfterSession =
+    classSection?.recessAfterSession ??
+    snapshot.weekConfiguration.breakAfterSession;
+
+  for (const dayIndex of workingDays) {
+    for (let rank = 0; rank < teachingPeriods.length - 1; rank += 1) {
+      const left = teachingPeriods[rank];
+      const right = teachingPeriods[rank + 1];
+      if (left === undefined || right === undefined) {
+        continue;
+      }
+      if (rank + 1 === breakAfterSession) {
+        continue;
+      }
+      const leftKey = positionKey(dayIndex, left);
+      const rightKey = positionKey(dayIndex, right);
+      if (
+        enabled.has(leftKey) &&
+        enabled.has(rightKey) &&
+        !teacherUnavailable.has(leftKey) &&
+        !teacherUnavailable.has(rightKey) &&
+        !classUnavailable.has(leftKey) &&
+        !classUnavailable.has(rightKey) &&
+        !forbidden.has(leftKey) &&
+        !forbidden.has(rightKey)
+      ) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 function capacityWithDailyLimit(
@@ -643,11 +714,30 @@ function validateSupervisorReadiness(
     }
     if (
       !requirement.isMainSubject &&
-      requirement.weeklySessions > workingDayCount
+      requirement.weeklySessions >
+        workingDayCount + (requirement.allowDoubleSession ? 1 : 0)
     ) {
       issues.push({
         code: "NON_MAIN_DAILY_CAPACITY_SHORTAGE",
-        summary: `${label} needs ${String(requirement.weeklySessions)} sessions but a non-main subject can occur only once per day.`,
+        summary: `${label} needs ${String(requirement.weeklySessions)} sessions but a non-main subject can use at most one same-day double per week.`,
+        entityIds: [
+          requirement.id,
+          requirement.classSectionId,
+          requirement.subjectId,
+        ],
+        required: requirement.weeklySessions,
+        available: workingDayCount + (requirement.allowDoubleSession ? 1 : 0),
+        suggestions: ["/subjects"],
+      });
+    }
+    if (
+      requirement.isMainSubject &&
+      !requirement.allowDoubleSession &&
+      requirement.weeklySessions >= 2
+    ) {
+      issues.push({
+        code: "DOUBLE_REQUIRED_BUT_DISABLED",
+        summary: `${label} needs at least one consecutive same-day pair, but double sessions are disabled.`,
         entityIds: [
           requirement.id,
           requirement.classSectionId,
@@ -660,20 +750,22 @@ function validateSupervisorReadiness(
     }
     if (
       requirement.isMainSubject &&
-      !requirement.allowDoubleSession &&
-      requirement.weeklySessions > workingDayCount
+      requirement.allowDoubleSession &&
+      requirement.weeklySessions >= 2 &&
+      !hasCompatibleAdjacentDouble(snapshot, requirement)
     ) {
       issues.push({
-        code: "DOUBLE_REQUIRED_BUT_DISABLED",
-        summary: `${label} needs a same-day pair, but double sessions are disabled.`,
+        code: "MAIN_DOUBLE_ADJACENCY_SHORTAGE",
+        summary: `${label} needs at least one consecutive same-day pair, but no compatible pair is available.`,
         entityIds: [
           requirement.id,
           requirement.classSectionId,
           requirement.subjectId,
+          ...(requirement.teacherId ? [requirement.teacherId] : []),
         ],
-        required: requirement.weeklySessions,
-        available: workingDayCount,
-        suggestions: ["/subjects"],
+        required: 1,
+        available: 0,
+        suggestions: ["/teachers", "/subjects", "/setup"],
       });
     }
     if (

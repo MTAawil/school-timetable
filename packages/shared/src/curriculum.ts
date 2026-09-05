@@ -51,13 +51,16 @@ export function curriculumCapacityIssue(
   if (cell.weeklySessions <= 0) {
     return null;
   }
-  if (!cell.isMainSubject && cell.weeklySessions > workingDayCount) {
+  if (
+    !cell.isMainSubject &&
+    cell.weeklySessions > workingDayCount + (cell.allowDoubleSession ? 1 : 0)
+  ) {
     return "NON_MAIN_DAILY_CAPACITY_SHORTAGE";
   }
   if (
     cell.isMainSubject &&
     !cell.allowDoubleSession &&
-    cell.weeklySessions > workingDayCount
+    cell.weeklySessions >= 2
   ) {
     return "DOUBLE_REQUIRED_BUT_DISABLED";
   }

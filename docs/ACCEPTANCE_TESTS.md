@@ -126,8 +126,9 @@ integration, and solver tests without changing their meanings.
 | `CLASS_SUBJECT_UNASSIGNED` | A class-subject has no teacher. |
 | `CLASS_SUBJECT_MULTIPLE_TEACHERS` | Multiple teachers claim one class-subject. |
 | `TEACHER_WORKLOAD_MISMATCH` | Allocated sessions do not exactly equal declared workload. |
-| `NON_MAIN_DAILY_CAPACITY_SHORTAGE` | A non-main subject requires more sessions than working days. |
-| `DOUBLE_REQUIRED_BUT_DISABLED` | A main subject needs a same-day pair, but doubles are disabled. |
+| `NON_MAIN_DAILY_CAPACITY_SHORTAGE` | A non-main subject exceeds its daily capacity. Without double allowance capacity is working days; with double allowance capacity is working days plus one. |
+| `DOUBLE_REQUIRED_BUT_DISABLED` | A main subject needs a consecutive same-day pair, but doubles are disabled. |
+| `MAIN_DOUBLE_ADJACENCY_SHORTAGE` | A main subject needs a consecutive same-day pair, but no compatible pair is available. |
 | `MAIN_DAILY_CAPACITY_SHORTAGE` | Main-subject demand exceeds two sessions per working day. |
 | `TEACHER_CAPACITY_SHORTAGE` | Hard availability or limits provide insufficient teacher capacity. |
 
@@ -172,16 +173,20 @@ A non-main subject requires six sessions over five days.
 
 Expected: `NON_MAIN_DAILY_CAPACITY_SHORTAGE`, required 6, available 5.
 
+If the same non-main row has `allowDoubleSession` enabled, six sessions over
+five days is allowed because it needs only one doubled day. Seven sessions over
+five days is rejected because it would need two doubled days.
+
 ### R06 - optional main-subject double
 
 Main Mathematics requires six sessions over five days and allows doubles.
 
-Expected: feasible; same-day pairs are preferred adjacent, no day is above two
-sessions, and distributed same-day pairs remain valid when needed.
+Expected: feasible; at least one same-day pair is consecutive, and no day is
+above two sessions.
 
 ### R07 - required pair disabled
 
-Main Mathematics requires six sessions over five days, but doubles are disabled.
+Main Mathematics has at least two weekly sessions, but doubles are disabled.
 
 Expected: `DOUBLE_REQUIRED_BUT_DISABLED`.
 
@@ -205,3 +210,7 @@ A candidate places two non-main History sessions for G7-A on Monday.
 
 Expected: independent validation rejects it with
 `SUBJECT_DAILY_REPEAT:G7-A:HISTORY`.
+
+If non-main History has `allowDoubleSession` enabled, one doubled day is valid.
+A second doubled day in the same week is rejected with
+`NON_MAIN_DOUBLE_LIMIT:<requirementId>`.

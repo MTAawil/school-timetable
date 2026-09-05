@@ -27,7 +27,17 @@ describe("curriculum rules", () => {
         {
           weeklySessions: 6,
           isMainSubject: false,
-          allowDoubleSession: false,
+          allowDoubleSession: true,
+        },
+        5,
+      ),
+    ).toBe(null);
+    expect(
+      curriculumCapacityIssue(
+        {
+          weeklySessions: 7,
+          isMainSubject: false,
+          allowDoubleSession: true,
         },
         5,
       ),
@@ -36,6 +46,16 @@ describe("curriculum rules", () => {
       curriculumCapacityIssue(
         {
           weeklySessions: 6,
+          isMainSubject: true,
+          allowDoubleSession: false,
+        },
+        5,
+      ),
+    ).toBe("DOUBLE_REQUIRED_BUT_DISABLED");
+    expect(
+      curriculumCapacityIssue(
+        {
+          weeklySessions: 2,
           isMainSubject: true,
           allowDoubleSession: false,
         },

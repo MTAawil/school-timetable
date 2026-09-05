@@ -151,8 +151,7 @@ export async function saveCurriculumMatrix(formData: FormData): Promise<void> {
         .max(configuration.sessionsPerDay * configuration.workingDayCount)
         .parse(Number(formData.get(`sessions:${key}`)));
       const isMainSubject = formData.get(`main:${key}`) === "on";
-      const allowDoubleSession =
-        isMainSubject && formData.get(`double:${key}`) === "on";
+      const allowDoubleSession = formData.get(`double:${key}`) === "on";
       const issue = curriculumCapacityIssue(
         { weeklySessions, isMainSubject, allowDoubleSession },
         configuration.workingDayCount,

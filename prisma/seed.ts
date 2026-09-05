@@ -96,7 +96,7 @@ const partTimeAvailabilityByTeacher = {
   "منى وهبي": {
     Monday: [1, 2, 3, 4, 5, 6],
     Tuesday: [1, 2, 3, 4, 5, 6],
-    Friday: [1, 2, 3, 4],
+    Friday: [1, 2, 3],
   },
   "محمد عبدو": {
     Wednesday: [1, 2, 3, 4, 5, 6],
@@ -107,7 +107,7 @@ const partTimeAvailabilityByTeacher = {
     Tuesday: [1, 2, 3, 4],
     Wednesday: [1, 2, 3, 4],
     Thursday: [1, 2, 3, 4],
-    Friday: [1, 2, 3, 4],
+    Friday: [1, 2],
   },
   "حسن ناجي": {
     Monday: [1, 2, 3, 4, 5],
@@ -3379,13 +3379,23 @@ function classMetadata(shortCode: string): ClassMetadata {
     };
   }
 
-  const esSection = /^ES(\d+)$/u.exec(shortCode);
-  if (esSection) {
+  if (shortCode === "ES1") {
     return {
-      gradeCode: "G12_ES",
-      gradeName: "G12 ES",
-      displayOrder: 15,
-      sectionLabel: esSection[1],
+      gradeCode: "G10",
+      gradeName: "G10",
+      displayOrder: 10,
+      sectionLabel: "ES1",
+      sectionName: shortCode,
+      shortCode,
+    };
+  }
+
+  if (shortCode === "ES2") {
+    return {
+      gradeCode: "G11",
+      gradeName: "G11",
+      displayOrder: 11,
+      sectionLabel: "ES2",
       sectionName: shortCode,
       shortCode,
     };
@@ -3471,6 +3481,25 @@ function isMainSubject(
       "MATHEMATICS",
       "لغة عربية",
     ].includes(normalized)
+  );
+}
+
+const nonMainDoubleAllowedRows = new Set([
+  "صبحي حمية|فيزياء|ES1",
+  "صبحي حمية|فيزياء|ES2",
+  "محمد عساف|فيزياء|10A",
+  "محمد عساف|فيزياء|10B",
+]);
+
+function allowsDoubleSession(
+  detail: TeacherDetail,
+  metadata: ClassMetadata,
+  mainSubject: boolean,
+): boolean {
+  if (mainSubject) return true;
+  const classCode = metadata.shortCode;
+  return nonMainDoubleAllowedRows.has(
+    `${detail.teacher}|${detail.subject}|${classCode}`,
   );
 }
 
@@ -3847,7 +3876,11 @@ async function main(): Promise<void> {
     }
 
     const mainSubject = isMainSubject(detail.subject, detail.hours, metadata);
-    const allowDoubleSession = mainSubject;
+    const allowDoubleSession = allowsDoubleSession(
+      detail,
+      metadata,
+      mainSubject,
+    );
     const key = curriculumKey(gradeLevelId, subjectId);
     let gradeCurriculumId = gradeCurriculumIds.get(key);
     if (!gradeCurriculumId) {
@@ -4009,9 +4042,7 @@ async function main(): Promise<void> {
     ["FIRST_LAST_PERIOD", 2],
     ["TEACHER_GAP", 12],
     ["PART_TIME_COMPACTNESS", 10],
-    ["PART_TIME_DISTRIBUTION_RELAXATION", 10000],
     ["TEACHER_CONSECUTIVE_PREFERENCE", 3],
-    ["MAIN_DOUBLE_ADJACENCY", 50],
     ["SUBJECT_SPREAD", 0],
     ["REPEATED_SUBJECT_DAY", 0],
     ["SUBJECT_CONSECUTIVE_PREFERENCE", 8],

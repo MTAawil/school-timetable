@@ -291,6 +291,40 @@ describe("supervisor readiness", () => {
     expect(issue).toMatchObject({ required: 6, available: 5 });
   });
 
+  it("allows one non-main same-day double per week", () => {
+    const snapshot = buildSupervisorSnapshot();
+    const requirement = snapshot.requirements[0];
+    if (!requirement) throw new Error("A curriculum requirement is required.");
+    snapshot.requirements[0] = {
+      ...requirement,
+      isMainSubject: false,
+      allowDoubleSession: true,
+      weeklySessions: 6,
+    };
+
+    expect(validateReadiness(snapshot).issues).not.toContainEqual(
+      expect.objectContaining({ code: "NON_MAIN_DAILY_CAPACITY_SHORTAGE" }),
+    );
+  });
+
+  it("rejects non-main frequency requiring more than one weekly double", () => {
+    const snapshot = buildSupervisorSnapshot();
+    const requirement = snapshot.requirements[0];
+    if (!requirement) throw new Error("A curriculum requirement is required.");
+    snapshot.requirements[0] = {
+      ...requirement,
+      isMainSubject: false,
+      allowDoubleSession: true,
+      weeklySessions: 7,
+    };
+
+    const issue = validateReadiness(snapshot).issues.find(
+      (candidate) => candidate.code === "NON_MAIN_DAILY_CAPACITY_SHORTAGE",
+    );
+
+    expect(issue).toMatchObject({ required: 7, available: 6 });
+  });
+
   it("rejects a required pair when doubles are disabled", () => {
     const snapshot = buildSupervisorSnapshot();
     const requirement = snapshot.requirements[0];
@@ -302,6 +336,57 @@ describe("supervisor readiness", () => {
 
     expect(validateReadiness(snapshot).issues).toContainEqual(
       expect.objectContaining({ code: "DOUBLE_REQUIRED_BUT_DISABLED" }),
+    );
+  });
+
+  it("requires doubles for any main subject with two weekly sessions", () => {
+    const snapshot = buildSupervisorSnapshot();
+    const requirement = snapshot.requirements[0];
+    const teacher = snapshot.teachers[0];
+    if (!requirement) throw new Error("A curriculum requirement is required.");
+    if (!teacher) throw new Error("A teacher is required.");
+    snapshot.requirements[0] = {
+      ...requirement,
+      weeklySessions: 2,
+      allowDoubleSession: false,
+    };
+    snapshot.teachers[0] = {
+      ...teacher,
+      weeklyTeachingSessions: 2,
+    };
+
+    expect(validateReadiness(snapshot).issues).toContainEqual(
+      expect.objectContaining({ code: "DOUBLE_REQUIRED_BUT_DISABLED" }),
+    );
+  });
+
+  it("rejects a main subject when no compatible adjacent double is available", () => {
+    const snapshot = buildSupervisorSnapshot();
+    const requirement = snapshot.requirements[0];
+    const teacher = snapshot.teachers[0];
+    if (!requirement) throw new Error("A curriculum requirement is required.");
+    if (!teacher) throw new Error("A teacher is required.");
+    snapshot.requirements[0] = {
+      ...requirement,
+      weeklySessions: 2,
+      allowDoubleSession: true,
+    };
+    snapshot.teachers[0] = {
+      ...teacher,
+      weeklyTeachingSessions: 2,
+    };
+    snapshot.availability = snapshot.calendar.days.flatMap((day) =>
+      [1, 3, 5, 7].map((periodIndex) => ({
+        entityType: "TEACHER" as const,
+        entityId: "teacher",
+        dayIndex: day.index,
+        periodIndex,
+        state: "UNAVAILABLE" as const,
+      })),
+    );
+
+    expect(validateReadiness(snapshot).issues).toContainEqual(
+      expect.objectContaining({ code: "MAIN_DOUBLE_ADJACENCY_SHORTAGE" }),
     );
   });
 

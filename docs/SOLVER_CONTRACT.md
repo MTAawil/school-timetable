@@ -115,9 +115,10 @@ snapshots. Historical schema-version-1 snapshots remain reproducible.
 class-subject. Every selected solver variable consumes one physical session.
 
 An optional double is not a duration-two requirement. It is two physical
-sessions of the same class-subject selected on the same day. Consecutive
-teaching periods are preferred, but allowed doubles may be distributed across
-the same day when required to satisfy the timetable.
+sessions of the same class-subject selected on the same day. For non-main
+class-subjects, `allowDoubleSession` permits at most one such doubled day per
+week. For main class-subjects with at least two weekly sessions, at least one
+double must use consecutive teaching periods that do not cross the class break.
 
 This distinction allows five weekly Mathematics sessions to become:
 
@@ -138,24 +139,28 @@ The redesigned solver must enforce:
 5. Existing fixed and locked positions.
 6. Optional teacher maximum sessions per day.
 7. Optional teacher maximum consecutive sessions.
-8. A non-main class-subject has at most one session per day.
-9. A main class-subject has at most two sessions per day.
-10. When a main class-subject has two sessions in one day, consecutive teaching
-    periods that do not cross the break are preferred, not required.
-11. Two sessions in one day are forbidden when `allowDoubleSession` is false.
-12. Every class-subject has exactly one teacher before the request is accepted.
-13. Every teacher's allocated curriculum sessions equal their declared weekly
+8. A non-main class-subject has at most one session per day unless
+   `allowDoubleSession` is true.
+9. A non-main class-subject with `allowDoubleSession` true may have two
+   sessions on at most one day per week.
+10. A main class-subject has at most two sessions per day.
+11. Every main class-subject with at least two weekly sessions must include at
+    least one same-day double in consecutive teaching periods that do not cross
+    the class break.
+12. Two sessions in one day are forbidden when `allowDoubleSession` is false.
+13. Every class-subject has exactly one teacher before the request is accepted.
+14. Every teacher's allocated curriculum sessions equal their declared weekly
     teaching sessions before the request is accepted.
-14. A shared-teaching group selects identical slots for every member class and
+15. A shared-teaching group selects identical slots for every member class and
     counts those synchronized sessions once for teacher collision and workload
     constraints.
-15. A class-specific recess position marks the break between two teaching
+16. A class-specific recess position marks the break between two teaching
     sessions for that class; it does not remove either teaching session from
     the timetable. The value is a teaching-session number, not a physical
     `periodIndex`. Null uses the school's default break position.
-16. A full-time teacher may not have more than two consecutive internal free
-    teaching sessions between lessons on the same day. Free time before the
-    first lesson or after the last lesson is allowed.
+17. A teacher may not have more than two internal free teaching sessions between
+    their first and last lesson on the same day. Free time before the first
+    lesson or after the last lesson is allowed.
 
 Rooms are omitted from new redesign snapshots. Existing schema-version-1 room
 behavior remains unchanged for historical reproducibility.
@@ -183,15 +188,21 @@ class-subject, session occurrence, day, and teaching period.
 For a main subject on a given day:
 
 - sum of selected sessions is at most two
-- if the sum is two and no valid adjacent pair is selected, the solver applies
-  `MAIN_DOUBLE_ADJACENCY` as a soft penalty
+- if the sum is two and no valid adjacent pair is selected, the timetable is
+  hard-invalid
 
 Valid adjacency is defined by teaching-session order, not raw clock minutes.
 The applicable class break separates adjacency even when period indices are
 numerically consecutive.
 
-The solver must not force an allowed double to occur and must not fail a
-schedule solely because an allowed same-day double is distributed.
+The solver must force at least one valid adjacent double for every main
+class-subject with two or more weekly sessions.
+
+For a non-main subject with `allowDoubleSession` enabled:
+
+- sum of selected sessions is at most two on any day
+- at most one day in the week may contain two sessions
+- no consecutive-double requirement is imposed
 
 For schema version 2, main subjects also receive a weighted soft penalty when
 placed after the first four teaching sessions of a day. This is a preference,
@@ -216,23 +227,25 @@ Part-time teachers retain named soft penalties for:
 - internal gaps
 - unnecessary separate teaching blocks
 - teaching on more days when an equally feasible compact pattern exists
-- repeating a class-subject on the same day only when hard availability makes
-  the normal distribution impossible
 
-Explicit availability always overrides compactness and distribution: part-time
-teachers are never scheduled in unavailable slots. The named soft penalty
-`PART_TIME_DISTRIBUTION_RELAXATION` records each daily-limit or distinct-day
-exception used for a schema-version-2 requirement taught by a part-time teacher.
+Explicit availability always overrides compactness: part-time teachers are
+never scheduled in unavailable slots. Part-time status does not relax
+class-subject daily limits, disabled-double rules, distinct-day rules, or the
+required adjacent double for main subjects. Compactness can rank valid
+part-time patterns, but it cannot override the hard maximum of two internal
+daily gaps.
 
 ### Post-solve validation
 
 The independent validator must additionally prove:
 
 - exact physical curriculum session totals
-- non-main daily uniqueness, except for named part-time distribution relaxation
-- main daily maximum of two, except for named part-time distribution relaxation
-- no pair when double sessions are disabled, except for named part-time
-  distribution relaxation
+- non-main daily uniqueness
+- main daily maximum of two
+- no pair when double sessions are disabled
+- at least one valid adjacent double for every main class-subject with at least
+  two weekly sessions
+- at most two internal teacher gaps per day
 - declared and allocated teacher totals in the input contract
 
 A violation returns `FAILED`; it is never repaired or ignored after solving.
