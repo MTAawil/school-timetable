@@ -3381,6 +3381,28 @@ function classMetadata(shortCode: string): ClassMetadata {
 
   const esSection = /^ES(\d+)$/u.exec(shortCode);
   if (esSection) {
+    if (shortCode === "ES1") {
+      return {
+        gradeCode: "G10_FR",
+        gradeName: "G10 French",
+        displayOrder: 10,
+        sectionLabel: "ES1",
+        sectionName: shortCode,
+        shortCode,
+      };
+    }
+
+    if (shortCode === "ES2") {
+      return {
+        gradeCode: "G11_FR",
+        gradeName: "G11 French",
+        displayOrder: 11,
+        sectionLabel: "ES2",
+        sectionName: shortCode,
+        shortCode,
+      };
+    }
+
     return {
       gradeCode: "G12_ES",
       gradeName: "G12 ES",
@@ -3440,6 +3462,7 @@ function curriculumKey(gradeLevelId: string, subjectId: string): string {
 
 const upperSecondaryMainSubjectsByGrade = {
   G11: ["MATH", "فيزياء"],
+  G11_FR: ["MATH", "فيزياء"],
   G12_LS: ["MATH", "فيزياء", "كيمياء", "بيولوجي"],
   G12_GS: ["MATH", "فيزياء", "كيمياء", "بيولوجي"],
   G12_ES: ["MATH", "اقتصاد", "اجتماع"],
