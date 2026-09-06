@@ -54,7 +54,7 @@ const partTimeAvailabilityByTeacher = {
   "علي بندر": {
     Wednesday: [1, 2, 3, 4],
     Thursday: [5, 6],
-    Friday: [1, 2, 3],
+    Friday: [1, 2, 3, 4],
   },
   "محمد عساف": {
     Monday: [2, 3, 4, 5, 6],
@@ -85,7 +85,7 @@ const partTimeAvailabilityByTeacher = {
   "صبحي حمية": {
     Monday: [1, 2, 3, 4, 5, 6],
     Wednesday: [1, 2, 3, 4, 5, 6],
-    Friday: [1, 2, 3],
+    Friday: [1, 2, 3, 4],
   },
   "سحر فقيه": {
     Monday: [1, 2, 3, 4, 5, 6],
@@ -221,7 +221,7 @@ const englishLanguageTeachers = new Set([
   "هالة جلوان",
 ]);
 
-const frenshLanguageTeachers = new Set([
+const frenchLanguageTeachers = new Set([
   "رانيا ابراهيم",
   "ليلى السيد",
   "هدى زين الدين",
@@ -230,7 +230,7 @@ const frenshLanguageTeachers = new Set([
 function normalizeSeedSubject(teacher: string, subject: string): string {
   if (subject !== "ENGLISH French") return subject;
   if (englishLanguageTeachers.has(teacher)) return "English";
-  if (frenshLanguageTeachers.has(teacher)) return "Frensh";
+  if (frenchLanguageTeachers.has(teacher)) return "French";
   throw new Error(
     `Cannot split ENGLISH French for unknown teacher ${teacher}.`,
   );
@@ -3465,7 +3465,6 @@ function isMainSubject(
       "ARABIC",
       "ENGLISH",
       "ENGLISH FRENCH",
-      "FRENSH",
       "FRENCH",
       "MATH",
       "MATHEMATICS",
