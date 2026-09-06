@@ -54,7 +54,7 @@ const partTimeAvailabilityByTeacher = {
   "علي بندر": {
     Wednesday: [1, 2, 3, 4],
     Thursday: [5, 6],
-    Friday: [1, 2, 3, 4],
+    Friday: [1, 2, 3],
   },
   "محمد عساف": {
     Monday: [2, 3, 4, 5, 6],
@@ -85,7 +85,7 @@ const partTimeAvailabilityByTeacher = {
   "صبحي حمية": {
     Monday: [1, 2, 3, 4, 5, 6],
     Wednesday: [1, 2, 3, 4, 5, 6],
-    Friday: [1, 2, 3, 4],
+    Friday: [1, 2, 3],
   },
   "سحر فقيه": {
     Monday: [1, 2, 3, 4, 5, 6],

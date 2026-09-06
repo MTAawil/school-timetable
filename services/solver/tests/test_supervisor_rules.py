@@ -920,7 +920,7 @@ def test_teacher_collision_uses_class_clock_intervals() -> None:
     assert validate_assignments(request, generated) == []
 
 
-def test_full_time_teacher_cannot_have_more_than_two_internal_free_sessions() -> None:
+def test_teacher_cannot_have_more_than_two_daily_internal_gaps() -> None:
     request = supervisor_request(weekly_sessions=2, sessions_per_day=6)
     candidate = [
         Assignment(
@@ -937,13 +937,13 @@ def test_full_time_teacher_cannot_have_more_than_two_internal_free_sessions() ->
         ),
     ]
 
-    assert "FULL_TIME_TEACHER_INTERNAL_GAP:teacher" in validate_assignments(
+    assert "TEACHER_DAILY_INTERNAL_GAPS:teacher" in validate_assignments(
         request,
         candidate,
     )
 
 
-def test_full_time_teacher_internal_gap_is_a_solver_hard_constraint() -> None:
+def test_teacher_daily_internal_gap_limit_is_a_solver_hard_constraint() -> None:
     request = supervisor_request(weekly_sessions=2, sessions_per_day=6)
     payload = request.model_dump(by_alias=True)
     payload["requirements"][0]["fixedSlots"] = [
@@ -956,7 +956,7 @@ def test_full_time_teacher_internal_gap_is_a_solver_hard_constraint() -> None:
     assert response.status == "INFEASIBLE"
 
 
-def test_full_time_teacher_allows_two_internal_free_sessions() -> None:
+def test_teacher_allows_two_daily_internal_gaps() -> None:
     request = supervisor_request(weekly_sessions=2, sessions_per_day=6)
     candidate = [
         Assignment(

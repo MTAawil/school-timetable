@@ -290,7 +290,7 @@ def validate_assignments(
                     if run > teacher.max_consecutive_lessons:
                         errors.append(f"TEACHER_MAX_CONSECUTIVE:{teacher.id}")
                     previous = period
-        if teacher.employment_type == "FULL_TIME":
+        if request.schema_version == 2:
             for (teacher_id, _day), periods in teacher_periods.items():
                 if teacher_id != teacher.id:
                     continue
@@ -299,9 +299,11 @@ def validate_assignments(
                     for period in periods
                     if period in teaching_rank_by_period
                 )
-                for left_rank, right_rank in zip(ordered, ordered[1:], strict=False):
-                    if right_rank - left_rank - 1 > 2:
-                        errors.append(f"FULL_TIME_TEACHER_INTERNAL_GAP:{teacher.id}")
+                if not ordered:
+                    continue
+                internal_gap_count = ordered[-1] - ordered[0] + 1 - len(set(ordered))
+                if internal_gap_count > 2:
+                    errors.append(f"TEACHER_DAILY_INTERNAL_GAPS:{teacher.id}")
     for class_section in request.class_sections:
         if class_section.max_lessons_per_day and any(
             count > class_section.max_lessons_per_day
