@@ -122,7 +122,7 @@ const partTimeAvailabilityByTeacher = {
     Wednesday: [5, 6],
     Thursday: [5, 6],
   },
-  "احمد الحركة": {
+  "ربيع علام": {
     Thursday: [1, 2, 3, 4, 5, 6],
   },
 } satisfies Record<string, Partial<Record<DayName, readonly number[]>>>;
@@ -238,42 +238,42 @@ function normalizeSeedSubject(teacher: string, subject: string): string {
 
 const teacherDetails: TeacherDetail[] = [
   {
-    teacher: "احمد الحركة",
+    teacher: "ربيع علام",
     subject: "دين",
     className: "ES 1",
     hours: 1,
     sourceRow: 105,
   },
   {
-    teacher: "احمد الحركة",
+    teacher: "ربيع علام",
     subject: "دين",
     className: "ES 2",
     hours: 1,
     sourceRow: 16,
   },
   {
-    teacher: "احمد الحركة",
+    teacher: "ربيع علام",
     subject: "دين",
     className: "Grade 10 A",
     hours: 1,
     sourceRow: 137,
   },
   {
-    teacher: "احمد الحركة",
+    teacher: "ربيع علام",
     subject: "دين",
     className: "Grade 10 B",
     hours: 1,
     sourceRow: 150,
   },
   {
-    teacher: "احمد الحركة",
+    teacher: "ربيع علام",
     subject: "دين",
     className: "Grade 11 A",
     hours: 1,
     sourceRow: 163,
   },
   {
-    teacher: "احمد الحركة",
+    teacher: "ربيع علام",
     subject: "دين",
     className: "Grade 11 B",
     hours: 1,

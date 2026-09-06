@@ -198,10 +198,10 @@ def validate_assignments(
                 errors.append(f"SHARED_GROUP_TIME_MISMATCH:{group_id}")
 
     for (teacher_id, _day), events in teacher_events.items():
-        for index, left in enumerate(events):
-            for right in events[index + 1 :]:
-                left_assignment, left_group, left_interval = left
-                right_assignment, right_group, right_interval = right
+        for index, left_event in enumerate(events):
+            for right_event in events[index + 1 :]:
+                left_assignment, left_group, left_interval = left_event
+                right_assignment, right_group, right_interval = right_event
                 same_shared_event = (
                     left_group is not None
                     and left_group == right_group
@@ -238,13 +238,32 @@ def validate_assignments(
                 if len(daily) < 2:
                     continue
                 daily_periods = sorted(assignment.period_index for assignment in daily)
+                subject_break_after_session = _class_break_after_session(
+                    request,
+                    requirement.class_section_id,
+                )
                 for left, middle, right in zip(
                     daily_periods,
                     daily_periods[1:],
                     daily_periods[2:],
                     strict=False,
                 ):
-                    if middle == left + 1 and right == middle + 1:
+                    if (
+                        middle == left + 1
+                        and right == middle + 1
+                        and not _crosses_break(
+                            left,
+                            middle,
+                            subject_break_after_session,
+                            teaching_session_by_period,
+                        )
+                        and not _crosses_break(
+                            middle,
+                            right,
+                            subject_break_after_session,
+                            teaching_session_by_period,
+                        )
+                    ):
                         errors.append(
                             f"SUBJECT_DAILY_TRIPLE_CONSECUTIVE:{class_section.name}:{subject.name}"
                         )

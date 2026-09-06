@@ -477,6 +477,10 @@ def solve(request: SolveRequest) -> SolveResponse:
                     model.add(sum(starts) <= requirement.daily_occurrence_limit)
                     constraints += 1
                 if request.schema_version == 2:
+                    subject_break_after_session = class_break_after_session(
+                        request,
+                        requirement.class_section_id,
+                    )
                     for first, second, third in zip(
                         teaching_periods,
                         teaching_periods[1:],
@@ -484,6 +488,18 @@ def solve(request: SolveRequest) -> SolveResponse:
                         strict=False,
                     ):
                         if second != first + 1 or third != second + 1:
+                            continue
+                        if crosses_break(
+                            first,
+                            second,
+                            subject_break_after_session,
+                            teaching_session_by_period,
+                        ) or crosses_break(
+                            second,
+                            third,
+                            subject_break_after_session,
+                            teaching_session_by_period,
+                        ):
                             continue
                         window_starts = [
                             variable

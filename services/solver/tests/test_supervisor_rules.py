@@ -526,8 +526,8 @@ def test_validator_allows_part_time_distribution_relaxation() -> None:
 def test_validator_rejects_same_day_triple_consecutive_subject_sessions() -> None:
     payload = supervisor_request(
         weekly_sessions=3,
-        is_main_subject=True,
-        allow_double_session=True,
+        is_main_subject=False,
+        allow_double_session=False,
         sessions_per_day=6,
     ).model_dump(by_alias=True)
     payload["teachers"][0]["employmentType"] = "PART_TIME"
@@ -537,19 +537,19 @@ def test_validator_rejects_same_day_triple_consecutive_subject_sessions() -> Non
         Assignment(
             requirement_id="G7-A:MATH",
             day_index=0,
-            period_index=0,
-            duration_periods=1,
-        ),
-        Assignment(
-            requirement_id="G7-A:MATH",
-            day_index=0,
-            period_index=1,
-            duration_periods=1,
-        ),
-        Assignment(
-            requirement_id="G7-A:MATH",
-            day_index=0,
             period_index=2,
+            duration_periods=1,
+        ),
+        Assignment(
+            requirement_id="G7-A:MATH",
+            day_index=0,
+            period_index=3,
+            duration_periods=1,
+        ),
+        Assignment(
+            requirement_id="G7-A:MATH",
+            day_index=0,
+            period_index=4,
             duration_periods=1,
         ),
     ]
@@ -563,8 +563,8 @@ def test_validator_rejects_same_day_triple_consecutive_subject_sessions() -> Non
 def test_validator_allows_same_day_triples_with_a_gap() -> None:
     payload = supervisor_request(
         weekly_sessions=3,
-        is_main_subject=True,
-        allow_double_session=True,
+        is_main_subject=False,
+        allow_double_session=False,
         sessions_per_day=6,
     ).model_dump(by_alias=True)
     payload["teachers"][0]["employmentType"] = "PART_TIME"
@@ -575,6 +575,7 @@ def test_validator_allows_same_day_triples_with_a_gap() -> None:
         [0, 1, 3],
         [0, 2, 4],
         [1, 3, 5],
+        [1, 2, 3],
     ]
 
     for periods in accepted_patterns:
