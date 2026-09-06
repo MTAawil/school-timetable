@@ -127,8 +127,7 @@ integration, and solver tests without changing their meanings.
 | `CLASS_SUBJECT_MULTIPLE_TEACHERS` | Multiple teachers claim one class-subject. |
 | `TEACHER_WORKLOAD_MISMATCH` | Allocated sessions do not exactly equal declared workload. |
 | `NON_MAIN_DAILY_CAPACITY_SHORTAGE` | A non-main subject requires more sessions than working days. |
-| `DOUBLE_REQUIRED_BUT_DISABLED` | A main subject needs the required weekly consecutive pair, but doubles are disabled. |
-| `INSUFFICIENT_CONSECUTIVE_SLOTS` | A main subject has doubles enabled, but no compatible adjacent sessions are available. |
+| `DOUBLE_REQUIRED_BUT_DISABLED` | A main subject needs a same-day pair, but doubles are disabled. |
 | `MAIN_DAILY_CAPACITY_SHORTAGE` | Main-subject demand exceeds two sessions per working day. |
 | `TEACHER_CAPACITY_SHORTAGE` | Hard availability or limits provide insufficient teacher capacity. |
 
@@ -177,15 +176,12 @@ Expected: `NON_MAIN_DAILY_CAPACITY_SHORTAGE`, required 6, available 5.
 
 Main Mathematics requires six sessions over five days and allows doubles.
 
-Expected: feasible; at least one weekly pair is scheduled in consecutive
-teaching sessions that do not cross the class break, no day is above two
-sessions, and additional same-day pairs are preferred adjacent but may be
-distributed when needed.
+Expected: feasible; same-day pairs are preferred adjacent, no day is above two
+sessions, and distributed same-day pairs remain valid when needed.
 
 ### R07 - required pair disabled
 
-Main Mathematics requires at least two weekly sessions, but doubles are
-disabled.
+Main Mathematics requires six sessions over five days, but doubles are disabled.
 
 Expected: `DOUBLE_REQUIRED_BUT_DISABLED`.
 

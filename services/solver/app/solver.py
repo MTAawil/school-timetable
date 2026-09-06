@@ -456,7 +456,6 @@ def solve(request: SolveRequest) -> SolveResponse:
 
     for requirement in request.requirements:
         relax_part_time_distribution = part_time_distribution_can_relax(request, requirement)
-        weekly_adjacent_pairs: list[cp_model.IntVar] = []
         for day in days:
             starts = starts_by_day.get((requirement.id, day), [])
             if starts:
@@ -515,16 +514,6 @@ def solve(request: SolveRequest) -> SolveResponse:
                     model.add(non_adjacent_double >= sum(starts) - 1 - sum(adjacent_pairs))
                     constraints += 1
                     raw_terms["MAIN_DOUBLE_ADJACENCY"].append(non_adjacent_double)
-                    weekly_adjacent_pairs.extend(adjacent_pairs)
-        if (
-            request.schema_version == 2
-            and requirement.is_main_subject
-            and requirement.occurrence_count >= 2
-        ):
-            if not requirement.allow_double_session or not weekly_adjacent_pairs:
-                return _infeasible(request, started, len(variables), constraints)
-            model.add(sum(weekly_adjacent_pairs) >= 1)
-            constraints += 1
         used_variables = [
             day_used[(requirement.id, day)] for day in days if (requirement.id, day) in day_used
         ]

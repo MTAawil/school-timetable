@@ -115,11 +115,9 @@ snapshots. Historical schema-version-1 snapshots remain reproducible.
 class-subject. Every selected solver variable consumes one physical session.
 
 An optional double is not a duration-two requirement. It is two physical
-sessions of the same class-subject selected on the same day. For schema version
-2, every main class-subject with at least two weekly sessions must have at least
-one valid consecutive pair during the week. Additional same-day pairs prefer
-consecutive teaching periods, but may be distributed across the same day when
-required to satisfy the timetable.
+sessions of the same class-subject selected on the same day. Consecutive
+teaching periods are preferred, but allowed doubles may be distributed across
+the same day when required to satisfy the timetable.
 
 This distinction allows five weekly Mathematics sessions to become:
 
@@ -142,24 +140,20 @@ The redesigned solver must enforce:
 7. Optional teacher maximum consecutive sessions.
 8. A non-main class-subject has at most one session per day.
 9. A main class-subject has at most two sessions per day.
-10. A main class-subject with at least two weekly sessions has at least one
-    consecutive teaching-period pair during the week. The pair must not cross
-    the class break.
-11. Additional same-day main class-subject pairs prefer consecutive teaching
-    periods that do not cross the break, but this preference is not a hard
-    constraint.
-12. Two sessions in one day are forbidden when `allowDoubleSession` is false.
-13. Every class-subject has exactly one teacher before the request is accepted.
-14. Every teacher's allocated curriculum sessions equal their declared weekly
+10. When a main class-subject has two sessions in one day, consecutive teaching
+    periods that do not cross the break are preferred, not required.
+11. Two sessions in one day are forbidden when `allowDoubleSession` is false.
+12. Every class-subject has exactly one teacher before the request is accepted.
+13. Every teacher's allocated curriculum sessions equal their declared weekly
     teaching sessions before the request is accepted.
-15. A shared-teaching group selects identical slots for every member class and
+14. A shared-teaching group selects identical slots for every member class and
     counts those synchronized sessions once for teacher collision and workload
     constraints.
-16. A class-specific recess position marks the break between two teaching
+15. A class-specific recess position marks the break between two teaching
     sessions for that class; it does not remove either teaching session from
     the timetable. The value is a teaching-session number, not a physical
     `periodIndex`. Null uses the school's default break position.
-17. A teacher may not have more than two internal free teaching sessions total
+16. A teacher may not have more than two internal free teaching sessions total
     between lessons on the same day. Free time before the first lesson or after
     the last lesson is allowed.
 
@@ -192,18 +186,12 @@ For a main subject on a given day:
 - if the sum is two and no valid adjacent pair is selected, the solver applies
   `MAIN_DOUBLE_ADJACENCY` as a soft penalty
 
-For every main subject with at least two weekly sessions:
-
-- `allowDoubleSession` must be true
-- at least one valid adjacent pair must be selected somewhere in the week
-
 Valid adjacency is defined by teaching-session order, not raw clock minutes.
 The applicable class break separates adjacency even when period indices are
 numerically consecutive.
 
-The solver must force the required weekly adjacent pair for eligible main
-subjects. It must not fail a schedule solely because an additional allowed
-same-day double is distributed.
+The solver must not force an allowed double to occur and must not fail a
+schedule solely because an allowed same-day double is distributed.
 
 For schema version 2, main subjects also receive a weighted soft penalty when
 placed after the first four teaching sessions of a day. This is a preference,
@@ -243,8 +231,6 @@ The independent validator must additionally prove:
 - exact physical curriculum session totals
 - non-main daily uniqueness, except for named part-time distribution relaxation
 - main daily maximum of two, except for named part-time distribution relaxation
-- at least one break-aware weekly consecutive pair for main subjects with at
-  least two weekly sessions
 - no pair when double sessions are disabled, except for named part-time
   distribution relaxation
 - declared and allocated teacher totals in the input contract
