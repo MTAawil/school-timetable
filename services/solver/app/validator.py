@@ -237,6 +237,18 @@ def validate_assignments(
             for daily in assignments_by_day.values():
                 if len(daily) < 2:
                     continue
+                daily_periods = sorted(assignment.period_index for assignment in daily)
+                for left, middle, right in zip(
+                    daily_periods,
+                    daily_periods[1:],
+                    daily_periods[2:],
+                    strict=False,
+                ):
+                    if middle == left + 1 and right == middle + 1:
+                        errors.append(
+                            f"SUBJECT_DAILY_TRIPLE_CONSECUTIVE:{class_section.name}:{subject.name}"
+                        )
+                        break
                 if _part_time_distribution_can_relax(request, requirement.id):
                     continue
                 if not requirement.is_main_subject:

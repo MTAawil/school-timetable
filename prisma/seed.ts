@@ -52,7 +52,7 @@ const schoolWeekConfiguration = {
 
 const partTimeAvailabilityByTeacher = {
   "علي بندر": {
-    Wednesday: [1, 2, 3, 4],
+    Tuesday: [1, 2, 3, 4],
     Thursday: [5, 6],
     Friday: [1, 2, 3, 4],
   },
@@ -68,8 +68,8 @@ const partTimeAvailabilityByTeacher = {
     Thursday: [3, 4],
   },
   "ناجي هاشم": {
-    Monday: [1, 2, 3],
     Tuesday: [1, 2, 3],
+    Wednesday: [1, 2, 3],
     Thursday: [1, 2, 3],
   },
   "رباب العبد": {

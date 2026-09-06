@@ -476,6 +476,23 @@ def solve(request: SolveRequest) -> SolveResponse:
                 else:
                     model.add(sum(starts) <= requirement.daily_occurrence_limit)
                     constraints += 1
+                if request.schema_version == 2:
+                    for first, second, third in zip(
+                        teaching_periods,
+                        teaching_periods[1:],
+                        teaching_periods[2:],
+                        strict=False,
+                    ):
+                        if second != first + 1 or third != second + 1:
+                            continue
+                        window_starts = [
+                            variable
+                            for period in (first, second, third)
+                            for variable in starts_by_period.get((requirement.id, day, period), [])
+                        ]
+                        if window_starts:
+                            model.add(sum(window_starts) <= 2)
+                            constraints += 1
                 if (
                     request.schema_version == 2
                     and requirement.is_main_subject

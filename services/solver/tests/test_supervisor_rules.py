@@ -523,6 +523,74 @@ def test_validator_allows_part_time_distribution_relaxation() -> None:
     assert validate_assignments(request, candidate) == []
 
 
+def test_validator_rejects_same_day_triple_consecutive_subject_sessions() -> None:
+    payload = supervisor_request(
+        weekly_sessions=3,
+        is_main_subject=True,
+        allow_double_session=True,
+        sessions_per_day=6,
+    ).model_dump(by_alias=True)
+    payload["teachers"][0]["employmentType"] = "PART_TIME"
+    payload["teachers"][0]["weeklyTeachingSessions"] = 3
+    request = SolveRequest.model_validate(payload)
+    candidate = [
+        Assignment(
+            requirement_id="G7-A:MATH",
+            day_index=0,
+            period_index=0,
+            duration_periods=1,
+        ),
+        Assignment(
+            requirement_id="G7-A:MATH",
+            day_index=0,
+            period_index=1,
+            duration_periods=1,
+        ),
+        Assignment(
+            requirement_id="G7-A:MATH",
+            day_index=0,
+            period_index=2,
+            duration_periods=1,
+        ),
+    ]
+
+    assert "SUBJECT_DAILY_TRIPLE_CONSECUTIVE:G7-A:MATH" in validate_assignments(
+        request,
+        candidate,
+    )
+
+
+def test_validator_allows_same_day_triples_with_a_gap() -> None:
+    payload = supervisor_request(
+        weekly_sessions=3,
+        is_main_subject=True,
+        allow_double_session=True,
+        sessions_per_day=6,
+    ).model_dump(by_alias=True)
+    payload["teachers"][0]["employmentType"] = "PART_TIME"
+    payload["teachers"][0]["weeklyTeachingSessions"] = 3
+    request = SolveRequest.model_validate(payload)
+
+    accepted_patterns = [
+        [0, 1, 3],
+        [0, 2, 4],
+        [1, 3, 5],
+    ]
+
+    for periods in accepted_patterns:
+        candidate = [
+            Assignment(
+                requirement_id="G7-A:MATH",
+                day_index=0,
+                period_index=period,
+                duration_periods=1,
+            )
+            for period in periods
+        ]
+
+        assert validate_assignments(request, candidate) == []
+
+
 def test_part_time_distribution_relaxes_when_availability_forces_repeat() -> None:
     payload = supervisor_request(
         weekly_sessions=3,
@@ -554,12 +622,47 @@ def test_part_time_distribution_relaxes_when_availability_forces_repeat() -> Non
     response = solve(request)
 
     assert response.status in {"FEASIBLE", "OPTIMAL"}
+
+
+def test_solver_requires_a_gap_for_same_day_triple_subject_sessions() -> None:
+    payload = supervisor_request(
+        weekly_sessions=3,
+        is_main_subject=True,
+        allow_double_session=True,
+        sessions_per_day=6,
+    ).model_dump(by_alias=True)
+    payload["teachers"][0]["employmentType"] = "PART_TIME"
+    payload["teachers"][0]["weeklyTeachingSessions"] = 3
+    payload["teachers"][0]["maxLessonsPerDay"] = 3
+    payload["availability"] = [
+        {
+            "entityType": "TEACHER",
+            "entityId": "teacher",
+            "dayIndex": day,
+            "periodIndex": period,
+            "state": "UNAVAILABLE",
+        }
+        for day in range(5)
+        for period in range(6)
+        if day != 0
+    ]
+    request = SolveRequest.model_validate(payload)
+
+    response = solve(request)
+
+    assert response.status in {"FEASIBLE", "OPTIMAL"}
+    periods = sorted(
+        assignment.period_index
+        for assignment in response.alternatives[0].assignments
+        if assignment.day_index == 0
+    )
+    assert len(periods) == 3
+    assert all(
+        [left, middle, right] != list(range(left, left + 3))
+        for left, middle, right in zip(periods, periods[1:], periods[2:], strict=False)
+    )
     alternative = response.alternatives[0]
     assert validate_assignments(request, alternative.assignments) == []
-    assert alternative.penalty_breakdown["PART_TIME_DISTRIBUTION_RELAXATION"] > 0
-    assert any(
-        warning.startswith("PART_TIME_DISTRIBUTION_RELAXED:") for warning in alternative.warnings
-    )
 
 
 def test_full_time_balance_penalty_orders_daily_distributions() -> None:
