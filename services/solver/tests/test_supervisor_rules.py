@@ -413,8 +413,8 @@ def test_optional_main_double_is_adjacent_and_does_not_cross_break() -> None:
     assert all(periods != [1, 2] for periods in pairs)
 
 
-def test_allowed_main_double_can_be_distributed_when_needed() -> None:
-    request = supervisor_request(weekly_sessions=2)
+def test_additional_allowed_main_double_can_be_distributed_when_needed() -> None:
+    request = supervisor_request(weekly_sessions=4)
     candidate = [
         Assignment(
             requirement_id="G7-A:MATH",
@@ -425,6 +425,18 @@ def test_allowed_main_double_can_be_distributed_when_needed() -> None:
         Assignment(
             requirement_id="G7-A:MATH",
             day_index=0,
+            period_index=1,
+            duration_periods=1,
+        ),
+        Assignment(
+            requirement_id="G7-A:MATH",
+            day_index=1,
+            period_index=0,
+            duration_periods=1,
+        ),
+        Assignment(
+            requirement_id="G7-A:MATH",
+            day_index=1,
             period_index=3,
             duration_periods=1,
         ),
@@ -672,7 +684,7 @@ def test_class_recess_does_not_block_a_teaching_session() -> None:
 
 
 def test_class_recess_separates_double_session_adjacency() -> None:
-    request = supervisor_request(weekly_sessions=2)
+    request = supervisor_request(weekly_sessions=4)
     payload = request.model_dump(by_alias=True)
     payload["classSections"][0]["recessAfterSession"] = 3
     request = SolveRequest.model_validate(payload)
@@ -689,12 +701,71 @@ def test_class_recess_separates_double_session_adjacency() -> None:
             period_index=3,
             duration_periods=1,
         ),
+        Assignment(
+            requirement_id="G7-A:MATH",
+            day_index=1,
+            period_index=0,
+            duration_periods=1,
+        ),
+        Assignment(
+            requirement_id="G7-A:MATH",
+            day_index=1,
+            period_index=1,
+            duration_periods=1,
+        ),
     ]
 
     assert validate_assignments(request, candidate) == []
     scored = score_assignments(request, candidate)
 
     assert scored.breakdown["MAIN_DOUBLE_ADJACENCY"] == 12
+
+
+def test_main_subject_requires_one_weekly_consecutive_pair() -> None:
+    request = supervisor_request(weekly_sessions=2)
+
+    response = solve(request)
+
+    assert response.status in {"FEASIBLE", "OPTIMAL"}
+    periods_by_day: dict[int, list[int]] = {}
+    for assignment in response.alternatives[0].assignments:
+        periods_by_day.setdefault(assignment.day_index, []).append(assignment.period_index)
+    assert any(
+        right == left + 1
+        for periods in periods_by_day.values()
+        for left, right in zip(sorted(periods), sorted(periods)[1:], strict=False)
+    )
+    assert validate_assignments(request, response.alternatives[0].assignments) == []
+
+
+def test_main_subject_without_weekly_consecutive_pair_is_rejected() -> None:
+    request = supervisor_request(weekly_sessions=2)
+    candidate = [
+        Assignment(
+            requirement_id="G7-A:MATH",
+            day_index=0,
+            period_index=0,
+            duration_periods=1,
+        ),
+        Assignment(
+            requirement_id="G7-A:MATH",
+            day_index=1,
+            period_index=0,
+            duration_periods=1,
+        ),
+    ]
+    payload = request.model_dump(by_alias=True)
+    payload["requirements"][0]["fixedSlots"] = [
+        {"dayIndex": 0, "periodIndex": 0},
+        {"dayIndex": 1, "periodIndex": 0},
+    ]
+    fixed_request = SolveRequest.model_validate(payload)
+
+    assert "MAIN_SUBJECT_CONSECUTIVE_PAIR:G7-A:MATH" in validate_assignments(
+        request,
+        candidate,
+    )
+    assert solve(fixed_request).status == "INFEASIBLE"
 
 
 def test_teacher_can_cross_timing_groups_when_clock_times_do_not_overlap() -> None:
@@ -804,7 +875,7 @@ def test_teacher_cannot_cross_timing_groups_when_clock_times_overlap() -> None:
 
 
 def test_class_recess_uses_teaching_session_order_not_physical_period_index() -> None:
-    request = supervisor_request(weekly_sessions=2)
+    request = supervisor_request(weekly_sessions=4)
     payload = request.model_dump(by_alias=True)
     payload["calendar"]["periods"] = [
         {"id": "p0", "index": 0, "name": "Session 1", "isTeaching": True},
@@ -836,6 +907,18 @@ def test_class_recess_uses_teaching_session_order_not_physical_period_index() ->
             requirement_id="G7-A:MATH",
             day_index=0,
             period_index=4,
+            duration_periods=1,
+        ),
+        Assignment(
+            requirement_id="G7-A:MATH",
+            day_index=1,
+            period_index=0,
+            duration_periods=1,
+        ),
+        Assignment(
+            requirement_id="G7-A:MATH",
+            day_index=1,
+            period_index=1,
             duration_periods=1,
         ),
     ]
@@ -957,7 +1040,7 @@ def test_teacher_daily_internal_gap_limit_is_a_solver_hard_constraint() -> None:
 
 
 def test_teacher_allows_two_daily_internal_gaps() -> None:
-    request = supervisor_request(weekly_sessions=2, sessions_per_day=6)
+    request = supervisor_request(weekly_sessions=4, sessions_per_day=6)
     candidate = [
         Assignment(
             requirement_id="G7-A:MATH",
@@ -969,6 +1052,18 @@ def test_teacher_allows_two_daily_internal_gaps() -> None:
             requirement_id="G7-A:MATH",
             day_index=0,
             period_index=3,
+            duration_periods=1,
+        ),
+        Assignment(
+            requirement_id="G7-A:MATH",
+            day_index=1,
+            period_index=0,
+            duration_periods=1,
+        ),
+        Assignment(
+            requirement_id="G7-A:MATH",
+            day_index=1,
+            period_index=1,
             duration_periods=1,
         ),
     ]

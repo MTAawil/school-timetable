@@ -212,7 +212,10 @@ enters. `GradeCurriculum` remains a template/default row used to group
 class-section curriculum by grade, but individual sections may differ in
 weekly sessions, main-subject status, and double-session eligibility. The
 teacher remains nullable until allocation is complete, but readiness and solver
-snapshot creation require exactly one teacher.
+snapshot creation require exactly one teacher. For schema-version-2 generation,
+a main class curriculum row with at least two weekly sessions must allow double
+sessions and must have at least one compatible consecutive teaching-session pair
+somewhere in the week.
 
 Curriculum totals are not duplicated in a separate teacher-allocation table.
 Assigning `teacherId` to `ClassCurriculum` expresses the one-teacher ownership

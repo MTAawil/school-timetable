@@ -221,6 +221,71 @@ function compatibleStarts(
   });
 }
 
+function compatibleSupervisorStarts(
+  snapshot: SupervisorSolverSnapshot,
+  requirement: SupervisorSolverSnapshot["requirements"][number],
+): Position[] {
+  if (!requirement.teacherId) return [];
+  const positions = teachingPositions(snapshot);
+  const teacherUnavailable = unavailableSet(
+    snapshot,
+    "TEACHER",
+    requirement.teacherId,
+  );
+  const classUnavailable = unavailableSet(
+    snapshot,
+    "CLASS_SECTION",
+    requirement.classSectionId,
+  );
+  const forbidden = new Set(
+    requirement.forbiddenSlots.map((slot) =>
+      positionKey(slot.dayIndex, slot.periodIndex),
+    ),
+  );
+
+  return positions.filter((position) => {
+    const key = positionKey(position.dayIndex, position.periodIndex);
+    return (
+      !teacherUnavailable.has(key) &&
+      !classUnavailable.has(key) &&
+      !forbidden.has(key)
+    );
+  });
+}
+
+function hasCompatibleConsecutivePair(
+  snapshot: SupervisorSolverSnapshot,
+  requirement: SupervisorSolverSnapshot["requirements"][number],
+): boolean {
+  const classSection = snapshot.classSections.find(
+    (item) => item.id === requirement.classSectionId,
+  );
+  const breakAfterSession =
+    classSection?.recessAfterSession ??
+    snapshot.weekConfiguration?.breakAfterSession ??
+    null;
+  const startsByDay = new Map<number, number[]>();
+  for (const start of compatibleSupervisorStarts(snapshot, requirement)) {
+    const starts = startsByDay.get(start.dayIndex) ?? [];
+    starts.push(start.periodIndex);
+    startsByDay.set(start.dayIndex, starts);
+  }
+  for (const periods of startsByDay.values()) {
+    const ordered = periods.sort((left, right) => left - right);
+    for (const [index, left] of ordered.entries()) {
+      const right = ordered[index + 1];
+      if (right === undefined) continue;
+      if (
+        right === left + 1 &&
+        !(breakAfterSession !== null && left === breakAfterSession - 1)
+      ) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 function addCollisionIssues(
   snapshot: LegacySolverSnapshot,
   issues: ReadinessIssue[],
@@ -661,19 +726,38 @@ function validateSupervisorReadiness(
     if (
       requirement.isMainSubject &&
       !requirement.allowDoubleSession &&
-      requirement.weeklySessions > workingDayCount
+      requirement.weeklySessions >= 2
     ) {
       issues.push({
         code: "DOUBLE_REQUIRED_BUT_DISABLED",
-        summary: `${label} needs a same-day pair, but double sessions are disabled.`,
+        summary: `${label} needs at least one weekly consecutive pair, but double sessions are disabled.`,
         entityIds: [
           requirement.id,
           requirement.classSectionId,
           requirement.subjectId,
         ],
-        required: requirement.weeklySessions,
-        available: workingDayCount,
+        required: 1,
+        available: 0,
         suggestions: ["/subjects"],
+      });
+    }
+    if (
+      requirement.isMainSubject &&
+      requirement.allowDoubleSession &&
+      requirement.weeklySessions >= 2 &&
+      !hasCompatibleConsecutivePair(snapshot, requirement)
+    ) {
+      issues.push({
+        code: "INSUFFICIENT_CONSECUTIVE_SLOTS",
+        summary: `${label} needs at least one weekly consecutive pair, but no compatible adjacent sessions are available.`,
+        entityIds: [
+          requirement.id,
+          requirement.classSectionId,
+          requirement.subjectId,
+        ],
+        required: 1,
+        available: 0,
+        suggestions: ["/subjects", "/teachers"],
       });
     }
     if (

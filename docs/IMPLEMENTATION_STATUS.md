@@ -20,6 +20,8 @@
 - [x] Report concrete same-day teacher clock-overlap examples in packing
       diagnostics and avoid treating matching clock times on different days as
       collisions.
+- [x] Require each main subject with at least two weekly sessions to receive one
+      break-aware consecutive pair during the week.
 
 ## Current phase
 

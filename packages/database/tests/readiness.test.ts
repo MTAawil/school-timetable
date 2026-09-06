@@ -305,6 +305,28 @@ describe("supervisor readiness", () => {
     );
   });
 
+  it("rejects a main subject when no compatible consecutive pair exists", () => {
+    const snapshot = buildSupervisorSnapshot({
+      availability: Array.from({ length: 5 }, (_, dayIndex) =>
+        [1, 3, 5, 7].map((periodIndex) => ({
+          entityType: "TEACHER" as const,
+          entityId: "teacher",
+          dayIndex,
+          periodIndex,
+          state: "UNAVAILABLE" as const,
+        })),
+      ).flat(),
+    });
+
+    expect(validateReadiness(snapshot).issues).toContainEqual(
+      expect.objectContaining({
+        code: "INSUFFICIENT_CONSECUTIVE_SLOTS",
+        required: 1,
+        available: 0,
+      }),
+    );
+  });
+
   it("requires exact declared teacher workload", () => {
     const snapshot = buildSupervisorSnapshot();
     const teacher = snapshot.teachers[0];

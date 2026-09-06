@@ -94,6 +94,7 @@ def validate_assignments(
     group_positions: dict[str, dict[str, set[tuple[int, int]]]] = {}
     teacher_event_seen: set[tuple[str, int, int]] = set()
     teacher_events: dict[tuple[str, int], list[tuple[Assignment, str | None, tuple[int, int]]]] = {}
+    periods_by_requirement_day: dict[tuple[str, int], set[int]] = {}
 
     for requirement in request.requirements:
         if not allow_incomplete and counts[requirement.id] != requirement.occurrence_count:
@@ -174,6 +175,9 @@ def validate_assignments(
         )
         days_by_requirement.setdefault(current_requirement.id, set()).add(assignment.day_index)
         daily_counts[(current_requirement.id, assignment.day_index)] += 1
+        periods_by_requirement_day.setdefault(
+            (current_requirement.id, assignment.day_index), set()
+        ).add(assignment.period_index)
         if current_requirement.shared_teaching_group_id:
             group_positions.setdefault(current_requirement.shared_teaching_group_id, {}).setdefault(
                 current_requirement.id, set()
@@ -244,6 +248,34 @@ def validate_assignments(
                     continue
                 if not requirement.allow_double_session:
                     errors.append(f"MAIN_DOUBLE_DISABLED:{requirement.id}")
+            if (
+                not allow_incomplete
+                and requirement.is_main_subject
+                and requirement.occurrence_count >= 2
+            ):
+                has_adjacent_pair = False
+                subject_break_after_session = _class_break_after_session(
+                    request,
+                    requirement.class_section_id,
+                )
+                for (_requirement_id, _day), periods in periods_by_requirement_day.items():
+                    if _requirement_id != requirement.id:
+                        continue
+                    ordered = sorted(periods)
+                    if any(
+                        right == left + 1
+                        and not _crosses_break(
+                            left,
+                            right,
+                            subject_break_after_session,
+                            teaching_session_by_period,
+                        )
+                        for left, right in zip(ordered, ordered[1:], strict=False)
+                    ):
+                        has_adjacent_pair = True
+                        break
+                if not has_adjacent_pair:
+                    errors.append(f"MAIN_SUBJECT_CONSECUTIVE_PAIR:{requirement.id}")
     for teacher in request.teachers:
         if request.schema_version == 2:
             counted_groups: set[str] = set()
