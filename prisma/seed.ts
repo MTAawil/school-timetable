@@ -54,7 +54,7 @@ const partTimeAvailabilityByTeacher = {
   "علي بندر": {
     Wednesday: [1, 2, 3, 4],
     Thursday: [5, 6],
-    Friday: [1, 2, 3],
+    Friday: [1, 2, 3, 4],
   },
   "محمد عساف": {
     Monday: [2, 3, 4, 5, 6],
@@ -85,7 +85,7 @@ const partTimeAvailabilityByTeacher = {
   "صبحي حمية": {
     Monday: [1, 2, 3, 4, 5, 6],
     Wednesday: [1, 2, 3, 4, 5, 6],
-    Friday: [1, 2, 3],
+    Friday: [1, 2, 3, 4],
   },
   "سحر فقيه": {
     Monday: [1, 2, 3, 4, 5, 6],
@@ -3381,6 +3381,26 @@ function classMetadata(shortCode: string): ClassMetadata {
 
   const esSection = /^ES(\d+)$/u.exec(shortCode);
   if (esSection) {
+    if (esSection[1] === "1") {
+      return {
+        gradeCode: "G10_FR",
+        gradeName: "G10 French",
+        displayOrder: 10.1,
+        sectionLabel: "French",
+        sectionName: shortCode,
+        shortCode,
+      };
+    }
+    if (esSection[1] === "2") {
+      return {
+        gradeCode: "G11_FR",
+        gradeName: "G11 French",
+        displayOrder: 11.1,
+        sectionLabel: "French",
+        sectionName: shortCode,
+        shortCode,
+      };
+    }
     return {
       gradeCode: "G12_ES",
       gradeName: "G12 ES",
@@ -3391,12 +3411,23 @@ function classMetadata(shortCode: string): ClassMetadata {
     };
   }
 
-  if (shortCode === "ES" || shortCode === "SE") {
+  if (shortCode === "ES") {
     return {
       gradeCode: "G12_ES",
       gradeName: "G12 ES",
       displayOrder: 15,
-      sectionLabel: shortCode,
+      sectionLabel: "ES",
+      sectionName: shortCode,
+      shortCode,
+    };
+  }
+
+  if (shortCode === "SE") {
+    return {
+      gradeCode: "G12_SE",
+      gradeName: "G12 SE",
+      displayOrder: 15.1,
+      sectionLabel: "SE",
       sectionName: shortCode,
       shortCode,
     };
@@ -3415,8 +3446,8 @@ function classMetadata(shortCode: string): ClassMetadata {
 
   if (shortCode === "SV") {
     return {
-      gradeCode: "G12_GS",
-      gradeName: "G12 GS",
+      gradeCode: "G12_SV",
+      gradeName: "G12 SV",
       displayOrder: 16,
       sectionLabel: "SV",
       sectionName: shortCode,
@@ -3440,9 +3471,11 @@ function curriculumKey(gradeLevelId: string, subjectId: string): string {
 
 const upperSecondaryMainSubjectsByGrade = {
   G11: ["MATH", "فيزياء"],
+  G11_FR: ["MATH", "فيزياء"],
   G12_LS: ["MATH", "فيزياء", "كيمياء", "بيولوجي"],
-  G12_GS: ["MATH", "فيزياء", "كيمياء", "بيولوجي"],
+  G12_SV: ["MATH", "فيزياء", "كيمياء", "بيولوجي"],
   G12_ES: ["MATH", "اقتصاد", "اجتماع"],
+  G12_SE: ["MATH", "اقتصاد", "اجتماع"],
 } satisfies Record<string, readonly string[]>;
 
 function isMainSubject(
