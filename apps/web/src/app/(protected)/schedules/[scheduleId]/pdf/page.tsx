@@ -39,7 +39,12 @@ type ScheduleAssignment = {
   startPeriodIndex: number | null;
   durationPeriods: number;
   isLocked: boolean;
-  classSection: { id: string; sectionName: string; shortCode: string };
+  classSection: {
+    id: string;
+    grade: string;
+    sectionName: string;
+    shortCode: string;
+  };
   teacher: {
     id: string;
     name: string;
@@ -55,6 +60,20 @@ type ScheduleAssignment = {
       members: { classSection: { shortCode: string } }[];
     } | null;
   };
+};
+type RuleBriefMainSubject = {
+  subjectName: string;
+  hasConsecutivePair: boolean;
+};
+type RuleBriefTripleSubject = {
+  dayName: string;
+  subjectName: string;
+  sessions: number[];
+};
+type ClassRuleBrief = {
+  maxSocialStudiesPerDay: number;
+  mainSubjects: RuleBriefMainSubject[];
+  tripleSubjects: RuleBriefTripleSubject[];
 };
 
 type ExportType = z.infer<typeof searchSchema>["type"];
@@ -117,6 +136,204 @@ function formatSessionList(sessions: number[]): string {
   return sessions.length > 0
     ? sessions.map((session) => `S${String(session)}`).join(", ")
     : "None";
+}
+
+const baseSocialStudyNames = new Set([
+  "history",
+  "geography",
+  "civics",
+  "religion",
+  "تاريخ",
+  "جغرافيا",
+  "تربية",
+  "دين",
+]);
+const upperSecondarySocialStudyNames = new Set([
+  "sociology",
+  "social studies",
+  "economics",
+  "philosophy",
+  "اجتماع",
+  "اقتصاد",
+  "فلسفة",
+]);
+const baseSocialStudyCodes = new Set([
+  "HISTORY",
+  "GEOGRAPHY",
+  "CIVICS",
+  "RELIGION",
+  "S016",
+  "S017",
+  "S005",
+  "S001",
+]);
+const upperSecondarySocialStudyCodes = new Set([
+  "SOCIOLOGY",
+  "SOCIAL_STUDIES",
+  "ECONOMICS",
+  "PHILOSOPHY",
+  "S013",
+  "S014",
+  "S019",
+]);
+
+function subjectKey(value: string): string {
+  return value
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/gu, "_")
+    .replace(/^_+|_+$/gu, "");
+}
+
+function subjectLabel(value: string): string {
+  return value.toLocaleLowerCase().trim().replace(/\s+/gu, " ");
+}
+
+function isGradeTenOrEleven(classSection: ScheduleAssignment["classSection"]) {
+  return [classSection.grade, classSection.shortCode, classSection.sectionName]
+    .filter((value) => value.length > 0)
+    .some((value) =>
+      ["G10", "G11"].some((prefix) => subjectKey(value).startsWith(prefix)),
+    );
+}
+
+function isSocialStudiesSubject(assignment: ScheduleAssignment): boolean {
+  const subject = assignment.teachingRequirement.subject;
+  const code = subjectKey(subject.shortCode);
+  const nameKey = subjectKey(subject.name);
+  const nameLabel = subjectLabel(subject.name);
+  const isBase =
+    baseSocialStudyCodes.has(code) ||
+    baseSocialStudyCodes.has(nameKey) ||
+    baseSocialStudyNames.has(nameLabel);
+  if (isBase) return true;
+  return (
+    isGradeTenOrEleven(assignment.classSection) &&
+    (upperSecondarySocialStudyCodes.has(code) ||
+      upperSecondarySocialStudyCodes.has(nameKey) ||
+      upperSecondarySocialStudyNames.has(nameLabel))
+  );
+}
+
+function buildClassRuleBrief({
+  classSectionId,
+  assignments,
+  days,
+  snapshot,
+}: {
+  classSectionId: string;
+  assignments: ScheduleAssignment[];
+  days: Day[];
+  snapshot: SolverSnapshot;
+}): ClassRuleBrief {
+  const requirementById = new Map(
+    snapshot.requirements.map((requirement) => [requirement.id, requirement]),
+  );
+  const dayNameByIndex = new Map(days.map((day) => [day.dayIndex, day.name]));
+  const socialStudyCountsByDay = new Map<number, number>();
+  const periodsBySubjectDay = new Map<
+    string,
+    { dayIndex: number; subjectName: string; periods: number[] }
+  >();
+  const periodsByMainRequirementDay = new Map<string, Map<number, number[]>>();
+  const mainSubjectByRequirementId = new Map<string, string>();
+
+  for (const assignment of assignments) {
+    if (assignment.classSectionId !== classSectionId) continue;
+    const requirement = requirementById.get(assignment.teachingRequirementId);
+    const periods = Array.from(
+      { length: assignment.durationPeriods },
+      (_, offset) => (assignment.startPeriodIndex ?? 0) + offset,
+    );
+
+    if (isSocialStudiesSubject(assignment) && assignment.startDayIndex !== null) {
+      socialStudyCountsByDay.set(
+        assignment.startDayIndex,
+        (socialStudyCountsByDay.get(assignment.startDayIndex) ?? 0) +
+          periods.length,
+      );
+    }
+
+    if (assignment.startDayIndex !== null) {
+      const subjectDayKey = `${assignment.teachingRequirement.subject.name}:${String(
+        assignment.startDayIndex,
+      )}`;
+      const subjectDay = periodsBySubjectDay.get(subjectDayKey) ?? {
+        dayIndex: assignment.startDayIndex,
+        subjectName: assignment.teachingRequirement.subject.name,
+        periods: [],
+      };
+      subjectDay.periods.push(...periods);
+      periodsBySubjectDay.set(subjectDayKey, subjectDay);
+    }
+
+    if (
+      snapshot.schemaVersion === 2 &&
+      requirement &&
+      "isMainSubject" in requirement &&
+      requirement.isMainSubject &&
+      assignment.startDayIndex !== null
+    ) {
+      mainSubjectByRequirementId.set(
+        assignment.teachingRequirementId,
+        assignment.teachingRequirement.subject.name,
+      );
+      const daysByRequirement =
+        periodsByMainRequirementDay.get(assignment.teachingRequirementId) ??
+        new Map<number, number[]>();
+      const dailyPeriods = daysByRequirement.get(assignment.startDayIndex) ?? [];
+      dailyPeriods.push(...periods);
+      daysByRequirement.set(assignment.startDayIndex, dailyPeriods);
+      periodsByMainRequirementDay.set(
+        assignment.teachingRequirementId,
+        daysByRequirement,
+      );
+    }
+  }
+
+  const mainSubjects = Array.from(periodsByMainRequirementDay.entries())
+    .map(([requirementId, daysByRequirement]) => {
+      const hasConsecutivePair = Array.from(daysByRequirement.values()).some(
+        (periods) => {
+          const ordered = Array.from(new Set(periods)).sort(
+            (left, right) => left - right,
+          );
+          return ordered.some(
+            (period, index) => index > 0 && period === ordered[index - 1] + 1,
+          );
+        },
+      );
+      return {
+        subjectName:
+          mainSubjectByRequirementId.get(requirementId) ?? requirementId,
+        hasConsecutivePair,
+      };
+    })
+    .sort((left, right) => left.subjectName.localeCompare(right.subjectName));
+
+  const tripleSubjects = Array.from(periodsBySubjectDay.values())
+    .filter((item) => item.periods.length >= 3)
+    .map((item) => ({
+      dayName:
+        dayNameByIndex.get(item.dayIndex) ?? `Day ${String(item.dayIndex + 1)}`,
+      subjectName: item.subjectName,
+      sessions: Array.from(new Set(item.periods))
+        .sort((left, right) => left - right)
+        .map((period) => period + 1),
+    }))
+    .sort(
+      (left, right) =>
+        left.dayName.localeCompare(right.dayName) ||
+        left.subjectName.localeCompare(right.subjectName),
+    );
+
+  return {
+    maxSocialStudiesPerDay:
+      socialStudyCountsByDay.size > 0
+        ? Math.max(...socialStudyCountsByDay.values())
+        : 0,
+    mainSubjects,
+    tripleSubjects,
+  };
 }
 
 function formatAvailabilityByDay({
@@ -367,6 +584,7 @@ function Timetable({
   type,
   classSectionId,
   notes,
+  ruleBrief,
 }: {
   title: string;
   subtitle?: string;
@@ -377,6 +595,7 @@ function Timetable({
   type: "class" | "teacher";
   classSectionId?: string;
   notes?: string[];
+  ruleBrief?: ClassRuleBrief;
 }) {
   const breakLabel =
     type === "class" && classSectionId
@@ -440,6 +659,49 @@ function Timetable({
           ))}
         </tbody>
       </table>
+      {ruleBrief ? (
+        <section className="pdf-rule-brief">
+          <h3>Schedule rule brief</h3>
+          <div className="pdf-rule-brief-grid">
+            <div>
+              <strong>Max social studies in one day</strong>
+              <span>{String(ruleBrief.maxSocialStudiesPerDay)}</span>
+            </div>
+            <div>
+              <strong>Main subjects consecutive pair</strong>
+              {ruleBrief.mainSubjects.length > 0 ? (
+                <ul>
+                  {ruleBrief.mainSubjects.map((subject) => (
+                    <li key={subject.subjectName}>
+                      {subject.subjectName}:{" "}
+                      {subject.hasConsecutivePair ? "Yes" : "No"}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <span>None</span>
+              )}
+            </div>
+            <div>
+              <strong>Same subject 3 sessions in a day</strong>
+              {ruleBrief.tripleSubjects.length > 0 ? (
+                <ul>
+                  {ruleBrief.tripleSubjects.map((item) => (
+                    <li
+                      key={`${item.dayName}:${item.subjectName}:${item.sessions.join(",")}`}
+                    >
+                      {item.subjectName} on {item.dayName}:{" "}
+                      {formatSessionList(item.sessions)}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <span>None</span>
+              )}
+            </div>
+          </div>
+        </section>
+      ) : null}
       {notes && notes.length > 0 ? (
         <footer className="pdf-notes">
           <h3>Teacher notes</h3>
@@ -990,6 +1252,13 @@ export default async function SchedulePdfPage({
         .pdf-lesson small { color: #516159; display: block; font-size: 8px; line-height: 1.25; margin-top: 3px; }
         .pdf-empty { color: #9ba59f; font-size: 10px; }
         .pdf-break th, .pdf-break td { background: #fff6db; color: #72520a; font-size: 11px; font-weight: 700; height: auto; text-align: center; }
+        .pdf-rule-brief { border-top: 1px solid #dce1dc; margin-top: 10px; padding-top: 8px; page-break-inside: avoid; }
+        .pdf-rule-brief h3 { color: #132b24; font-size: 12px; margin: 0 0 6px; }
+        .pdf-rule-brief-grid { display: grid; gap: 8px; grid-template-columns: 0.8fr 1.2fr 1.4fr; }
+        .pdf-rule-brief-grid > div { background: #f7f8f5; border: 1px solid #dce1dc; padding: 6px; }
+        .pdf-rule-brief strong { color: #132b24; display: block; font-size: 9px; margin-bottom: 4px; }
+        .pdf-rule-brief span, .pdf-rule-brief li { font-size: 9px; line-height: 1.35; }
+        .pdf-rule-brief ul { margin: 0; padding-left: 14px; }
         .pdf-notes { border-top: 1px solid #dce1dc; margin-top: 10px; padding-top: 8px; page-break-inside: avoid; }
         .pdf-notes h3 { font-size: 12px; margin: 0 0 5px; }
         .pdf-notes dl { display: grid; font-size: 9px; gap: 4px 14px; grid-template-columns: 120px minmax(0, 1fr); line-height: 1.35; margin: 0; }
@@ -1082,20 +1351,29 @@ export default async function SchedulePdfPage({
           snapshot={snapshot}
         />
       ) : null}
-      {(query.type === "class" ? selectedClasses : []).map((classSection) => (
-        <Timetable
-          assignments={assignments.filter(
-            (assignment) => assignment.classSectionId === classSection.id,
-          )}
-          classSectionId={classSection.id}
-          days={days}
-          key={`class-${classSection.id}`}
-          periodIndexes={periodIndexes}
-          snapshot={snapshot}
-          title={`${classSection.shortCode ?? classSection.name} - Class timetable`}
-          type="class"
-        />
-      ))}
+      {(query.type === "class" ? selectedClasses : []).map((classSection) => {
+        const classAssignments = assignments.filter(
+          (assignment) => assignment.classSectionId === classSection.id,
+        );
+        return (
+          <Timetable
+            assignments={classAssignments}
+            classSectionId={classSection.id}
+            days={days}
+            key={`class-${classSection.id}`}
+            periodIndexes={periodIndexes}
+            ruleBrief={buildClassRuleBrief({
+              assignments: classAssignments,
+              classSectionId: classSection.id,
+              days,
+              snapshot,
+            })}
+            snapshot={snapshot}
+            title={`${classSection.shortCode ?? classSection.name} - Class timetable`}
+            type="class"
+          />
+        );
+      })}
       {(query.type === "teacher" ||
       query.type === "teacher-full-time" ||
       query.type === "teacher-part-time"
