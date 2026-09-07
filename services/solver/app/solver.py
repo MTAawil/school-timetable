@@ -7,6 +7,7 @@ from typing import Literal
 
 from ortools.sat.python import cp_model
 
+from app.grade_rules import requires_main_subject_weekly_pair
 from app.models import (
     Alternative,
     Assignment,
@@ -456,6 +457,12 @@ def solve(request: SolveRequest) -> SolveResponse:
 
     for requirement in request.requirements:
         relax_part_time_distribution = part_time_distribution_can_relax(request, requirement)
+        requires_weekly_pair = (
+            requirement.is_main_subject
+            and requirement.occurrence_count >= 2
+            and requires_main_subject_weekly_pair(request, requirement.class_section_id)
+        )
+        weekly_adjacent_pairs: list[cp_model.IntVar] = []
         for day in days:
             starts = starts_by_day.get((requirement.id, day), [])
             if starts:
@@ -512,7 +519,7 @@ def solve(request: SolveRequest) -> SolveResponse:
                 if (
                     request.schema_version == 2
                     and requirement.is_main_subject
-                    and requirement.allow_double_session
+                    and (requirement.allow_double_session or requires_weekly_pair)
                 ):
                     subject_break_after_session = class_break_after_session(
                         request,
@@ -539,17 +546,28 @@ def solve(request: SolveRequest) -> SolveResponse:
                         model.add(pair >= sum(left_starts) + sum(right_starts) - 1)
                         constraints += 3
                         adjacent_pairs.append(pair)
-                    non_adjacent_double = model.new_int_var(
-                        0,
-                        1,
-                        f"non_adjacent_double_{requirement.id}_{day}",
-                    )
-                    model.add(non_adjacent_double >= sum(starts) - 1 - sum(adjacent_pairs))
-                    constraints += 1
-                    raw_terms["MAIN_DOUBLE_ADJACENCY"].append(non_adjacent_double)
+                    weekly_adjacent_pairs.extend(adjacent_pairs)
+                    if requirement.allow_double_session:
+                        non_adjacent_double = model.new_int_var(
+                            0,
+                            1,
+                            f"non_adjacent_double_{requirement.id}_{day}",
+                        )
+                        model.add(non_adjacent_double >= sum(starts) - 1 - sum(adjacent_pairs))
+                        constraints += 1
+                        raw_terms["MAIN_DOUBLE_ADJACENCY"].append(non_adjacent_double)
         used_variables = [
             day_used[(requirement.id, day)] for day in days if (requirement.id, day) in day_used
         ]
+        if requires_weekly_pair:
+            missing_weekly_pair = model.new_int_var(
+                0,
+                1,
+                f"missing_weekly_main_pair_{requirement.id}",
+            )
+            model.add(missing_weekly_pair >= 1 - sum(weekly_adjacent_pairs))
+            constraints += 1
+            raw_terms["MAIN_DOUBLE_ADJACENCY"].append(10 * missing_weekly_pair)
         if relax_part_time_distribution:
             distinct_day_shortage = model.new_int_var(
                 0,

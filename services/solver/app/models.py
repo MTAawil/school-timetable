@@ -170,7 +170,7 @@ class ConstraintProfile(ContractModel):
 
 class SolveOptions(ContractModel):
     alternative_count: int = Field(default=1, ge=1, le=5)
-    time_limit_seconds: int = Field(default=30, ge=1, le=300)
+    time_limit_seconds: int = Field(default=30, ge=1, le=900)
     random_seed: int = 12345
     max_quality_degradation_percent: int = Field(default=20, ge=0, le=100)
     rooms_enabled: bool

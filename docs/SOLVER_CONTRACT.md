@@ -193,6 +193,10 @@ numerically consecutive.
 The solver must not force an allowed double to occur and must not fail a
 schedule solely because an allowed same-day double is distributed.
 
+For grades 1 through 9, every main class-subject with at least two weekly
+sessions receives a high `MAIN_DOUBLE_ADJACENCY` soft penalty when it has no
+valid consecutive same-day pair anywhere in the week.
+
 For schema version 2, main subjects also receive a weighted soft penalty when
 placed after the first four teaching sessions of a day. This is a preference,
 not a hard restriction.

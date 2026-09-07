@@ -964,6 +964,14 @@ Checks so far:
   tests were not run in this worktree because neither `uv` nor
   `services/solver/.venv` is available; no solver code changed in this task.
 
+### 2026-09-07 - Grade 1-9 main-subject weekly doubles
+
+- Added a high schema-version-2 soft penalty when a grade 1 through 9 main
+  class-subject with at least two weekly sessions has no valid consecutive
+  same-day pair anywhere in the week.
+- Kept the no-three-consecutive same class/day/subject rule hard.
+- Kept upper-secondary main subjects on the existing soft adjacency preference.
+
 ### 2026-07-26 - Task 10 release hardening
 
 - Added deterministic infeasibility diagnostics for empty assignment domains

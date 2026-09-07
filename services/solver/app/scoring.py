@@ -1,6 +1,7 @@
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 
+from app.grade_rules import requires_main_subject_weekly_pair
 from app.models import Assignment, SolveRequest
 
 SOFT_CONSTRAINT_CODES = (
@@ -170,6 +171,40 @@ def score_assignments(request: SolveRequest, assignments: list[Assignment]) -> S
             for left, right in zip(ordered, ordered[1:], strict=False)
         )
         raw["MAIN_DOUBLE_ADJACENCY"] += max(0, len(ordered) - 1 - adjacent_pair_count)
+
+    for requirement_id, selected_days in subject_days.items():
+        requirement = requirements[requirement_id]
+        if (
+            request.schema_version != 2
+            or not requirement.is_main_subject
+            or requirement.occurrence_count < 2
+            or not requires_main_subject_weekly_pair(request, requirement.class_section_id)
+        ):
+            continue
+        subject_break_after_session = _class_break_after_session(
+            request,
+            requirement.class_section_id,
+        )
+        requirement_periods_by_day = {
+            day: sorted(periods)
+            for (current_requirement_id, day), periods in subject_periods_by_day.items()
+            if current_requirement_id == requirement_id
+        }
+        has_weekly_pair = any(
+            any(
+                right == left + 1
+                and not _crosses_break(
+                    left,
+                    right,
+                    subject_break_after_session,
+                    teaching_session_by_period,
+                )
+                for left, right in zip(periods, periods[1:], strict=False)
+            )
+            for periods in requirement_periods_by_day.values()
+        )
+        if selected_days and not has_weekly_pair:
+            raw["MAIN_DOUBLE_ADJACENCY"] += 10
 
     for teacher in request.teachers:
         daily_counts = [
