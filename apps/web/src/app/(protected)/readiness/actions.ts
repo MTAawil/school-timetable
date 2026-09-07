@@ -1,5 +1,8 @@
 "use server";
 
+import http from "node:http";
+import https from "node:https";
+
 import {
   getDatabase,
   fingerprintSnapshot,
@@ -79,6 +82,57 @@ function jsonValue(value: unknown): Prisma.InputJsonValue {
   return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
 }
 
+async function postSolverJson({
+  url,
+  body,
+  headers,
+  timeoutMs,
+}: {
+  url: string;
+  body: unknown;
+  headers: Record<string, string>;
+  timeoutMs: number;
+}): Promise<unknown> {
+  const endpoint = new URL(url);
+  const payload = JSON.stringify(body);
+  const transport = endpoint.protocol === "https:" ? https : http;
+
+  return await new Promise((resolve, reject) => {
+    const request = transport.request(
+      endpoint,
+      {
+        method: "POST",
+        headers: {
+          ...headers,
+          "content-length": Buffer.byteLength(payload).toString(),
+        },
+        timeout: timeoutMs,
+      },
+      (response) => {
+        const chunks: Buffer[] = [];
+        response.on("data", (chunk: Buffer) => chunks.push(chunk));
+        response.on("end", () => {
+          const text = Buffer.concat(chunks).toString("utf8");
+          if (!response.statusCode || response.statusCode < 200 || response.statusCode >= 300) {
+            reject(new Error(`SOLVER_HTTP_${String(response.statusCode ?? "UNKNOWN")}`));
+            return;
+          }
+          try {
+            resolve(JSON.parse(text) as unknown);
+          } catch {
+            reject(new Error("SOLVER_RESPONSE_JSON_INVALID"));
+          }
+        });
+      },
+    );
+    request.on("timeout", () => {
+      request.destroy(new Error("SOLVER_REQUEST_TIMEOUT"));
+    });
+    request.on("error", reject);
+    request.end(payload);
+  });
+}
+
 export async function generateTimetable(formData: FormData): Promise<void> {
   const user = await verifySession();
   const current = await getCurrentReadiness(user.schoolId);
@@ -121,22 +175,18 @@ export async function generateTimetable(formData: FormData): Promise<void> {
       Number(process.env.SOLVER_REQUEST_TIMEOUT_SECONDS ?? "40"),
       selectedOptions.timeLimitSeconds + 15,
     );
-    const response = await fetch(`${baseUrl}/v1/solve`, {
-      method: "POST",
+    const solverResponseJson = await postSolverJson({
+      url: `${baseUrl}/v1/solve`,
       headers: {
         "content-type": "application/json",
         ...(process.env.SOLVER_INTERNAL_TOKEN
           ? { "x-solver-token": process.env.SOLVER_INTERNAL_TOKEN }
           : {}),
       },
-      body: JSON.stringify({ ...snapshot, jobId: job.id }),
-      cache: "no-store",
-      signal: AbortSignal.timeout(timeoutSeconds * 1000),
+      body: { ...snapshot, jobId: job.id },
+      timeoutMs: timeoutSeconds * 1000,
     });
-    if (!response.ok) {
-      throw new Error(`SOLVER_HTTP_${String(response.status)}`);
-    }
-    const solverResult = solveResponseSchema.parse(await response.json());
+    const solverResult = solveResponseSchema.parse(solverResponseJson);
     if (
       solverResult.jobId !== job.id ||
       solverResult.inputFingerprint !== fingerprint
