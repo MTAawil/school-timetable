@@ -96,7 +96,7 @@ const partTimeAvailabilityByTeacher = {
   "منى وهبي": {
     Monday: [1, 2, 3, 4, 5, 6],
     Tuesday: [1, 2, 3, 4, 5, 6],
-    Friday: [1, 2, 3, 4],
+    Friday: [1, 2, 3],
   },
   "محمد عبدو": {
     Wednesday: [1, 2, 3, 4, 5, 6],
@@ -107,7 +107,7 @@ const partTimeAvailabilityByTeacher = {
     Tuesday: [1, 2, 3, 4],
     Wednesday: [1, 2, 3, 4],
     Thursday: [1, 2, 3, 4],
-    Friday: [1, 2, 3, 4],
+    Friday: [1, 2, 3],
   },
   "حسن ناجي": {
     Monday: [1, 2, 3, 4, 5],
