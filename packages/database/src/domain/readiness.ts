@@ -54,14 +54,28 @@ const socialStudiesSubjectKeys = new Set([
   "CIVICS",
   "RELIGION",
 ]);
+const socialStudiesSubjectKeysWithoutReligion = new Set([
+  "HISTORY",
+  "GEOGRAPHY",
+  "CIVICS",
+]);
 const upperSecondarySocialStudiesSubjectKeys = new Set([
   "SOCIOLOGY",
   "SOCIAL_STUDIES",
   "ECONOMICS",
   "PHILOSOPHY",
 ]);
+const lsSvSocialStudiesSubjectKeys = new Set([
+  "HISTORY",
+  "GEOGRAPHY",
+  "CIVICS",
+  "PHILOSOPHY",
+]);
 const upperSecondarySocialStudiesGradePrefixes = ["G10", "G11"];
+const esSeSocialStudiesClassCodes = new Set(["ES", "SE"]);
+const lsSvSocialStudiesClassCodes = new Set(["LS", "SV"]);
 const socialStudiesDailyLimit = 2;
+const esSeSocialStudiesDailyLimit = 4;
 const socialStudiesSubjectLabels = new Set([
   "history",
   "geography",
@@ -72,6 +86,14 @@ const socialStudiesSubjectLabels = new Set([
   "تربية",
   "دين",
 ]);
+const socialStudiesSubjectLabelsWithoutReligion = new Set([
+  "history",
+  "geography",
+  "civics",
+  "تاريخ",
+  "جغرافيا",
+  "تربية",
+]);
 
 const upperSecondarySocialStudiesSubjectLabels = new Set([
   "sociology",
@@ -80,6 +102,16 @@ const upperSecondarySocialStudiesSubjectLabels = new Set([
   "philosophy",
   "\u0627\u062c\u062a\u0645\u0627\u0639",
   "\u0627\u0642\u062a\u0635\u0627\u062f",
+  "\u0641\u0644\u0633\u0641\u0629",
+]);
+const lsSvSocialStudiesSubjectLabels = new Set([
+  "history",
+  "geography",
+  "civics",
+  "philosophy",
+  "\u062a\u0627\u0631\u064a\u062e",
+  "\u062c\u063a\u0631\u0627\u0641\u064a\u0627",
+  "\u062a\u0631\u0628\u064a\u0629",
   "\u0641\u0644\u0633\u0641\u0629",
 ]);
 
@@ -106,6 +138,16 @@ function isGradeTenOrEleven(
   );
 }
 
+function hasClassCode(
+  classSection: SupervisorSolverSnapshot["classSections"][number] | undefined,
+  codes: Set<string>,
+): boolean {
+  if (!classSection) return false;
+  return [classSection.name, classSection.shortCode, classSection.id].some(
+    (label) => codes.has(subjectKey(label)),
+  );
+}
+
 function isSubjectInGroup(
   subject: SolverSnapshot["subjects"][number],
   keys: Set<string>,
@@ -122,19 +164,49 @@ function isSocialStudiesLimitedSubject(
   subject: SolverSnapshot["subjects"][number] | undefined,
   classSection?: SupervisorSolverSnapshot["classSections"][number],
 ): boolean {
-  return subject
-    ? isSubjectInGroup(
+  if (!subject) return false;
+  if (hasClassCode(classSection, lsSvSocialStudiesClassCodes)) {
+    return isSubjectInGroup(
+      subject,
+      lsSvSocialStudiesSubjectKeys,
+      lsSvSocialStudiesSubjectLabels,
+    );
+  }
+  if (hasClassCode(classSection, esSeSocialStudiesClassCodes)) {
+    return (
+      isSubjectInGroup(
         subject,
-        socialStudiesSubjectKeys,
-        socialStudiesSubjectLabels,
+        socialStudiesSubjectKeysWithoutReligion,
+        socialStudiesSubjectLabelsWithoutReligion,
       ) ||
-        (isGradeTenOrEleven(classSection) &&
-          isSubjectInGroup(
-            subject,
-            upperSecondarySocialStudiesSubjectKeys,
-            upperSecondarySocialStudiesSubjectLabels,
-          ))
-    : false;
+      isSubjectInGroup(
+        subject,
+        upperSecondarySocialStudiesSubjectKeys,
+        upperSecondarySocialStudiesSubjectLabels,
+      )
+    );
+  }
+  return (
+    isSubjectInGroup(
+      subject,
+      socialStudiesSubjectKeys,
+      socialStudiesSubjectLabels,
+    ) ||
+    (isGradeTenOrEleven(classSection) &&
+      isSubjectInGroup(
+        subject,
+        upperSecondarySocialStudiesSubjectKeys,
+        upperSecondarySocialStudiesSubjectLabels,
+      ))
+  );
+}
+
+function socialStudiesLimitForClass(
+  classSection: SupervisorSolverSnapshot["classSections"][number],
+): number {
+  return hasClassCode(classSection, esSeSocialStudiesClassCodes)
+    ? esSeSocialStudiesDailyLimit
+    : socialStudiesDailyLimit;
 }
 
 function entityName(
@@ -721,7 +793,8 @@ function validateSupervisorReadiness(
         ),
       )
       .reduce((total, requirement) => total + requirement.weeklySessions, 0);
-    const socialStudiesAvailable = workingDayCount * socialStudiesDailyLimit;
+    const socialStudiesLimit = socialStudiesLimitForClass(classSection);
+    const socialStudiesAvailable = workingDayCount * socialStudiesLimit;
     if (socialStudiesSessions > socialStudiesAvailable) {
       issues.push({
         code: "SOCIAL_STUDIES_DAILY_LIMIT",
@@ -750,17 +823,20 @@ function validateSupervisorReadiness(
     }
   }
   for (const [key, requirementIds] of socialStudiesFixedByClassDay) {
-    if (requirementIds.length <= socialStudiesDailyLimit) continue;
     const [classSectionId = "", dayIndex = ""] = key.split(":");
     const classSection = snapshot.classSections.find(
       (item) => item.id === classSectionId,
     );
+    const socialStudiesLimit = classSection
+      ? socialStudiesLimitForClass(classSection)
+      : socialStudiesDailyLimit;
+    if (requirementIds.length <= socialStudiesLimit) continue;
     issues.push({
       code: "SOCIAL_STUDIES_DAILY_LIMIT",
       summary: `${classSection?.name ?? classSectionId} has more than two fixed social-studies group sessions on day ${dayIndex}.`,
       entityIds: [classSectionId, ...requirementIds],
       required: requirementIds.length,
-      available: socialStudiesDailyLimit,
+      available: socialStudiesLimit,
       suggestions: ["/subjects", "/schedules"],
     });
   }

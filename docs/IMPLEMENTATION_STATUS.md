@@ -994,6 +994,10 @@ Checks so far:
 - Extended the hard cap for Grade 10 and Grade 11 to also count Sociology /
   Social Studies, Economics, and Philosophy, while skipping the soft max-one
   spread penalty for those grades.
+- Added class-specific social-studies variants for ES/SE and LS/SV: ES/SE use
+  hard max four and soft target three over the Grade 10/11 group without
+  Religion, while LS/SV use hard max two and soft target one over Civics,
+  History, Geography, and Philosophy.
 
 ### 2026-07-26 - Task 10 release hardening
 

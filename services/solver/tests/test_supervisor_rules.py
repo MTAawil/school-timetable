@@ -142,6 +142,47 @@ def social_studies_request(*, class_id: str = "G7-A") -> SolveRequest:
     return SolveRequest.model_validate(payload)
 
 
+def social_studies_request_with_subjects(
+    *,
+    class_id: str,
+    subjects: list[dict[str, str]],
+) -> SolveRequest:
+    payload = supervisor_request(
+        weekly_sessions=1,
+        is_main_subject=False,
+        allow_double_session=False,
+        sessions_per_day=6,
+        class_id=class_id,
+    ).model_dump(by_alias=True)
+    payload["subjects"] = subjects
+    payload["teachers"] = [
+        {
+            "id": f"teacher-{subject['id']}",
+            "name": f"Teacher {subject['name']}",
+            "employmentType": "FULL_TIME",
+            "weeklyTeachingSessions": 1,
+            "maxLessonsPerDay": 6,
+            "maxConsecutiveLessons": 6,
+        }
+        for subject in subjects
+    ]
+    payload["requirements"] = [
+        {
+            "id": f"{class_id}:{subject['id']}",
+            "classSectionId": class_id,
+            "subjectId": subject["id"],
+            "teacherId": f"teacher-{subject['id']}",
+            "weeklySessions": 1,
+            "isMainSubject": False,
+            "allowDoubleSession": False,
+            "fixedSlots": [],
+            "forbiddenSlots": [],
+        }
+        for subject in subjects
+    ]
+    return SolveRequest.model_validate(payload)
+
+
 def test_main_subject_late_session_penalty_starts_after_fourth_session() -> None:
     base_request = supervisor_request(weekly_sessions=1, sessions_per_day=6)
     request = base_request.model_copy(
@@ -872,6 +913,106 @@ def test_grade_ten_skips_social_studies_daily_spread_penalty() -> None:
 
     assert validate_assignments(request, candidate) == []
     assert scored.breakdown["SOCIAL_STUDIES_DAILY_SPREAD"] == 0
+
+
+def test_es_se_social_studies_uses_four_hard_limit_and_three_soft_target() -> None:
+    subjects = [
+        {"id": "subject-history", "name": "\u062a\u0627\u0631\u064a\u062e"},
+        {"id": "subject-geography", "name": "\u062c\u063a\u0631\u0627\u0641\u064a\u0627"},
+        {"id": "subject-civics", "name": "\u062a\u0631\u0628\u064a\u0629"},
+        {"id": "subject-sociology", "name": "\u0627\u062c\u062a\u0645\u0627\u0639"},
+        {"id": "subject-economics", "name": "\u0627\u0642\u062a\u0635\u0627\u062f"},
+        {"id": "subject-religion", "name": "\u062f\u064a\u0646"},
+    ]
+    base_request = social_studies_request_with_subjects(
+        class_id="ES",
+        subjects=subjects,
+    )
+    request = base_request.model_copy(
+        update={
+            "constraint_profile": base_request.constraint_profile.model_copy(
+                update={"weights": {"SOCIAL_STUDIES_DAILY_SPREAD": 200}}
+            )
+        }
+    )
+    four_counted_subjects = subjects[:4]
+    four_counted = [
+        Assignment(
+            requirement_id=f"ES:{subject['id']}",
+            day_index=0,
+            period_index=period,
+            duration_periods=1,
+        )
+        for period, subject in enumerate(four_counted_subjects)
+    ]
+    five_counted = [
+        *four_counted,
+        Assignment(
+            requirement_id="ES:subject-economics",
+            day_index=0,
+            period_index=4,
+            duration_periods=1,
+        ),
+    ]
+    four_counted_plus_religion = [
+        *four_counted,
+        Assignment(
+            requirement_id="ES:subject-religion",
+            day_index=0,
+            period_index=4,
+            duration_periods=1,
+        ),
+    ]
+
+    assert not any(
+        error.startswith("SOCIAL_STUDIES_DAILY_LIMIT")
+        for error in validate_assignments(request, four_counted_plus_religion)
+    )
+    assert "SOCIAL_STUDIES_DAILY_LIMIT:ES:0" in validate_assignments(
+        request,
+        five_counted,
+    )
+    assert score_assignments(request, four_counted).breakdown["SOCIAL_STUDIES_DAILY_SPREAD"] == 200
+
+
+def test_ls_sv_social_studies_counts_philosophy_with_two_hard_limit() -> None:
+    subjects = [
+        {"id": "subject-history", "name": "\u062a\u0627\u0631\u064a\u062e"},
+        {"id": "subject-philosophy", "name": "\u0641\u0644\u0633\u0641\u0629"},
+        {"id": "subject-civics", "name": "\u062a\u0631\u0628\u064a\u0629"},
+        {"id": "subject-religion", "name": "\u062f\u064a\u0646"},
+    ]
+    request = social_studies_request_with_subjects(
+        class_id="SV",
+        subjects=subjects,
+    )
+    three_counted = [
+        Assignment(
+            requirement_id=f"SV:{subject['id']}",
+            day_index=0,
+            period_index=period,
+            duration_periods=1,
+        )
+        for period, subject in enumerate(subjects[:3])
+    ]
+    two_counted_plus_religion = [
+        *three_counted[:2],
+        Assignment(
+            requirement_id="SV:subject-religion",
+            day_index=0,
+            period_index=2,
+            duration_periods=1,
+        ),
+    ]
+
+    assert "SOCIAL_STUDIES_DAILY_LIMIT:SV:0" in validate_assignments(
+        request,
+        three_counted,
+    )
+    assert not any(
+        error.startswith("SOCIAL_STUDIES_DAILY_LIMIT")
+        for error in validate_assignments(request, two_counted_plus_religion)
+    )
 
 
 def test_solver_avoids_second_social_studies_subject_per_day_when_possible() -> None:

@@ -584,6 +584,141 @@ describe("supervisor readiness", () => {
       expect.objectContaining({ code: "SOCIAL_STUDIES_DAILY_LIMIT" }),
     );
   });
+
+  it("uses max four social-studies sessions per ES/SE class day without Religion", () => {
+    const snapshot = socialStudiesSupervisorSnapshot();
+    const classSection = snapshot.classSections[0];
+    const teacher = snapshot.teachers[0];
+    if (!classSection) throw new Error("A class section is required.");
+    if (!teacher) throw new Error("A teacher is required.");
+    snapshot.classSections[0] = {
+      ...classSection,
+      id: "es",
+      name: "G12 ES",
+      shortCode: "ES",
+    };
+    snapshot.teachers[0] = { ...teacher, weeklyTeachingSessions: 5 };
+    snapshot.subjects = [
+      {
+        id: "history",
+        name: "\u062a\u0627\u0631\u064a\u062e",
+        preferredTimeBand: "NEUTRAL",
+        consecutivePeriodsPreferred: false,
+        defaultRoomType: null,
+      },
+      {
+        id: "geography",
+        name: "\u062c\u063a\u0631\u0627\u0641\u064a\u0627",
+        preferredTimeBand: "NEUTRAL",
+        consecutivePeriodsPreferred: false,
+        defaultRoomType: null,
+      },
+      {
+        id: "civics",
+        name: "\u062a\u0631\u0628\u064a\u0629",
+        preferredTimeBand: "NEUTRAL",
+        consecutivePeriodsPreferred: false,
+        defaultRoomType: null,
+      },
+      {
+        id: "sociology",
+        name: "\u0627\u062c\u062a\u0645\u0627\u0639",
+        preferredTimeBand: "NEUTRAL",
+        consecutivePeriodsPreferred: false,
+        defaultRoomType: null,
+      },
+      {
+        id: "economics",
+        name: "\u0627\u0642\u062a\u0635\u0627\u062f",
+        preferredTimeBand: "NEUTRAL",
+        consecutivePeriodsPreferred: false,
+        defaultRoomType: null,
+      },
+      {
+        id: "religion",
+        name: "\u062f\u064a\u0646",
+        preferredTimeBand: "NEUTRAL",
+        consecutivePeriodsPreferred: false,
+        defaultRoomType: null,
+      },
+    ];
+    snapshot.requirements = snapshot.subjects
+      .filter((subject) => subject.id !== "religion")
+      .map((subject, index) => ({
+        id: `es:${subject.id}`,
+        classSectionId: "es",
+        subjectId: subject.id,
+        teacherId: "teacher",
+        sharedTeachingGroupId: null,
+        weeklySessions: 1,
+        isMainSubject: false,
+        allowDoubleSession: false,
+        fixedSlots: [{ dayIndex: 0, periodIndex: index }],
+        forbiddenSlots: [],
+      }));
+
+    const issue = validateReadiness(snapshot).issues.find(
+      (candidate) => candidate.code === "SOCIAL_STUDIES_DAILY_LIMIT",
+    );
+
+    expect(issue).toMatchObject({ required: 5, available: 4 });
+  });
+
+  it("uses the LS/SV social-studies group with Philosophy and max two", () => {
+    const snapshot = socialStudiesSupervisorSnapshot();
+    const classSection = snapshot.classSections[0];
+    const teacher = snapshot.teachers[0];
+    if (!classSection) throw new Error("A class section is required.");
+    if (!teacher) throw new Error("A teacher is required.");
+    snapshot.classSections[0] = {
+      ...classSection,
+      id: "sv",
+      name: "G12 SV",
+      shortCode: "SV",
+    };
+    snapshot.teachers[0] = { ...teacher, weeklyTeachingSessions: 3 };
+    snapshot.subjects = [
+      {
+        id: "history",
+        name: "\u062a\u0627\u0631\u064a\u062e",
+        preferredTimeBand: "NEUTRAL",
+        consecutivePeriodsPreferred: false,
+        defaultRoomType: null,
+      },
+      {
+        id: "philosophy",
+        name: "\u0641\u0644\u0633\u0641\u0629",
+        preferredTimeBand: "NEUTRAL",
+        consecutivePeriodsPreferred: false,
+        defaultRoomType: null,
+      },
+      {
+        id: "civics",
+        name: "\u062a\u0631\u0628\u064a\u0629",
+        preferredTimeBand: "NEUTRAL",
+        consecutivePeriodsPreferred: false,
+        defaultRoomType: null,
+      },
+    ];
+    snapshot.requirements = snapshot.subjects.map((subject, index) => ({
+      id: `sv:${subject.id}`,
+      classSectionId: "sv",
+      subjectId: subject.id,
+      teacherId: "teacher",
+      sharedTeachingGroupId: null,
+      weeklySessions: 1,
+      isMainSubject: false,
+      allowDoubleSession: false,
+      fixedSlots: [{ dayIndex: 0, periodIndex: index }],
+      forbiddenSlots: [],
+    }));
+
+    const issue = validateReadiness(snapshot).issues.find(
+      (candidate) => candidate.code === "SOCIAL_STUDIES_DAILY_LIMIT",
+    );
+
+    expect(issue).toMatchObject({ required: 3, available: 2 });
+  });
 });
 
 describe("snapshot canonicalization", () => {

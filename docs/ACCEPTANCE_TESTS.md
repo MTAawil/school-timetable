@@ -219,3 +219,11 @@ Two grouped sessions on one day remain hard-feasible but receive a high
 For Grade 10 and Grade 11, the same hard cap also counts Sociology/Social
 Studies, Economics, and Philosophy. The soft max-one spread preference does not
 apply to Grade 10 or Grade 11.
+
+For ES and SE, the social-studies group is the Grade 10/11 group without
+Religion. More than four grouped sessions on one class day is infeasible, and
+the allowed fourth grouped session receives `SOCIAL_STUDIES_DAILY_SPREAD`.
+
+For LS and SV, the social-studies group is Civics, History, Geography, and
+Philosophy. More than two grouped sessions on one class day is infeasible, and
+the allowed second grouped session receives `SOCIAL_STUDIES_DAILY_SPREAD`.

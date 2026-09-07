@@ -162,6 +162,14 @@ const baseSocialStudyNames = new Set([
   "تربية",
   "دين",
 ]);
+const baseSocialStudyNamesWithoutReligion = new Set([
+  "history",
+  "geography",
+  "civics",
+  "تاريخ",
+  "جغرافيا",
+  "تربية",
+]);
 const upperSecondarySocialStudyNames = new Set([
   "sociology",
   "social studies",
@@ -169,6 +177,16 @@ const upperSecondarySocialStudyNames = new Set([
   "philosophy",
   "اجتماع",
   "اقتصاد",
+  "فلسفة",
+]);
+const lsSvSocialStudyNames = new Set([
+  "history",
+  "geography",
+  "civics",
+  "philosophy",
+  "تاريخ",
+  "جغرافيا",
+  "تربية",
   "فلسفة",
 ]);
 const baseSocialStudyCodes = new Set([
@@ -181,6 +199,14 @@ const baseSocialStudyCodes = new Set([
   "S005",
   "S001",
 ]);
+const baseSocialStudyCodesWithoutReligion = new Set([
+  "HISTORY",
+  "GEOGRAPHY",
+  "CIVICS",
+  "S016",
+  "S017",
+  "S005",
+]);
 const upperSecondarySocialStudyCodes = new Set([
   "SOCIOLOGY",
   "SOCIAL_STUDIES",
@@ -188,6 +214,16 @@ const upperSecondarySocialStudyCodes = new Set([
   "PHILOSOPHY",
   "S013",
   "S014",
+  "S019",
+]);
+const lsSvSocialStudyCodes = new Set([
+  "HISTORY",
+  "GEOGRAPHY",
+  "CIVICS",
+  "PHILOSOPHY",
+  "S016",
+  "S017",
+  "S005",
   "S019",
 ]);
 
@@ -219,7 +255,9 @@ function gradeNumber(classSection: ScheduleAssignment["classSection"]) {
   return shortCode ? Number(shortCode) : null;
 }
 
-function isGradeOneThroughNine(classSection: ScheduleAssignment["classSection"]) {
+function isGradeOneThroughNine(
+  classSection: ScheduleAssignment["classSection"],
+) {
   const grade = gradeNumber(classSection);
   return grade !== null && grade >= 1 && grade <= 9;
 }
@@ -228,21 +266,49 @@ function isClassCode(assignment: ScheduleAssignment, classCodes: string[]) {
   return classCodes.includes(assignment.classSection.shortCode);
 }
 
-function isSocialStudiesSubject(assignment: ScheduleAssignment): boolean {
-  const subject = assignment.teachingRequirement.subject;
+function subjectMatches(
+  subject: ScheduleAssignment["teachingRequirement"]["subject"],
+  codes: Set<string>,
+  names: Set<string>,
+): boolean {
   const code = subjectKey(subject.shortCode);
   const nameKey = subjectKey(subject.name);
   const nameLabel = subjectLabel(subject.name);
-  const isBase =
-    baseSocialStudyCodes.has(code) ||
-    baseSocialStudyCodes.has(nameKey) ||
-    baseSocialStudyNames.has(nameLabel);
+  return codes.has(code) || codes.has(nameKey) || names.has(nameLabel);
+}
+
+function isSocialStudiesSubject(assignment: ScheduleAssignment): boolean {
+  const subject = assignment.teachingRequirement.subject;
+  if (isClassCode(assignment, ["LS", "SV"])) {
+    return subjectMatches(subject, lsSvSocialStudyCodes, lsSvSocialStudyNames);
+  }
+  if (isClassCode(assignment, ["ES", "SE"])) {
+    return (
+      subjectMatches(
+        subject,
+        baseSocialStudyCodesWithoutReligion,
+        baseSocialStudyNamesWithoutReligion,
+      ) ||
+      subjectMatches(
+        subject,
+        upperSecondarySocialStudyCodes,
+        upperSecondarySocialStudyNames,
+      )
+    );
+  }
+  const isBase = subjectMatches(
+    subject,
+    baseSocialStudyCodes,
+    baseSocialStudyNames,
+  );
   if (isBase) return true;
   return (
     isGradeTenOrEleven(assignment.classSection) &&
-    (upperSecondarySocialStudyCodes.has(code) ||
-      upperSecondarySocialStudyCodes.has(nameKey) ||
-      upperSecondarySocialStudyNames.has(nameLabel))
+    subjectMatches(
+      subject,
+      upperSecondarySocialStudyCodes,
+      upperSecondarySocialStudyNames,
+    )
   );
 }
 
@@ -262,7 +328,10 @@ function dayName(dayIndex: number, days: Day[]) {
   );
 }
 
-function sortSummaryRows(left: SummaryIssueRow, right: SummaryIssueRow): number {
+function sortSummaryRows(
+  left: SummaryIssueRow,
+  right: SummaryIssueRow,
+): number {
   return (
     (left.classCode ?? "").localeCompare(right.classCode ?? "", undefined, {
       numeric: true,
@@ -364,7 +433,10 @@ function buildSummarySections({
     }
   >();
   for (const assignment of assignments) {
-    if (assignment.startDayIndex === null || assignment.startPeriodIndex === null) {
+    if (
+      assignment.startDayIndex === null ||
+      assignment.startPeriodIndex === null
+    ) {
       continue;
     }
     const requirement = requirementById.get(assignment.teachingRequirementId);
@@ -419,7 +491,10 @@ function buildSummarySections({
     }
   >();
   for (const assignment of assignments) {
-    if (assignment.startDayIndex === null || assignment.startPeriodIndex === null) {
+    if (
+      assignment.startDayIndex === null ||
+      assignment.startPeriodIndex === null
+    ) {
       continue;
     }
     const key = `${assignment.classSectionId}:${assignment.teachingRequirement.subject.name}:${String(
@@ -445,7 +520,9 @@ function buildSummarySections({
         classCode: row.classCode,
         dayName: dayName(row.dayIndex, days),
         subjectName: row.subjectName,
-        value: formatSessionList(row.periods.sort((left, right) => left - right)),
+        value: formatSessionList(
+          row.periods.sort((left, right) => left - right),
+        ),
         situation: `${row.classCode} has ${row.subjectName} ${String(
           row.periods.length,
         )} times on ${dayName(row.dayIndex, days)}.`,
@@ -463,7 +540,10 @@ function buildSummarySections({
     }
   >();
   for (const assignment of assignments) {
-    if (assignment.startDayIndex === null || assignment.startPeriodIndex === null) {
+    if (
+      assignment.startDayIndex === null ||
+      assignment.startPeriodIndex === null
+    ) {
       continue;
     }
     const key = `${assignment.teacherId}:${String(assignment.startDayIndex)}`;
@@ -485,7 +565,9 @@ function buildSummarySections({
     rows: Array.from(teacherDayRows.values())
       .map((row) => {
         const occupied = row.periods;
-        const ordered = Array.from(occupied).sort((left, right) => left - right);
+        const ordered = Array.from(occupied).sort(
+          (left, right) => left - right,
+        );
         const first = ordered[0];
         const last = ordered[ordered.length - 1];
         const gaps =
@@ -522,7 +604,8 @@ function buildSummarySections({
   sections.push(
     socialRowsFor({
       title: "ES/SE social studies above three per day",
-      limit: "Future generation rule target: max 3 social-studies sessions per class day",
+      limit:
+        "Soft target: max 3 social-studies sessions per class day; hard max 4",
       matchesClass: (assignment) => isClassCode(assignment, ["ES", "SE"]),
       maxAllowed: 3,
     }),
@@ -531,7 +614,8 @@ function buildSummarySections({
   sections.push(
     socialRowsFor({
       title: "LS/SV social studies above one per day",
-      limit: "Future generation rule target: max 1 social-studies session per class day",
+      limit:
+        "Soft target: max 1 social-studies session per class day; hard max 2",
       matchesClass: (assignment) => isClassCode(assignment, ["LS", "SV"]),
       maxAllowed: 1,
     }),
@@ -571,7 +655,10 @@ function buildClassRuleBrief({
       (_, offset) => (assignment.startPeriodIndex ?? 0) + offset,
     );
 
-    if (isSocialStudiesSubject(assignment) && assignment.startDayIndex !== null) {
+    if (
+      isSocialStudiesSubject(assignment) &&
+      assignment.startDayIndex !== null
+    ) {
       socialStudyCountsByDay.set(
         assignment.startDayIndex,
         (socialStudyCountsByDay.get(assignment.startDayIndex) ?? 0) +
@@ -606,7 +693,8 @@ function buildClassRuleBrief({
       const daysByRequirement =
         periodsByMainRequirementDay.get(assignment.teachingRequirementId) ??
         new Map<number, number[]>();
-      const dailyPeriods = daysByRequirement.get(assignment.startDayIndex) ?? [];
+      const dailyPeriods =
+        daysByRequirement.get(assignment.startDayIndex) ?? [];
       dailyPeriods.push(...periods);
       daysByRequirement.set(assignment.startDayIndex, dailyPeriods);
       periodsByMainRequirementDay.set(
@@ -1601,7 +1689,7 @@ export default async function SchedulePdfPage({
                 ? "Download teacher PDFs"
                 : query.type === "summary"
                   ? "Download summary"
-                : "Download PDF";
+                  : "Download PDF";
   const browserTitle = `${schedule.school.name} - ${schedule.name} v${String(
     schedule.version,
   )} - ${titlePrefix} timetable`;

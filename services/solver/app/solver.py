@@ -21,11 +21,10 @@ from app.models import (
 )
 from app.scoring import SOFT_CONSTRAINT_CODES, score_assignments
 from app.subject_group_rules import (
-    SOCIAL_STUDIES_DAILY_LIMIT,
-    SOCIAL_STUDIES_DAILY_PREFERRED_LIMIT,
     SOCIAL_STUDIES_DAILY_SPREAD_CODE,
-    has_social_studies_daily_spread_preference,
     is_social_studies_limited_subject,
+    social_studies_daily_limit,
+    social_studies_daily_preferred_limit,
 )
 from app.validator import validate_assignments
 
@@ -483,18 +482,19 @@ def solve(request: SolveRequest) -> SolveResponse:
                 ]
                 if daily_subject_group_starts:
                     daily_subject_group_count = sum(daily_subject_group_starts)
-                    model.add(daily_subject_group_count <= SOCIAL_STUDIES_DAILY_LIMIT)
+                    daily_limit = social_studies_daily_limit(class_section)
+                    model.add(daily_subject_group_count <= daily_limit)
                     constraints += 1
-                    if not has_social_studies_daily_spread_preference(class_section):
+                    preferred_limit = social_studies_daily_preferred_limit(class_section)
+                    if preferred_limit is None:
                         continue
                     daily_subject_group_excess = model.new_int_var(
                         0,
-                        SOCIAL_STUDIES_DAILY_LIMIT - SOCIAL_STUDIES_DAILY_PREFERRED_LIMIT,
+                        daily_limit - preferred_limit,
                         f"social_studies_daily_spread_{class_section.id}_{day}",
                     )
                     model.add(
-                        daily_subject_group_excess
-                        >= daily_subject_group_count - SOCIAL_STUDIES_DAILY_PREFERRED_LIMIT
+                        daily_subject_group_excess >= daily_subject_group_count - preferred_limit
                     )
                     constraints += 1
                     raw_terms[SOCIAL_STUDIES_DAILY_SPREAD_CODE].append(daily_subject_group_excess)

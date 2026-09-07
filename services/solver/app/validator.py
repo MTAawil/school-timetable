@@ -2,9 +2,9 @@ from collections import Counter
 
 from app.models import Assignment, SolveRequest
 from app.subject_group_rules import (
-    SOCIAL_STUDIES_DAILY_LIMIT,
     SOCIAL_STUDIES_DAILY_LIMIT_CODE,
     is_social_studies_limited_subject,
+    social_studies_daily_limit,
 )
 
 
@@ -195,8 +195,8 @@ def validate_assignments(
             ).add((assignment.day_index, assignment.period_index))
 
     for (class_section_id, day), count in social_studies_daily_counts.items():
-        if count > SOCIAL_STUDIES_DAILY_LIMIT:
-            class_section = class_sections[class_section_id]
+        class_section = class_sections[class_section_id]
+        if count > social_studies_daily_limit(class_section):
             errors.append(f"{SOCIAL_STUDIES_DAILY_LIMIT_CODE}:{class_section.name}:{day}")
 
     for group_id, requirement_positions in group_positions.items():

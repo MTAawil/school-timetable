@@ -4,10 +4,9 @@ from dataclasses import dataclass
 from app.grade_rules import requires_main_subject_weekly_pair
 from app.models import Assignment, SolveRequest
 from app.subject_group_rules import (
-    SOCIAL_STUDIES_DAILY_PREFERRED_LIMIT,
     SOCIAL_STUDIES_DAILY_SPREAD_CODE,
-    has_social_studies_daily_spread_preference,
     is_social_studies_limited_subject,
+    social_studies_daily_preferred_limit,
 )
 
 SOFT_CONSTRAINT_CODES = (
@@ -96,9 +95,10 @@ def score_assignments(request: SolveRequest, assignments: list[Assignment]) -> S
             assignment.period_index
         )
         class_section = class_sections[requirement.class_section_id]
+        preferred_social_studies_limit = social_studies_daily_preferred_limit(class_section)
         if (
             request.schema_version == 2
-            and has_social_studies_daily_spread_preference(class_section)
+            and preferred_social_studies_limit is not None
             and is_social_studies_limited_subject(subject, class_section)
         ):
             social_studies_counts_by_class_day[
@@ -147,8 +147,14 @@ def score_assignments(request: SolveRequest, assignments: list[Assignment]) -> S
         raw["SUBJECT_SPREAD"] += repeats
         raw["REPEATED_SUBJECT_DAY"] += repeats
     raw[SOCIAL_STUDIES_DAILY_SPREAD_CODE] += sum(
-        max(0, count - SOCIAL_STUDIES_DAILY_PREFERRED_LIMIT)
-        for count in social_studies_counts_by_class_day.values()
+        max(0, count - preferred_limit)
+        for (class_section_id, _day), count in social_studies_counts_by_class_day.items()
+        if (
+            preferred_limit := social_studies_daily_preferred_limit(
+                class_sections[class_section_id]
+            )
+        )
+        is not None
     )
     for requirement_id, selected_days in subject_days.items():
         requirement = requirements[requirement_id]

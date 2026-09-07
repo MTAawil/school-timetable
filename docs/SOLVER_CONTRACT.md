@@ -163,6 +163,9 @@ The redesigned solver must enforce:
     not counted as Civics for this rule. For Grade 10 and Grade 11 class
     sections, the same daily hard cap also counts `اجتماع`, `اقتصاد`, and
     `فلسفة`.
+    For ES and SE, the hard cap is four sessions per day and the group is the
+    Grade 10/11 group without `دين`. For LS and SV, the hard cap remains two
+    sessions per day and the group is `تربية`, `تاريخ`, `جغرافيا`, and `فلسفة`.
 
 Rooms are omitted from new redesign snapshots. Existing schema-version-1 room
 behavior remains unchanged for historical reproducibility.
@@ -212,8 +215,10 @@ For schema version 2, the History, Geography, Civics, and Religion group
 receives a high `SOCIAL_STUDIES_DAILY_SPREAD` soft penalty for each class-day
 that uses the allowed second grouped session. This soft preference is skipped
 for Grade 10 and Grade 11 because their hard-capped group includes additional
-upper-secondary subjects. Three or more remain infeasible for the applicable
-group.
+upper-secondary subjects. ES and SE use a soft target of three grouped sessions
+per class-day. LS and SV use the same soft target as grades 1 through 9: one
+grouped session per class-day. More than the hard cap remains infeasible for
+the applicable group.
 
 ### Full-time workload balance
 
