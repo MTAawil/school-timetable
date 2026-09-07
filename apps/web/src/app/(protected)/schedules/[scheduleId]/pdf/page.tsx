@@ -72,6 +72,12 @@ type AvailabilityNote = {
   reason: string | null;
 };
 type Day = { dayIndex: number; name: string };
+type Period = {
+  id: string;
+  periodIndex: number;
+  name: string;
+  isTeaching: boolean;
+};
 type SubjectCountRow = {
   classCode: string;
   displayOrder: number;
@@ -270,6 +276,84 @@ function assignmentCell(
       <span>{assignment.teacher.name}</span>
       {assignment.isLocked ? <small>Locked</small> : null}
     </div>
+  );
+}
+
+function wholeSchoolCell(
+  assignment: ScheduleAssignment,
+  snapshot: SolverSnapshot,
+) {
+  return (
+    <div className="pdf-school-lesson">
+      <strong>
+        {assignment.classSection.shortCode} -{" "}
+        {assignment.teachingRequirement.subject.name}
+      </strong>
+      <span>{assignment.teacher.name}</span>
+      <small>
+        {assignmentSessionLabel(
+          snapshot,
+          assignment.teachingRequirementId,
+          assignment.startPeriodIndex ?? 0,
+          assignment.durationPeriods,
+        )}
+      </small>
+    </div>
+  );
+}
+
+function WholeSchoolGrid({
+  days,
+  periods,
+  assignments,
+  snapshot,
+}: {
+  days: Day[];
+  periods: Period[];
+  assignments: ScheduleAssignment[];
+  snapshot: SolverSnapshot;
+}) {
+  return (
+    <section className="pdf-school-page">
+      <table className="pdf-school-grid">
+        <thead>
+          <tr>
+            <th className="pdf-school-period">Period</th>
+            {days.map((day) => (
+              <th key={day.dayIndex}>{day.name}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {periods.map((period) => (
+            <tr key={period.id}>
+              <th className="pdf-school-period">{period.name}</th>
+              {days.map((day) => {
+                const cellAssignments = assignments.filter(
+                  (assignment) =>
+                    assignment.startDayIndex === day.dayIndex &&
+                    assignment.startPeriodIndex === period.periodIndex,
+                );
+                return (
+                  <td
+                    className={period.isTeaching ? "" : "pdf-school-muted"}
+                    key={`${period.id}:${String(day.dayIndex)}`}
+                  >
+                    <div className="pdf-school-stack">
+                      {cellAssignments.map((assignment) => (
+                        <Fragment key={assignment.id}>
+                          {wholeSchoolCell(assignment, snapshot)}
+                        </Fragment>
+                      ))}
+                    </div>
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
   );
 }
 
@@ -627,6 +711,24 @@ export default async function SchedulePdfPage({
     .filter((period) => period.isTeaching)
     .map((period) => period.index)
     .sort((left, right) => left - right);
+  const periods: Period[] =
+    snapshot.schemaVersion === 2
+      ? snapshot.calendar.periods
+          .map((period) => ({
+            id: period.id,
+            periodIndex: period.index,
+            name: period.name,
+            isTeaching: period.isTeaching,
+          }))
+          .sort((left, right) => left.periodIndex - right.periodIndex)
+      : schedule.term.periods
+          .map((period) => ({
+            id: period.id,
+            periodIndex: period.periodIndex,
+            name: period.name,
+            isTeaching: period.isTeaching,
+          }))
+          .sort((left, right) => left.periodIndex - right.periodIndex);
   const teachingSessionIndexByPhysicalPeriod = new Map(
     schedule.term.periods
       .filter((period) => period.isTeaching)
@@ -836,7 +938,7 @@ export default async function SchedulePdfPage({
               : "Shared Sessions";
   const downloadLabel =
     query.type === "school"
-      ? "Download all PDFs"
+      ? "Download the best"
       : query.entity
         ? "Download PDF"
         : query.type === "class"
@@ -904,6 +1006,19 @@ export default async function SchedulePdfPage({
         .pdf-subject-counts-table th:first-child { min-width: 110px; text-align: left; }
         .pdf-subject-counts-table tbody th { white-space: nowrap; }
         .pdf-report .pdf-page-header { margin-bottom: 12px; }
+        .pdf-school-page { background: white; color: #1d2520; padding: 0; }
+        .pdf-school-grid { border-collapse: collapse; table-layout: fixed; width: 100%; }
+        .pdf-school-grid th, .pdf-school-grid td { border: 1px solid #dce1dc; padding: 6px; vertical-align: top; }
+        .pdf-school-grid thead th { background: #f0f2ef; color: #050505; font-size: 10px; font-weight: 800; text-align: center; }
+        .pdf-school-period { width: 86px; }
+        .pdf-school-grid tbody th { background: #fbfbf9; font-size: 10px; font-weight: 800; text-align: left; }
+        .pdf-school-grid td { min-height: 90px; }
+        .pdf-school-muted { background: #f3f4f2; }
+        .pdf-school-stack { display: grid; gap: 4px; }
+        .pdf-school-lesson { background: #edf6f2; border-left: 2px solid #0e6b4f; min-height: 38px; padding: 5px; }
+        .pdf-school-lesson strong { display: block; font-size: 8px; line-height: 1.2; overflow-wrap: anywhere; }
+        .pdf-school-lesson span { color: #1d2520; display: block; font-size: 7px; line-height: 1.25; margin-top: 2px; overflow-wrap: anywhere; }
+        .pdf-school-lesson small { color: #516159; display: block; font-size: 6.5px; line-height: 1.2; margin-top: 2px; }
         @media print {
           body { background: white; }
           body * { visibility: hidden; }
@@ -959,10 +1074,15 @@ export default async function SchedulePdfPage({
           schoolName={schedule.school.name}
         />
       ) : null}
-      {(query.type === "school" || query.type === "class"
-        ? selectedClasses
-        : []
-      ).map((classSection) => (
+      {query.type === "school" ? (
+        <WholeSchoolGrid
+          assignments={assignments}
+          days={days}
+          periods={periods}
+          snapshot={snapshot}
+        />
+      ) : null}
+      {(query.type === "class" ? selectedClasses : []).map((classSection) => (
         <Timetable
           assignments={assignments.filter(
             (assignment) => assignment.classSectionId === classSection.id,
@@ -976,8 +1096,7 @@ export default async function SchedulePdfPage({
           type="class"
         />
       ))}
-      {(query.type === "school" ||
-      query.type === "teacher" ||
+      {(query.type === "teacher" ||
       query.type === "teacher-full-time" ||
       query.type === "teacher-part-time"
         ? selectedTeachers

@@ -458,7 +458,14 @@ export default async function SchedulePage({
           href={`/schedules/${schedule.id}/pdf/download?type=school`}
         >
           <Download className="mr-2" size={16} />
-          All PDFs
+          the best
+        </Link>
+        <Link
+          className="inline-flex h-9 items-center border border-[#cfd5d1] bg-white px-3 text-sm"
+          href={`/schedules/${schedule.id}/excel`}
+        >
+          <Download className="mr-2" size={16} />
+          the best excel
         </Link>
         <Link
           className="inline-flex h-9 items-center border border-[#cfd5d1] bg-white px-3 text-sm"

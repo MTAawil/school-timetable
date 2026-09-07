@@ -26,7 +26,9 @@ const searchSchema = z.object({
 });
 
 function fileName(type: z.infer<typeof searchSchema>["type"]): string {
-  return `${type.replaceAll("-", "_")}.pdf`;
+  return type === "school"
+    ? "the_best.pdf"
+    : `${type.replaceAll("-", "_")}.pdf`;
 }
 
 function localChromePath(): string | undefined {

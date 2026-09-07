@@ -972,6 +972,13 @@ Checks so far:
 - Kept the no-three-consecutive same class/day/subject rule hard.
 - Kept upper-secondary main subjects on the existing soft adjacency preference.
 
+### 2026-09-07 - Website-shaped whole-school exports
+
+- Changed the whole-school PDF download to print the same period-by-day
+  all-school timetable grid shown on the schedule page.
+- Added an Excel-readable `.xls` export with the same whole-school grid.
+- Renamed the schedule-page downloads to `the best` and `the best excel`.
+
 ### 2026-07-26 - Task 10 release hardening
 
 - Added deterministic infeasibility diagnostics for empty assignment domains
