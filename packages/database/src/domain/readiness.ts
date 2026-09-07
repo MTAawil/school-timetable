@@ -26,7 +26,8 @@ export type ReadinessIssueCode =
   | "TEACHER_WORKLOAD_MISMATCH"
   | "NON_MAIN_DAILY_CAPACITY_SHORTAGE"
   | "DOUBLE_REQUIRED_BUT_DISABLED"
-  | "MAIN_DAILY_CAPACITY_SHORTAGE";
+  | "MAIN_DAILY_CAPACITY_SHORTAGE"
+  | "SOCIAL_STUDIES_DAILY_LIMIT";
 
 export type ReadinessIssue = {
   code: ReadinessIssueCode;
@@ -47,6 +48,43 @@ type Position = { dayIndex: number; periodIndex: number };
 
 const positionKey = (dayIndex: number, periodIndex: number) =>
   `${String(dayIndex)}:${String(periodIndex)}`;
+const socialStudiesSubjectKeys = new Set([
+  "HISTORY",
+  "GEOGRAPHY",
+  "CIVICS",
+  "RELIGION",
+]);
+const socialStudiesSubjectLabels = new Set([
+  "history",
+  "geography",
+  "civics",
+  "religion",
+  "تاريخ",
+  "جغرافيا",
+  "اجتماع",
+  "دين",
+]);
+
+function subjectKey(value: string): string {
+  return value
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/gu, "_")
+    .replace(/^_+|_+$/gu, "");
+}
+
+function subjectLabel(value: string): string {
+  return value.toLocaleLowerCase().trim().replace(/\s+/gu, " ");
+}
+
+function isSocialStudiesLimitedSubject(
+  subject: SolverSnapshot["subjects"][number] | undefined,
+): boolean {
+  return subject
+    ? socialStudiesSubjectKeys.has(subjectKey(subject.id)) ||
+        socialStudiesSubjectKeys.has(subjectKey(subject.name)) ||
+        socialStudiesSubjectLabels.has(subjectLabel(subject.name))
+    : false;
+}
 
 function entityName(
   snapshot: LegacySolverSnapshot,
@@ -598,6 +636,9 @@ function validateSupervisorReadiness(
 
   const workingDayCount = workingDays.length;
   const weeklyClassCapacity = workingDayCount * teachingPeriods.length;
+  const subjectById = new Map(
+    snapshot.subjects.map((subject) => [subject.id, subject]),
+  );
   for (const classSection of snapshot.classSections) {
     const curriculum = snapshot.requirements.filter(
       (item) => item.classSectionId === classSection.id,
@@ -621,6 +662,50 @@ function validateSupervisorReadiness(
         suggestions: ["/subjects", "/setup"],
       });
     }
+    const socialStudiesSessions = curriculum
+      .filter((requirement) =>
+        isSocialStudiesLimitedSubject(subjectById.get(requirement.subjectId)),
+      )
+      .reduce((total, requirement) => total + requirement.weeklySessions, 0);
+    const socialStudiesAvailable = workingDayCount * 2;
+    if (socialStudiesSessions > socialStudiesAvailable) {
+      issues.push({
+        code: "SOCIAL_STUDIES_DAILY_LIMIT",
+        summary: `${classSection.name} needs ${String(socialStudiesSessions)} History, Geography, Civics, and Religion sessions, but the daily cap allows ${String(socialStudiesAvailable)} per week.`,
+        entityIds: [classSection.id],
+        required: socialStudiesSessions,
+        available: socialStudiesAvailable,
+        suggestions: ["/subjects"],
+      });
+    }
+  }
+
+  const socialStudiesFixedByClassDay = new Map<string, string[]>();
+  for (const requirement of snapshot.requirements) {
+    const subject = subjectById.get(requirement.subjectId);
+    if (!isSocialStudiesLimitedSubject(subject)) continue;
+    for (const fixedSlot of requirement.fixedSlots) {
+      const key = `${requirement.classSectionId}:${String(fixedSlot.dayIndex)}`;
+      socialStudiesFixedByClassDay.set(key, [
+        ...(socialStudiesFixedByClassDay.get(key) ?? []),
+        requirement.id,
+      ]);
+    }
+  }
+  for (const [key, requirementIds] of socialStudiesFixedByClassDay) {
+    if (requirementIds.length <= 2) continue;
+    const [classSectionId = "", dayIndex = ""] = key.split(":");
+    const classSection = snapshot.classSections.find(
+      (item) => item.id === classSectionId,
+    );
+    issues.push({
+      code: "SOCIAL_STUDIES_DAILY_LIMIT",
+      summary: `${classSection?.name ?? classSectionId} has more than two fixed History, Geography, Civics, and Religion sessions on day ${dayIndex}.`,
+      entityIds: [classSectionId, ...requirementIds],
+      required: requirementIds.length,
+      available: 2,
+      suggestions: ["/subjects", "/schedules"],
+    });
   }
 
   for (const requirement of snapshot.requirements) {

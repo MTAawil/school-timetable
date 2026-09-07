@@ -156,6 +156,8 @@ The redesigned solver must enforce:
 16. A teacher may not have more than two internal free teaching sessions total
     between lessons on the same day. Free time before the first lesson or after
     the last lesson is allowed.
+17. For each class, History, Geography, Civics, and Religion may occupy at most
+    two total sessions on the same day.
 
 Rooms are omitted from new redesign snapshots. Existing schema-version-1 room
 behavior remains unchanged for historical reproducibility.
@@ -238,5 +240,7 @@ The independent validator must additionally prove:
 - no pair when double sessions are disabled, except for named part-time
   distribution relaxation
 - declared and allocated teacher totals in the input contract
+- the History, Geography, Civics, and Religion subject group never exceeds two
+  total sessions for one class on one day
 
 A violation returns `FAILED`; it is never repaired or ignored after solving.

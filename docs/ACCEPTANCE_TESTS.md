@@ -205,3 +205,11 @@ A candidate places two non-main History sessions for G7-A on Monday.
 
 Expected: independent validation rejects it with
 `SUBJECT_DAILY_REPEAT:G7-A:HISTORY`.
+
+### R11 - social-studies daily cap
+
+A candidate places History, Geography, and Civics for the same class on Monday.
+
+Expected: independent validation rejects it with
+`SOCIAL_STUDIES_DAILY_LIMIT:G7-A:0`, and fixed inputs that force three of
+History, Geography, Civics, and Religion on one class day are infeasible.

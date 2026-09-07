@@ -1,6 +1,10 @@
 from collections import Counter
 
 from app.models import Assignment, SolveRequest
+from app.subject_group_rules import (
+    SOCIAL_STUDIES_DAILY_LIMIT_CODE,
+    is_social_studies_limited_subject,
+)
 
 
 def _part_time_distribution_can_relax(request: SolveRequest, requirement_id: str) -> bool:
@@ -71,6 +75,8 @@ def validate_assignments(
 ) -> list[str]:
     errors: list[str] = []
     requirements = {item.id: item for item in request.requirements}
+    subjects = {item.id: item for item in request.subjects}
+    class_sections = {item.id: item for item in request.class_sections}
     enabled = {(slot.day_index, slot.period_index) for slot in request.calendar.enabled_slots}
     teaching = {period.index for period in request.calendar.periods if period.is_teaching}
     teaching_periods = sorted(teaching)
@@ -87,6 +93,7 @@ def validate_assignments(
     occupied: set[tuple[str, str, int, int]] = set()
     days_by_requirement: dict[str, set[int]] = {}
     daily_counts: Counter[tuple[str, int]] = Counter()
+    social_studies_daily_counts: Counter[tuple[str, int]] = Counter()
     teacher_daily_periods: Counter[tuple[str, int]] = Counter()
     class_daily_periods: Counter[tuple[str, int]] = Counter()
     teacher_periods: dict[tuple[str, int], set[int]] = {}
@@ -174,10 +181,21 @@ def validate_assignments(
         )
         days_by_requirement.setdefault(current_requirement.id, set()).add(assignment.day_index)
         daily_counts[(current_requirement.id, assignment.day_index)] += 1
+        if request.schema_version == 2 and is_social_studies_limited_subject(
+            subjects[current_requirement.subject_id]
+        ):
+            social_studies_daily_counts[
+                (current_requirement.class_section_id, assignment.day_index)
+            ] += 1
         if current_requirement.shared_teaching_group_id:
             group_positions.setdefault(current_requirement.shared_teaching_group_id, {}).setdefault(
                 current_requirement.id, set()
             ).add((assignment.day_index, assignment.period_index))
+
+    for (class_section_id, day), count in social_studies_daily_counts.items():
+        if count > 2:
+            class_section = class_sections[class_section_id]
+            errors.append(f"{SOCIAL_STUDIES_DAILY_LIMIT_CODE}:{class_section.name}:{day}")
 
     for group_id, requirement_positions in group_positions.items():
         positions = list(requirement_positions.values())

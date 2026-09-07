@@ -979,6 +979,15 @@ Checks so far:
 - Added an Excel-readable `.xls` export with the same whole-school grid.
 - Renamed the schedule-page downloads to `the best` and `the best excel`.
 
+### 2026-09-07 - Social-studies daily hard cap
+
+- Added a schema-version-2 hard solver and validator rule: each class may have
+  at most two total History, Geography, Civics, and Religion sessions on the
+  same day.
+- Added focused solver tests for the allowed two-session case, post-solve
+  validation rejection, and infeasibility when fixed inputs force three grouped
+  sessions on one class day.
+
 ### 2026-07-26 - Task 10 release hardening
 
 - Added deterministic infeasibility diagnostics for empty assignment domains

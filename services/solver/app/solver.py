@@ -20,6 +20,7 @@ from app.models import (
     SolverTelemetry,
 )
 from app.scoring import SOFT_CONSTRAINT_CODES, score_assignments
+from app.subject_group_rules import is_social_studies_limited_subject
 from app.validator import validate_assignments
 
 MAX_STRUCTURAL_DIAGNOSTICS = 5
@@ -235,6 +236,7 @@ def solve(request: SolveRequest) -> SolveResponse:
     variables: dict[Choice, cp_model.IntVar] = {}
     constraints = 0
     requirement_by_id = {item.id: item for item in request.requirements}
+    subject_by_id = {item.id: item for item in request.subjects}
     shared_requirements: dict[str, list[str]] = defaultdict(list)
     for requirement in request.requirements:
         if requirement.shared_teaching_group_id:
@@ -454,6 +456,24 @@ def solve(request: SolveRequest) -> SolveResponse:
             if daily:
                 model.add(sum(daily) <= class_section.max_lessons_per_day)
                 constraints += 1
+
+    if request.schema_version == 2:
+        social_studies_requirement_ids = {
+            requirement.id
+            for requirement in request.requirements
+            if is_social_studies_limited_subject(subject_by_id[requirement.subject_id])
+        }
+        for class_section in request.class_sections:
+            for day in days:
+                daily_subject_group_starts = [
+                    variable
+                    for requirement_id in social_studies_requirement_ids
+                    for variable in starts_by_day.get((requirement_id, day), [])
+                    if requirement_by_id[requirement_id].class_section_id == class_section.id
+                ]
+                if daily_subject_group_starts:
+                    model.add(sum(daily_subject_group_starts) <= 2)
+                    constraints += 1
 
     for requirement in request.requirements:
         relax_part_time_distribution = part_time_distribution_can_relax(request, requirement)

@@ -240,6 +240,102 @@ function buildSupervisorSnapshot(
   };
 }
 
+function socialStudiesSupervisorSnapshot(): SupervisorSolverSnapshot {
+  const snapshot = buildSupervisorSnapshot({
+    teachers: [
+      {
+        id: "teacher",
+        name: "Rawan",
+        employmentType: "FULL_TIME",
+        weeklyTeachingSessions: 11,
+        maxLessonsPerDay: null,
+        maxConsecutiveLessons: null,
+      },
+    ],
+    subjects: [
+      {
+        id: "subject-1",
+        name: "تاريخ",
+        preferredTimeBand: "NEUTRAL",
+        consecutivePeriodsPreferred: false,
+        defaultRoomType: null,
+      },
+      {
+        id: "subject-2",
+        name: "جغرافيا",
+        preferredTimeBand: "NEUTRAL",
+        consecutivePeriodsPreferred: false,
+        defaultRoomType: null,
+      },
+      {
+        id: "subject-3",
+        name: "اجتماع",
+        preferredTimeBand: "NEUTRAL",
+        consecutivePeriodsPreferred: false,
+        defaultRoomType: null,
+      },
+      {
+        id: "subject-4",
+        name: "دين",
+        preferredTimeBand: "NEUTRAL",
+        consecutivePeriodsPreferred: false,
+        defaultRoomType: null,
+      },
+    ],
+    requirements: [
+      {
+        id: "g7-a:subject-1",
+        classSectionId: "g7-a",
+        subjectId: "subject-1",
+        teacherId: "teacher",
+        sharedTeachingGroupId: null,
+        weeklySessions: 3,
+        isMainSubject: false,
+        allowDoubleSession: false,
+        fixedSlots: [],
+        forbiddenSlots: [],
+      },
+      {
+        id: "g7-a:subject-2",
+        classSectionId: "g7-a",
+        subjectId: "subject-2",
+        teacherId: "teacher",
+        sharedTeachingGroupId: null,
+        weeklySessions: 3,
+        isMainSubject: false,
+        allowDoubleSession: false,
+        fixedSlots: [],
+        forbiddenSlots: [],
+      },
+      {
+        id: "g7-a:subject-3",
+        classSectionId: "g7-a",
+        subjectId: "subject-3",
+        teacherId: "teacher",
+        sharedTeachingGroupId: null,
+        weeklySessions: 3,
+        isMainSubject: false,
+        allowDoubleSession: false,
+        fixedSlots: [],
+        forbiddenSlots: [],
+      },
+      {
+        id: "g7-a:subject-4",
+        classSectionId: "g7-a",
+        subjectId: "subject-4",
+        teacherId: "teacher",
+        sharedTeachingGroupId: null,
+        weeklySessions: 2,
+        isMainSubject: false,
+        allowDoubleSession: false,
+        fixedSlots: [],
+        forbiddenSlots: [],
+      },
+    ],
+  });
+  return snapshot;
+}
+
 describe("supervisor readiness", () => {
   it("blocks a completely empty school setup", () => {
     const result = validateReadiness(
@@ -355,6 +451,36 @@ describe("supervisor readiness", () => {
     expect(validateReadiness(snapshot).issues).not.toContainEqual(
       expect.objectContaining({ code: "TEACHER_WORKLOAD_MISMATCH" }),
     );
+  });
+
+  it("rejects social-studies demand above two sessions per class day", () => {
+    const issue = validateReadiness(
+      socialStudiesSupervisorSnapshot(),
+    ).issues.find(
+      (candidate) => candidate.code === "SOCIAL_STUDIES_DAILY_LIMIT",
+    );
+
+    expect(issue).toMatchObject({ required: 11, available: 10 });
+  });
+
+  it("rejects fixed social-studies sessions above the class daily cap", () => {
+    const snapshot = socialStudiesSupervisorSnapshot();
+    const teacher = snapshot.teachers[0];
+    if (!teacher) throw new Error("A teacher is required.");
+    snapshot.teachers[0] = { ...teacher, weeklyTeachingSessions: 3 };
+    snapshot.requirements = snapshot.requirements
+      .slice(0, 3)
+      .map((requirement, index) => ({
+        ...requirement,
+        weeklySessions: 1,
+        fixedSlots: [{ dayIndex: 0, periodIndex: index }],
+      }));
+
+    const issue = validateReadiness(snapshot).issues.find(
+      (candidate) => candidate.code === "SOCIAL_STUDIES_DAILY_LIMIT",
+    );
+
+    expect(issue).toMatchObject({ required: 3, available: 2 });
   });
 });
 

@@ -98,6 +98,48 @@ def supervisor_request(
     return SolveRequest.model_validate(payload)
 
 
+def social_studies_request() -> SolveRequest:
+    payload = supervisor_request(
+        weekly_sessions=1,
+        is_main_subject=False,
+        allow_double_session=False,
+        sessions_per_day=4,
+    ).model_dump(by_alias=True)
+    subjects = [
+        {"id": "subject-1", "name": "تاريخ"},
+        {"id": "subject-2", "name": "جغرافيا"},
+        {"id": "subject-3", "name": "اجتماع"},
+        {"id": "subject-4", "name": "دين"},
+    ]
+    payload["subjects"] = subjects
+    payload["teachers"] = [
+        {
+            "id": f"teacher-{subject['id']}",
+            "name": f"Teacher {subject['name']}",
+            "employmentType": "FULL_TIME",
+            "weeklyTeachingSessions": 1,
+            "maxLessonsPerDay": 4,
+            "maxConsecutiveLessons": 4,
+        }
+        for subject in subjects
+    ]
+    payload["requirements"] = [
+        {
+            "id": f"G7-A:{subject['id']}",
+            "classSectionId": "G7-A",
+            "subjectId": subject["id"],
+            "teacherId": f"teacher-{subject['id']}",
+            "weeklySessions": 1,
+            "isMainSubject": False,
+            "allowDoubleSession": False,
+            "fixedSlots": [],
+            "forbiddenSlots": [],
+        }
+        for subject in subjects
+    ]
+    return SolveRequest.model_validate(payload)
+
+
 def test_main_subject_late_session_penalty_starts_after_fourth_session() -> None:
     base_request = supervisor_request(weekly_sessions=1, sessions_per_day=6)
     request = base_request.model_copy(
@@ -564,6 +606,76 @@ def test_validator_rejects_repeated_non_main_subject() -> None:
     ]
 
     assert "SUBJECT_DAILY_REPEAT:G7-A:MATH" in validate_assignments(request, candidate)
+
+
+def test_validator_rejects_more_than_two_social_studies_subjects_per_class_day() -> None:
+    request = social_studies_request()
+    candidate = [
+        Assignment(
+            requirement_id="G7-A:subject-1",
+            day_index=0,
+            period_index=0,
+            duration_periods=1,
+        ),
+        Assignment(
+            requirement_id="G7-A:subject-2",
+            day_index=0,
+            period_index=1,
+            duration_periods=1,
+        ),
+        Assignment(
+            requirement_id="G7-A:subject-3",
+            day_index=0,
+            period_index=2,
+            duration_periods=1,
+        ),
+    ]
+
+    assert "SOCIAL_STUDIES_DAILY_LIMIT:G7-A:0" in validate_assignments(request, candidate)
+
+
+def test_validator_allows_two_social_studies_subjects_per_class_day() -> None:
+    request = social_studies_request()
+    candidate = [
+        Assignment(
+            requirement_id="G7-A:subject-1",
+            day_index=0,
+            period_index=0,
+            duration_periods=1,
+        ),
+        Assignment(
+            requirement_id="G7-A:subject-4",
+            day_index=0,
+            period_index=1,
+            duration_periods=1,
+        ),
+        Assignment(
+            requirement_id="G7-A:subject-2",
+            day_index=1,
+            period_index=0,
+            duration_periods=1,
+        ),
+        Assignment(
+            requirement_id="G7-A:subject-3",
+            day_index=1,
+            period_index=1,
+            duration_periods=1,
+        ),
+    ]
+
+    assert validate_assignments(request, candidate) == []
+
+
+def test_solver_rejects_fixed_social_studies_daily_overload() -> None:
+    request = social_studies_request()
+    payload = request.model_dump(by_alias=True)
+    for period, requirement in enumerate(payload["requirements"][:3]):
+        requirement["fixedSlots"] = [{"dayIndex": 0, "periodIndex": period}]
+    request = SolveRequest.model_validate(payload)
+
+    response = solve(request)
+
+    assert response.status == "INFEASIBLE"
 
 
 def test_validator_allows_part_time_distribution_relaxation() -> None:
