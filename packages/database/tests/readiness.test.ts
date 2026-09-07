@@ -482,6 +482,108 @@ describe("supervisor readiness", () => {
 
     expect(issue).toMatchObject({ required: 3, available: 2 });
   });
+
+  it("counts upper secondary social-studies additions for Grade 10/11 only", () => {
+    const snapshot = socialStudiesSupervisorSnapshot();
+    const classSection = snapshot.classSections[0];
+    const teacher = snapshot.teachers[0];
+    if (!classSection) throw new Error("A class section is required.");
+    if (!teacher) throw new Error("A teacher is required.");
+    snapshot.classSections[0] = {
+      ...classSection,
+      id: "g10-10a",
+      name: "G10 10A",
+      shortCode: "10A",
+    };
+    snapshot.teachers[0] = { ...teacher, weeklyTeachingSessions: 3 };
+    snapshot.subjects = [
+      {
+        id: "history",
+        name: "\u062a\u0627\u0631\u064a\u062e",
+        preferredTimeBand: "NEUTRAL",
+        consecutivePeriodsPreferred: false,
+        defaultRoomType: null,
+      },
+      {
+        id: "economics",
+        name: "\u0627\u0642\u062a\u0635\u0627\u062f",
+        preferredTimeBand: "NEUTRAL",
+        consecutivePeriodsPreferred: false,
+        defaultRoomType: null,
+      },
+      {
+        id: "philosophy",
+        name: "\u0641\u0644\u0633\u0641\u0629",
+        preferredTimeBand: "NEUTRAL",
+        consecutivePeriodsPreferred: false,
+        defaultRoomType: null,
+      },
+    ];
+    snapshot.requirements = snapshot.subjects.map((subject, index) => ({
+      id: `g10-10a:${subject.id}`,
+      classSectionId: "g10-10a",
+      subjectId: subject.id,
+      teacherId: "teacher",
+      sharedTeachingGroupId: null,
+      weeklySessions: 1,
+      isMainSubject: false,
+      allowDoubleSession: false,
+      fixedSlots: [{ dayIndex: 0, periodIndex: index }],
+      forbiddenSlots: [],
+    }));
+
+    const issue = validateReadiness(snapshot).issues.find(
+      (candidate) => candidate.code === "SOCIAL_STUDIES_DAILY_LIMIT",
+    );
+
+    expect(issue).toMatchObject({ required: 3, available: 2 });
+  });
+
+  it("does not count upper secondary additions for lower grades", () => {
+    const snapshot = socialStudiesSupervisorSnapshot();
+    const teacher = snapshot.teachers[0];
+    if (!teacher) throw new Error("A teacher is required.");
+    snapshot.teachers[0] = { ...teacher, weeklyTeachingSessions: 3 };
+    snapshot.subjects = [
+      {
+        id: "history",
+        name: "\u062a\u0627\u0631\u064a\u062e",
+        preferredTimeBand: "NEUTRAL",
+        consecutivePeriodsPreferred: false,
+        defaultRoomType: null,
+      },
+      {
+        id: "economics",
+        name: "\u0627\u0642\u062a\u0635\u0627\u062f",
+        preferredTimeBand: "NEUTRAL",
+        consecutivePeriodsPreferred: false,
+        defaultRoomType: null,
+      },
+      {
+        id: "philosophy",
+        name: "\u0641\u0644\u0633\u0641\u0629",
+        preferredTimeBand: "NEUTRAL",
+        consecutivePeriodsPreferred: false,
+        defaultRoomType: null,
+      },
+    ];
+    snapshot.requirements = snapshot.subjects.map((subject, index) => ({
+      id: `g7-a:${subject.id}`,
+      classSectionId: "g7-a",
+      subjectId: subject.id,
+      teacherId: "teacher",
+      sharedTeachingGroupId: null,
+      weeklySessions: 1,
+      isMainSubject: false,
+      allowDoubleSession: false,
+      fixedSlots: [{ dayIndex: 0, periodIndex: index }],
+      forbiddenSlots: [],
+    }));
+
+    expect(validateReadiness(snapshot).issues).not.toContainEqual(
+      expect.objectContaining({ code: "SOCIAL_STUDIES_DAILY_LIMIT" }),
+    );
+  });
 });
 
 describe("snapshot canonicalization", () => {

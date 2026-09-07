@@ -6,6 +6,7 @@ from app.models import Assignment, SolveRequest
 from app.subject_group_rules import (
     SOCIAL_STUDIES_DAILY_PREFERRED_LIMIT,
     SOCIAL_STUDIES_DAILY_SPREAD_CODE,
+    has_social_studies_daily_spread_preference,
     is_social_studies_limited_subject,
 )
 
@@ -60,6 +61,7 @@ def score_assignments(request: SolveRequest, assignments: list[Assignment]) -> S
     weights = request.constraint_profile.weights
     requirements = {item.id: item for item in request.requirements}
     subjects = {item.id: item for item in request.subjects}
+    class_sections = {item.id: item for item in request.class_sections}
     teachers = {item.id: item for item in request.teachers}
     teaching_periods = sorted(
         period.index for period in request.calendar.periods if period.is_teaching
@@ -93,7 +95,12 @@ def score_assignments(request: SolveRequest, assignments: list[Assignment]) -> S
         subject_periods_by_day[(requirement.id, assignment.day_index)].append(
             assignment.period_index
         )
-        if request.schema_version == 2 and is_social_studies_limited_subject(subject):
+        class_section = class_sections[requirement.class_section_id]
+        if (
+            request.schema_version == 2
+            and has_social_studies_daily_spread_preference(class_section)
+            and is_social_studies_limited_subject(subject, class_section)
+        ):
             social_studies_counts_by_class_day[
                 (requirement.class_section_id, assignment.day_index)
             ] += 1

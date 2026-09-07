@@ -24,6 +24,7 @@ from app.subject_group_rules import (
     SOCIAL_STUDIES_DAILY_LIMIT,
     SOCIAL_STUDIES_DAILY_PREFERRED_LIMIT,
     SOCIAL_STUDIES_DAILY_SPREAD_CODE,
+    has_social_studies_daily_spread_preference,
     is_social_studies_limited_subject,
 )
 from app.validator import validate_assignments
@@ -242,6 +243,7 @@ def solve(request: SolveRequest) -> SolveResponse:
     constraints = 0
     requirement_by_id = {item.id: item for item in request.requirements}
     subject_by_id = {item.id: item for item in request.subjects}
+    class_section_by_id = {item.id: item for item in request.class_sections}
     shared_requirements: dict[str, list[str]] = defaultdict(list)
     for requirement in request.requirements:
         if requirement.shared_teaching_group_id:
@@ -466,7 +468,10 @@ def solve(request: SolveRequest) -> SolveResponse:
         social_studies_requirement_ids = {
             requirement.id
             for requirement in request.requirements
-            if is_social_studies_limited_subject(subject_by_id[requirement.subject_id])
+            if is_social_studies_limited_subject(
+                subject_by_id[requirement.subject_id],
+                class_section_by_id[requirement.class_section_id],
+            )
         }
         for class_section in request.class_sections:
             for day in days:
@@ -480,6 +485,8 @@ def solve(request: SolveRequest) -> SolveResponse:
                     daily_subject_group_count = sum(daily_subject_group_starts)
                     model.add(daily_subject_group_count <= SOCIAL_STUDIES_DAILY_LIMIT)
                     constraints += 1
+                    if not has_social_studies_daily_spread_preference(class_section):
+                        continue
                     daily_subject_group_excess = model.new_int_var(
                         0,
                         SOCIAL_STUDIES_DAILY_LIMIT - SOCIAL_STUDIES_DAILY_PREFERRED_LIMIT,

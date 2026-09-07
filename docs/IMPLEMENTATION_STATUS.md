@@ -991,6 +991,10 @@ Checks so far:
   the allowed second grouped session on one class-day, and corrected the Al
   Massar Arabic Civics mapping to `تربية` instead of `اجتماع`.
 
+- Extended the hard cap for Grade 10 and Grade 11 to also count Sociology /
+  Social Studies, Economics, and Philosophy, while skipping the soft max-one
+  spread penalty for those grades.
+
 ### 2026-07-26 - Task 10 release hardening
 
 - Added deterministic infeasibility diagnostics for empty assignment domains

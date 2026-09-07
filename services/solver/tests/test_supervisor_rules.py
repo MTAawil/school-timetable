@@ -99,12 +99,13 @@ def supervisor_request(
     return SolveRequest.model_validate(payload)
 
 
-def social_studies_request() -> SolveRequest:
+def social_studies_request(*, class_id: str = "G7-A") -> SolveRequest:
     payload = supervisor_request(
         weekly_sessions=1,
         is_main_subject=False,
         allow_double_session=False,
         sessions_per_day=4,
+        class_id=class_id,
     ).model_dump(by_alias=True)
     subjects = [
         {"id": "subject-1", "name": "تاريخ"},
@@ -126,8 +127,8 @@ def social_studies_request() -> SolveRequest:
     ]
     payload["requirements"] = [
         {
-            "id": f"G7-A:{subject['id']}",
-            "classSectionId": "G7-A",
+            "id": f"{class_id}:{subject['id']}",
+            "classSectionId": class_id,
             "subjectId": subject["id"],
             "teacherId": f"teacher-{subject['id']}",
             "weeklySessions": 1,
@@ -707,6 +708,170 @@ def test_social_studies_second_daily_subject_has_high_penalty() -> None:
 
     assert validate_assignments(request, candidate) == []
     assert scored.breakdown["SOCIAL_STUDIES_DAILY_SPREAD"] == 200
+
+
+def test_grade_ten_counts_expanded_social_studies_subjects_in_hard_limit() -> None:
+    request = social_studies_request(class_id="G10-10A")
+    payload = request.model_dump(by_alias=True)
+    extra_subjects = [
+        {"id": "subject-5", "name": "\u0627\u062c\u062a\u0645\u0627\u0639"},
+        {"id": "subject-6", "name": "\u0627\u0642\u062a\u0635\u0627\u062f"},
+        {"id": "subject-7", "name": "\u0641\u0644\u0633\u0641\u0629"},
+    ]
+    payload["subjects"].extend(extra_subjects)
+    payload["teachers"].extend(
+        {
+            "id": f"teacher-{subject['id']}",
+            "name": f"Teacher {subject['name']}",
+            "employmentType": "FULL_TIME",
+            "weeklyTeachingSessions": 1,
+            "maxLessonsPerDay": 4,
+            "maxConsecutiveLessons": 4,
+        }
+        for subject in extra_subjects
+    )
+    payload["requirements"].extend(
+        {
+            "id": f"G10-10A:{subject['id']}",
+            "classSectionId": "G10-10A",
+            "subjectId": subject["id"],
+            "teacherId": f"teacher-{subject['id']}",
+            "weeklySessions": 1,
+            "isMainSubject": False,
+            "allowDoubleSession": False,
+            "fixedSlots": [],
+            "forbiddenSlots": [],
+        }
+        for subject in extra_subjects
+    )
+    request = SolveRequest.model_validate(payload)
+    candidate = [
+        Assignment(
+            requirement_id="G10-10A:subject-1",
+            day_index=0,
+            period_index=0,
+            duration_periods=1,
+        ),
+        Assignment(
+            requirement_id="G10-10A:subject-5",
+            day_index=0,
+            period_index=1,
+            duration_periods=1,
+        ),
+        Assignment(
+            requirement_id="G10-10A:subject-6",
+            day_index=0,
+            period_index=2,
+            duration_periods=1,
+        ),
+    ]
+
+    assert "SOCIAL_STUDIES_DAILY_LIMIT:G10-10A:0" in validate_assignments(
+        request,
+        candidate,
+    )
+
+
+def test_non_upper_secondary_does_not_count_expanded_social_studies_subjects() -> None:
+    request = social_studies_request()
+    payload = request.model_dump(by_alias=True)
+    extra_subjects = [
+        {"id": "subject-5", "name": "\u0627\u062c\u062a\u0645\u0627\u0639"},
+        {"id": "subject-6", "name": "\u0627\u0642\u062a\u0635\u0627\u062f"},
+    ]
+    payload["subjects"].extend(extra_subjects)
+    payload["teachers"].extend(
+        {
+            "id": f"teacher-{subject['id']}",
+            "name": f"Teacher {subject['name']}",
+            "employmentType": "FULL_TIME",
+            "weeklyTeachingSessions": 1,
+            "maxLessonsPerDay": 4,
+            "maxConsecutiveLessons": 4,
+        }
+        for subject in extra_subjects
+    )
+    payload["requirements"].extend(
+        {
+            "id": f"G7-A:{subject['id']}",
+            "classSectionId": "G7-A",
+            "subjectId": subject["id"],
+            "teacherId": f"teacher-{subject['id']}",
+            "weeklySessions": 1,
+            "isMainSubject": False,
+            "allowDoubleSession": False,
+            "fixedSlots": [],
+            "forbiddenSlots": [],
+        }
+        for subject in extra_subjects
+    )
+    request = SolveRequest.model_validate(payload)
+    candidate = [
+        Assignment(
+            requirement_id="G7-A:subject-1",
+            day_index=0,
+            period_index=0,
+            duration_periods=1,
+        ),
+        Assignment(
+            requirement_id="G7-A:subject-5",
+            day_index=0,
+            period_index=1,
+            duration_periods=1,
+        ),
+        Assignment(
+            requirement_id="G7-A:subject-6",
+            day_index=0,
+            period_index=2,
+            duration_periods=1,
+        ),
+    ]
+
+    errors = validate_assignments(request, candidate)
+
+    assert not any(error.startswith("SOCIAL_STUDIES_DAILY_LIMIT") for error in errors)
+
+
+def test_grade_ten_skips_social_studies_daily_spread_penalty() -> None:
+    base_request = social_studies_request(class_id="G10-10A")
+    request = base_request.model_copy(
+        update={
+            "constraint_profile": base_request.constraint_profile.model_copy(
+                update={"weights": {"SOCIAL_STUDIES_DAILY_SPREAD": 200}}
+            )
+        }
+    )
+    candidate = [
+        Assignment(
+            requirement_id="G10-10A:subject-1",
+            day_index=0,
+            period_index=0,
+            duration_periods=1,
+        ),
+        Assignment(
+            requirement_id="G10-10A:subject-3",
+            day_index=0,
+            period_index=1,
+            duration_periods=1,
+        ),
+        Assignment(
+            requirement_id="G10-10A:subject-2",
+            day_index=1,
+            period_index=0,
+            duration_periods=1,
+        ),
+        Assignment(
+            requirement_id="G10-10A:subject-4",
+            day_index=2,
+            period_index=0,
+            duration_periods=1,
+        ),
+    ]
+
+    scored = score_assignments(request, candidate)
+
+    assert validate_assignments(request, candidate) == []
+    assert scored.breakdown["SOCIAL_STUDIES_DAILY_SPREAD"] == 0
 
 
 def test_solver_avoids_second_social_studies_subject_per_day_when_possible() -> None:

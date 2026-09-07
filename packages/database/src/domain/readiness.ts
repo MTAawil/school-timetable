@@ -54,6 +54,13 @@ const socialStudiesSubjectKeys = new Set([
   "CIVICS",
   "RELIGION",
 ]);
+const upperSecondarySocialStudiesSubjectKeys = new Set([
+  "SOCIOLOGY",
+  "SOCIAL_STUDIES",
+  "ECONOMICS",
+  "PHILOSOPHY",
+]);
+const upperSecondarySocialStudiesGradePrefixes = ["G10", "G11"];
 const socialStudiesDailyLimit = 2;
 const socialStudiesSubjectLabels = new Set([
   "history",
@@ -64,6 +71,16 @@ const socialStudiesSubjectLabels = new Set([
   "جغرافيا",
   "تربية",
   "دين",
+]);
+
+const upperSecondarySocialStudiesSubjectLabels = new Set([
+  "sociology",
+  "social studies",
+  "economics",
+  "philosophy",
+  "\u0627\u062c\u062a\u0645\u0627\u0639",
+  "\u0627\u0642\u062a\u0635\u0627\u062f",
+  "\u0641\u0644\u0633\u0641\u0629",
 ]);
 
 function subjectKey(value: string): string {
@@ -77,13 +94,46 @@ function subjectLabel(value: string): string {
   return value.toLocaleLowerCase().trim().replace(/\s+/gu, " ");
 }
 
+function isGradeTenOrEleven(
+  classSection: SupervisorSolverSnapshot["classSections"][number] | undefined,
+): boolean {
+  if (!classSection) return false;
+  return [classSection.name, classSection.shortCode, classSection.id].some(
+    (label) =>
+      upperSecondarySocialStudiesGradePrefixes.some((prefix) =>
+        subjectKey(label).startsWith(prefix),
+      ),
+  );
+}
+
+function isSubjectInGroup(
+  subject: SolverSnapshot["subjects"][number],
+  keys: Set<string>,
+  labels: Set<string>,
+): boolean {
+  return (
+    keys.has(subjectKey(subject.id)) ||
+    keys.has(subjectKey(subject.name)) ||
+    labels.has(subjectLabel(subject.name))
+  );
+}
+
 function isSocialStudiesLimitedSubject(
   subject: SolverSnapshot["subjects"][number] | undefined,
+  classSection?: SupervisorSolverSnapshot["classSections"][number],
 ): boolean {
   return subject
-    ? socialStudiesSubjectKeys.has(subjectKey(subject.id)) ||
-        socialStudiesSubjectKeys.has(subjectKey(subject.name)) ||
-        socialStudiesSubjectLabels.has(subjectLabel(subject.name))
+    ? isSubjectInGroup(
+        subject,
+        socialStudiesSubjectKeys,
+        socialStudiesSubjectLabels,
+      ) ||
+        (isGradeTenOrEleven(classSection) &&
+          isSubjectInGroup(
+            subject,
+            upperSecondarySocialStudiesSubjectKeys,
+            upperSecondarySocialStudiesSubjectLabels,
+          ))
     : false;
 }
 
@@ -665,14 +715,17 @@ function validateSupervisorReadiness(
     }
     const socialStudiesSessions = curriculum
       .filter((requirement) =>
-        isSocialStudiesLimitedSubject(subjectById.get(requirement.subjectId)),
+        isSocialStudiesLimitedSubject(
+          subjectById.get(requirement.subjectId),
+          classSection,
+        ),
       )
       .reduce((total, requirement) => total + requirement.weeklySessions, 0);
     const socialStudiesAvailable = workingDayCount * socialStudiesDailyLimit;
     if (socialStudiesSessions > socialStudiesAvailable) {
       issues.push({
         code: "SOCIAL_STUDIES_DAILY_LIMIT",
-        summary: `${classSection.name} needs ${String(socialStudiesSessions)} History, Geography, Civics, and Religion sessions, but the daily cap allows ${String(socialStudiesAvailable)} per week.`,
+        summary: `${classSection.name} needs ${String(socialStudiesSessions)} social-studies group sessions, but the daily cap allows ${String(socialStudiesAvailable)} per week.`,
         entityIds: [classSection.id],
         required: socialStudiesSessions,
         available: socialStudiesAvailable,
@@ -684,7 +737,10 @@ function validateSupervisorReadiness(
   const socialStudiesFixedByClassDay = new Map<string, string[]>();
   for (const requirement of snapshot.requirements) {
     const subject = subjectById.get(requirement.subjectId);
-    if (!isSocialStudiesLimitedSubject(subject)) continue;
+    const classSection = snapshot.classSections.find(
+      (item) => item.id === requirement.classSectionId,
+    );
+    if (!isSocialStudiesLimitedSubject(subject, classSection)) continue;
     for (const fixedSlot of requirement.fixedSlots) {
       const key = `${requirement.classSectionId}:${String(fixedSlot.dayIndex)}`;
       socialStudiesFixedByClassDay.set(key, [
@@ -701,7 +757,7 @@ function validateSupervisorReadiness(
     );
     issues.push({
       code: "SOCIAL_STUDIES_DAILY_LIMIT",
-      summary: `${classSection?.name ?? classSectionId} has more than two fixed History, Geography, Civics, and Religion sessions on day ${dayIndex}.`,
+      summary: `${classSection?.name ?? classSectionId} has more than two fixed social-studies group sessions on day ${dayIndex}.`,
       entityIds: [classSectionId, ...requirementIds],
       required: requirementIds.length,
       available: socialStudiesDailyLimit,

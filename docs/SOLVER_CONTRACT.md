@@ -160,7 +160,9 @@ The redesigned solver must enforce:
     two total sessions on the same day.
     In the Al Massar Arabic seed data, this group is matched as `تاريخ`,
     `جغرافيا`, `تربية`, and `دين`; `اجتماع` is Sociology/Social Studies and is
-    not counted as Civics for this rule.
+    not counted as Civics for this rule. For Grade 10 and Grade 11 class
+    sections, the same daily hard cap also counts `اجتماع`, `اقتصاد`, and
+    `فلسفة`.
 
 Rooms are omitted from new redesign snapshots. Existing schema-version-1 room
 behavior remains unchanged for historical reproducibility.
@@ -208,7 +210,10 @@ not a hard restriction.
 
 For schema version 2, the History, Geography, Civics, and Religion group
 receives a high `SOCIAL_STUDIES_DAILY_SPREAD` soft penalty for each class-day
-that uses the allowed second grouped session. Three or more remain infeasible.
+that uses the allowed second grouped session. This soft preference is skipped
+for Grade 10 and Grade 11 because their hard-capped group includes additional
+upper-secondary subjects. Three or more remain infeasible for the applicable
+group.
 
 ### Full-time workload balance
 

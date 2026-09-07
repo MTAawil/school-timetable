@@ -183,7 +183,8 @@ def validate_assignments(
         days_by_requirement.setdefault(current_requirement.id, set()).add(assignment.day_index)
         daily_counts[(current_requirement.id, assignment.day_index)] += 1
         if request.schema_version == 2 and is_social_studies_limited_subject(
-            subjects[current_requirement.subject_id]
+            subjects[current_requirement.subject_id],
+            class_sections[current_requirement.class_section_id],
         ):
             social_studies_daily_counts[
                 (current_requirement.class_section_id, assignment.day_index)

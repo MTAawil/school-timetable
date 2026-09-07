@@ -215,3 +215,7 @@ Expected: independent validation rejects it with
 History, Geography, Civics, and Religion on one class day are infeasible.
 Two grouped sessions on one day remain hard-feasible but receive a high
 `SOCIAL_STUDIES_DAILY_SPREAD` soft penalty.
+
+For Grade 10 and Grade 11, the same hard cap also counts Sociology/Social
+Studies, Economics, and Philosophy. The soft max-one spread preference does not
+apply to Grade 10 or Grade 11.
