@@ -20,12 +20,14 @@ const searchSchema = z.object({
       "subject-counts",
       "restrictions",
       "shared",
+      "summary",
     ])
     .default("school"),
   entity: z.uuid().optional(),
 });
 
 function fileName(type: z.infer<typeof searchSchema>["type"]): string {
+  if (type === "summary") return "summary.pdf";
   return type === "school"
     ? "the_best.pdf"
     : `${type.replaceAll("-", "_")}.pdf`;

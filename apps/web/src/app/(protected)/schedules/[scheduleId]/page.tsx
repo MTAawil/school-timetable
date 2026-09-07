@@ -509,6 +509,13 @@ export default async function SchedulePage({
           <Download className="mr-2" size={16} />
           Shared sessions PDF
         </Link>
+        <Link
+          className="inline-flex h-9 items-center border border-[#cfd5d1] bg-white px-3 text-sm"
+          href={`/schedules/${schedule.id}/pdf/download?type=summary`}
+        >
+          <Download className="mr-2" size={16} />
+          Summary
+        </Link>
         {view === "class" && entityId ? (
           <Link
             className="inline-flex h-9 items-center border border-[#cfd5d1] bg-white px-3 text-sm"

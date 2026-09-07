@@ -25,6 +25,7 @@ const searchSchema = z.object({
       "subject-counts",
       "restrictions",
       "shared",
+      "summary",
     ])
     .default("school"),
   entity: z.uuid().optional(),
@@ -118,6 +119,19 @@ type SharedSessionRow = {
   weeklySessions: number;
   classes: string[];
 };
+type SummaryIssueRow = {
+  classCode?: string;
+  teacherName?: string;
+  dayName: string;
+  subjectName?: string;
+  value: string;
+  situation: string;
+};
+type SummarySection = {
+  title: string;
+  limit: string;
+  rows: SummaryIssueRow[];
+};
 
 function uniqueById<T extends { id: string }>(items: T[]): T[] {
   return Array.from(new Map(items.map((item) => [item.id, item])).values());
@@ -196,6 +210,24 @@ function isGradeTenOrEleven(classSection: ScheduleAssignment["classSection"]) {
     );
 }
 
+function gradeNumber(classSection: ScheduleAssignment["classSection"]) {
+  const grade = /G(\d+)/u.exec(classSection.grade)?.[1];
+  if (grade) return Number(grade);
+  const elementary = /EB(\d+)/u.exec(classSection.grade)?.[1];
+  if (elementary) return Number(elementary);
+  const shortCode = /^(\d+)/u.exec(classSection.shortCode)?.[1];
+  return shortCode ? Number(shortCode) : null;
+}
+
+function isGradeOneThroughNine(classSection: ScheduleAssignment["classSection"]) {
+  const grade = gradeNumber(classSection);
+  return grade !== null && grade >= 1 && grade <= 9;
+}
+
+function isClassCode(assignment: ScheduleAssignment, classCodes: string[]) {
+  return classCodes.includes(assignment.classSection.shortCode);
+}
+
 function isSocialStudiesSubject(assignment: ScheduleAssignment): boolean {
   const subject = assignment.teachingRequirement.subject;
   const code = subjectKey(subject.shortCode);
@@ -212,6 +244,300 @@ function isSocialStudiesSubject(assignment: ScheduleAssignment): boolean {
       upperSecondarySocialStudyCodes.has(nameKey) ||
       upperSecondarySocialStudyNames.has(nameLabel))
   );
+}
+
+function hasConsecutivePair(periods: number[]): boolean {
+  const ordered = Array.from(new Set(periods)).sort(
+    (left, right) => left - right,
+  );
+  return ordered.some(
+    (period, index) => index > 0 && period === ordered[index - 1] + 1,
+  );
+}
+
+function dayName(dayIndex: number, days: Day[]) {
+  return (
+    days.find((day) => day.dayIndex === dayIndex)?.name ??
+    `Day ${String(dayIndex + 1)}`
+  );
+}
+
+function sortSummaryRows(left: SummaryIssueRow, right: SummaryIssueRow): number {
+  return (
+    (left.classCode ?? "").localeCompare(right.classCode ?? "", undefined, {
+      numeric: true,
+    }) ||
+    left.dayName.localeCompare(right.dayName) ||
+    (left.teacherName ?? "").localeCompare(right.teacherName ?? "") ||
+    (left.subjectName ?? "").localeCompare(right.subjectName ?? "")
+  );
+}
+
+function buildSummarySections({
+  assignments,
+  days,
+  periodIndexes,
+  snapshot,
+}: {
+  assignments: ScheduleAssignment[];
+  days: Day[];
+  periodIndexes: number[];
+  snapshot: SolverSnapshot;
+}): SummarySection[] {
+  const requirementById = new Map(
+    snapshot.requirements.map((requirement) => [requirement.id, requirement]),
+  );
+  const sections: SummarySection[] = [];
+
+  const socialRowsFor = ({
+    title,
+    limit,
+    matchesClass,
+    maxAllowed,
+  }: {
+    title: string;
+    limit: string;
+    matchesClass: (assignment: ScheduleAssignment) => boolean;
+    maxAllowed: number;
+  }): SummarySection => {
+    const byClassDay = new Map<
+      string,
+      { classCode: string; dayIndex: number; subjects: string[] }
+    >();
+    for (const assignment of assignments) {
+      if (
+        assignment.startDayIndex === null ||
+        assignment.startPeriodIndex === null ||
+        !matchesClass(assignment) ||
+        !isSocialStudiesSubject(assignment)
+      ) {
+        continue;
+      }
+      const key = `${assignment.classSectionId}:${String(assignment.startDayIndex)}`;
+      const row = byClassDay.get(key) ?? {
+        classCode: assignment.classSection.shortCode,
+        dayIndex: assignment.startDayIndex,
+        subjects: [],
+      };
+      row.subjects.push(
+        `${assignment.teachingRequirement.subject.name} S${String(
+          assignment.startPeriodIndex + 1,
+        )}`,
+      );
+      byClassDay.set(key, row);
+    }
+    return {
+      title,
+      limit,
+      rows: Array.from(byClassDay.values())
+        .filter((row) => row.subjects.length > maxAllowed)
+        .map((row) => ({
+          classCode: row.classCode,
+          dayName: dayName(row.dayIndex, days),
+          subjectName: row.subjects.join(", "),
+          value: String(row.subjects.length),
+          situation: `${row.classCode} has ${String(
+            row.subjects.length,
+          )} social-studies sessions on ${dayName(row.dayIndex, days)}.`,
+        }))
+        .sort(sortSummaryRows),
+    };
+  };
+
+  sections.push(
+    socialRowsFor({
+      title: "Grades 1-9 social studies above one per day",
+      limit: "Soft target: max 1 per class day",
+      matchesClass: (assignment) =>
+        isGradeOneThroughNine(assignment.classSection),
+      maxAllowed: 1,
+    }),
+  );
+
+  const mainByRequirement = new Map<
+    string,
+    {
+      classCode: string;
+      subjectName: string;
+      total: number;
+      periodsByDay: Map<number, number[]>;
+    }
+  >();
+  for (const assignment of assignments) {
+    if (assignment.startDayIndex === null || assignment.startPeriodIndex === null) {
+      continue;
+    }
+    const requirement = requirementById.get(assignment.teachingRequirementId);
+    if (
+      snapshot.schemaVersion !== 2 ||
+      !requirement ||
+      !("isMainSubject" in requirement) ||
+      !requirement.isMainSubject
+    ) {
+      continue;
+    }
+    const row = mainByRequirement.get(assignment.teachingRequirementId) ?? {
+      classCode: assignment.classSection.shortCode,
+      subjectName: assignment.teachingRequirement.subject.name,
+      total: 0,
+      periodsByDay: new Map<number, number[]>(),
+    };
+    const periods = row.periodsByDay.get(assignment.startDayIndex) ?? [];
+    for (let offset = 0; offset < assignment.durationPeriods; offset += 1) {
+      periods.push(assignment.startPeriodIndex + offset);
+      row.total += 1;
+    }
+    row.periodsByDay.set(assignment.startDayIndex, periods);
+    mainByRequirement.set(assignment.teachingRequirementId, row);
+  }
+  sections.push({
+    title: "Main subjects missing a weekly consecutive pair",
+    limit: "Soft target: at least one 2-session consecutive pair per week",
+    rows: Array.from(mainByRequirement.values())
+      .filter(
+        (row) =>
+          row.total >= 2 &&
+          !Array.from(row.periodsByDay.values()).some(hasConsecutivePair),
+      )
+      .map((row) => ({
+        classCode: row.classCode,
+        dayName: "Week",
+        subjectName: row.subjectName,
+        value: "No pair",
+        situation: `${row.classCode} ${row.subjectName} has no consecutive pair this week.`,
+      }))
+      .sort(sortSummaryRows),
+  });
+
+  const subjectDayRows = new Map<
+    string,
+    {
+      classCode: string;
+      dayIndex: number;
+      subjectName: string;
+      periods: number[];
+    }
+  >();
+  for (const assignment of assignments) {
+    if (assignment.startDayIndex === null || assignment.startPeriodIndex === null) {
+      continue;
+    }
+    const key = `${assignment.classSectionId}:${assignment.teachingRequirement.subject.name}:${String(
+      assignment.startDayIndex,
+    )}`;
+    const row = subjectDayRows.get(key) ?? {
+      classCode: assignment.classSection.shortCode,
+      dayIndex: assignment.startDayIndex,
+      subjectName: assignment.teachingRequirement.subject.name,
+      periods: [],
+    };
+    for (let offset = 0; offset < assignment.durationPeriods; offset += 1) {
+      row.periods.push(assignment.startPeriodIndex + offset + 1);
+    }
+    subjectDayRows.set(key, row);
+  }
+  sections.push({
+    title: "Same subject 3 or more sessions in one day",
+    limit: "Soft target: avoid 3+ sessions of one subject in a class day",
+    rows: Array.from(subjectDayRows.values())
+      .filter((row) => row.periods.length >= 3)
+      .map((row) => ({
+        classCode: row.classCode,
+        dayName: dayName(row.dayIndex, days),
+        subjectName: row.subjectName,
+        value: formatSessionList(row.periods.sort((left, right) => left - right)),
+        situation: `${row.classCode} has ${row.subjectName} ${String(
+          row.periods.length,
+        )} times on ${dayName(row.dayIndex, days)}.`,
+      }))
+      .sort(sortSummaryRows),
+  });
+
+  const teacherDayRows = new Map<
+    string,
+    {
+      teacherName: string;
+      dayIndex: number;
+      periods: Set<number>;
+      classes: Set<string>;
+    }
+  >();
+  for (const assignment of assignments) {
+    if (assignment.startDayIndex === null || assignment.startPeriodIndex === null) {
+      continue;
+    }
+    const key = `${assignment.teacherId}:${String(assignment.startDayIndex)}`;
+    const row = teacherDayRows.get(key) ?? {
+      teacherName: assignment.teacher.name,
+      dayIndex: assignment.startDayIndex,
+      periods: new Set<number>(),
+      classes: new Set<string>(),
+    };
+    for (let offset = 0; offset < assignment.durationPeriods; offset += 1) {
+      row.periods.add(assignment.startPeriodIndex + offset);
+    }
+    row.classes.add(assignment.classSection.shortCode);
+    teacherDayRows.set(key, row);
+  }
+  sections.push({
+    title: "Teacher daily gaps above two",
+    limit: "Hard check: max 2 internal free sessions per teacher day",
+    rows: Array.from(teacherDayRows.values())
+      .map((row) => {
+        const occupied = row.periods;
+        const ordered = Array.from(occupied).sort((left, right) => left - right);
+        const first = ordered[0];
+        const last = ordered[ordered.length - 1];
+        const gaps =
+          first === undefined || last === undefined
+            ? 0
+            : periodIndexes.filter(
+                (period) =>
+                  first < period && period < last && !occupied.has(period),
+              ).length;
+        return { ...row, gaps };
+      })
+      .filter((row) => row.gaps > 2)
+      .map((row) => ({
+        teacherName: row.teacherName,
+        dayName: dayName(row.dayIndex, days),
+        value: `${String(row.gaps)} gaps`,
+        situation: `${row.teacherName} has ${String(row.gaps)} gaps on ${dayName(
+          row.dayIndex,
+          days,
+        )}. Classes: ${Array.from(row.classes).sort().join(", ")}`,
+      }))
+      .sort(sortSummaryRows),
+  });
+
+  sections.push(
+    socialRowsFor({
+      title: "Grade 10/11 social studies above two per day",
+      limit: "Hard rule: max 2 social-studies group sessions per class day",
+      matchesClass: (assignment) => isGradeTenOrEleven(assignment.classSection),
+      maxAllowed: 2,
+    }),
+  );
+
+  sections.push(
+    socialRowsFor({
+      title: "ES/SE social studies above three per day",
+      limit: "Future generation rule target: max 3 social-studies sessions per class day",
+      matchesClass: (assignment) => isClassCode(assignment, ["ES", "SE"]),
+      maxAllowed: 3,
+    }),
+  );
+
+  sections.push(
+    socialRowsFor({
+      title: "LS/SV social studies above one per day",
+      limit: "Future generation rule target: max 1 social-studies session per class day",
+      matchesClass: (assignment) => isClassCode(assignment, ["LS", "SV"]),
+      maxAllowed: 1,
+    }),
+  );
+
+  return sections;
 }
 
 function buildClassRuleBrief({
@@ -882,6 +1208,66 @@ function RestrictionsReport({
   );
 }
 
+function SummaryReport({
+  sections,
+  schoolName,
+  scheduleName,
+}: {
+  sections: SummarySection[];
+  schoolName: string;
+  scheduleName: string;
+}) {
+  return (
+    <section className="pdf-page pdf-report">
+      <header className="pdf-page-header">
+        <div>
+          <h2>Schedule summary</h2>
+          <p>
+            {schoolName} - {scheduleName}
+          </p>
+        </div>
+        <span>Rules watchlist</span>
+      </header>
+      {sections.map((section) => (
+        <section className="pdf-summary-section" key={section.title}>
+          <h3>{section.title}</h3>
+          <p>{section.limit}</p>
+          <table className="pdf-report-table pdf-summary-table">
+            <thead>
+              <tr>
+                <th>Class / Teacher</th>
+                <th>Day</th>
+                <th>Subject</th>
+                <th>Value</th>
+                <th>Situation</th>
+              </tr>
+            </thead>
+            <tbody>
+              {section.rows.length > 0 ? (
+                section.rows.map((row) => (
+                  <tr
+                    key={`${section.title}:${row.classCode ?? row.teacherName}:${row.dayName}:${row.subjectName ?? row.value}`}
+                  >
+                    <td>{row.classCode ?? row.teacherName}</td>
+                    <td>{row.dayName}</td>
+                    <td>{row.subjectName ?? "-"}</td>
+                    <td>{row.value}</td>
+                    <td>{row.situation}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5}>No issues found.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </section>
+      ))}
+    </section>
+  );
+}
+
 function SharedSessionsReport({
   rows,
   schoolName,
@@ -1197,7 +1583,9 @@ export default async function SchedulePdfPage({
             ? "Subject Counts"
             : query.type === "restrictions"
               ? "Teacher Restrictions"
-              : "Shared Sessions";
+              : query.type === "summary"
+                ? "Summary"
+                : "Shared Sessions";
   const downloadLabel =
     query.type === "school"
       ? "Download the best"
@@ -1211,6 +1599,8 @@ export default async function SchedulePdfPage({
               ? "Download part-time teacher PDFs"
               : query.type === "teacher"
                 ? "Download teacher PDFs"
+                : query.type === "summary"
+                  ? "Download summary"
                 : "Download PDF";
   const browserTitle = `${schedule.school.name} - ${schedule.name} v${String(
     schedule.version,
@@ -1274,6 +1664,15 @@ export default async function SchedulePdfPage({
         .pdf-subject-counts-table th, .pdf-subject-counts-table td { padding: 4px 5px; text-align: center; }
         .pdf-subject-counts-table th:first-child { min-width: 110px; text-align: left; }
         .pdf-subject-counts-table tbody th { white-space: nowrap; }
+        .pdf-summary-section { break-inside: avoid; margin-top: 12px; }
+        .pdf-summary-section h3 { color: #132b24; font-size: 13px; margin: 0 0 3px; }
+        .pdf-summary-section p { color: #66706b; font-size: 10px; margin: 0 0 6px; }
+        .pdf-summary-table { font-size: 9px; table-layout: auto; }
+        .pdf-summary-table th:nth-child(1) { width: 95px; }
+        .pdf-summary-table th:nth-child(2) { width: 78px; }
+        .pdf-summary-table th:nth-child(3) { width: 160px; }
+        .pdf-summary-table th:nth-child(4) { width: 80px; }
+        .pdf-summary-table td:last-child, .pdf-summary-table th:last-child { text-align: left; }
         .pdf-report .pdf-page-header { margin-bottom: 12px; }
         .pdf-school-page { background: white; color: #1d2520; padding: 0; }
         .pdf-school-grid { border-collapse: collapse; table-layout: fixed; width: 100%; }
@@ -1341,6 +1740,18 @@ export default async function SchedulePdfPage({
           rows={sharedSessionRows}
           scheduleName={`${schedule.name} v${String(schedule.version)}`}
           schoolName={schedule.school.name}
+        />
+      ) : null}
+      {query.type === "summary" ? (
+        <SummaryReport
+          scheduleName={`${schedule.name} v${String(schedule.version)}`}
+          schoolName={schedule.school.name}
+          sections={buildSummarySections({
+            assignments,
+            days,
+            periodIndexes,
+            snapshot,
+          })}
         />
       ) : null}
       {query.type === "school" ? (
