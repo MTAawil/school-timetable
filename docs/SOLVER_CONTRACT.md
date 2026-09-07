@@ -158,6 +158,9 @@ The redesigned solver must enforce:
     the last lesson is allowed.
 17. For each class, History, Geography, Civics, and Religion may occupy at most
     two total sessions on the same day.
+    In the Al Massar Arabic seed data, this group is matched as `تاريخ`,
+    `جغرافيا`, `تربية`, and `دين`; `اجتماع` is Sociology/Social Studies and is
+    not counted as Civics for this rule.
 
 Rooms are omitted from new redesign snapshots. Existing schema-version-1 room
 behavior remains unchanged for historical reproducibility.
@@ -202,6 +205,10 @@ valid consecutive same-day pair anywhere in the week.
 For schema version 2, main subjects also receive a weighted soft penalty when
 placed after the first four teaching sessions of a day. This is a preference,
 not a hard restriction.
+
+For schema version 2, the History, Geography, Civics, and Religion group
+receives a high `SOCIAL_STUDIES_DAILY_SPREAD` soft penalty for each class-day
+that uses the allowed second grouped session. Three or more remain infeasible.
 
 ### Full-time workload balance
 

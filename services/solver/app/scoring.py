@@ -3,6 +3,11 @@ from dataclasses import dataclass
 
 from app.grade_rules import requires_main_subject_weekly_pair
 from app.models import Assignment, SolveRequest
+from app.subject_group_rules import (
+    SOCIAL_STUDIES_DAILY_PREFERRED_LIMIT,
+    SOCIAL_STUDIES_DAILY_SPREAD_CODE,
+    is_social_studies_limited_subject,
+)
 
 SOFT_CONSTRAINT_CODES = (
     "TEACHER_AVAILABILITY",
@@ -18,6 +23,7 @@ SOFT_CONSTRAINT_CODES = (
     "DAILY_WORKLOAD_BALANCE",
     "FULL_TIME_DAILY_BALANCE",
     "PART_TIME_DISTRIBUTION_RELAXATION",
+    SOCIAL_STUDIES_DAILY_SPREAD_CODE,
 )
 
 
@@ -78,6 +84,7 @@ def score_assignments(request: SolveRequest, assignments: list[Assignment]) -> S
     occupied_by_teacher: dict[tuple[str, int], set[int]] = defaultdict(set)
     subject_days: dict[str, list[int]] = defaultdict(list)
     subject_periods_by_day: dict[tuple[str, int], list[int]] = defaultdict(list)
+    social_studies_counts_by_class_day: Counter[tuple[str, int]] = Counter()
 
     for assignment in assignments:
         requirement = requirements[assignment.requirement_id]
@@ -86,6 +93,10 @@ def score_assignments(request: SolveRequest, assignments: list[Assignment]) -> S
         subject_periods_by_day[(requirement.id, assignment.day_index)].append(
             assignment.period_index
         )
+        if request.schema_version == 2 and is_social_studies_limited_subject(subject):
+            social_studies_counts_by_class_day[
+                (requirement.class_section_id, assignment.day_index)
+            ] += 1
         for offset in range(assignment.duration_periods):
             period = assignment.period_index + offset
             occupied_by_teacher[(requirement.teacher_id, assignment.day_index)].add(period)
@@ -128,6 +139,10 @@ def score_assignments(request: SolveRequest, assignments: list[Assignment]) -> S
         repeats = len(selected_days) - len(set(selected_days))
         raw["SUBJECT_SPREAD"] += repeats
         raw["REPEATED_SUBJECT_DAY"] += repeats
+    raw[SOCIAL_STUDIES_DAILY_SPREAD_CODE] += sum(
+        max(0, count - SOCIAL_STUDIES_DAILY_PREFERRED_LIMIT)
+        for count in social_studies_counts_by_class_day.values()
+    )
     for requirement_id, selected_days in subject_days.items():
         requirement = requirements[requirement_id]
         if (

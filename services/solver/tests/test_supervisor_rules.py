@@ -1,5 +1,6 @@
 import hashlib
 import json
+from collections import Counter
 from typing import Any
 
 from app.models import Assignment, SolveRequest
@@ -108,7 +109,7 @@ def social_studies_request() -> SolveRequest:
     subjects = [
         {"id": "subject-1", "name": "تاريخ"},
         {"id": "subject-2", "name": "جغرافيا"},
-        {"id": "subject-3", "name": "اجتماع"},
+        {"id": "subject-3", "name": "تربية"},
         {"id": "subject-4", "name": "دين"},
     ]
     payload["subjects"] = subjects
@@ -664,6 +665,70 @@ def test_validator_allows_two_social_studies_subjects_per_class_day() -> None:
     ]
 
     assert validate_assignments(request, candidate) == []
+
+
+def test_social_studies_second_daily_subject_has_high_penalty() -> None:
+    base_request = social_studies_request()
+    request = base_request.model_copy(
+        update={
+            "constraint_profile": base_request.constraint_profile.model_copy(
+                update={"weights": {"SOCIAL_STUDIES_DAILY_SPREAD": 200}}
+            )
+        }
+    )
+    candidate = [
+        Assignment(
+            requirement_id="G7-A:subject-1",
+            day_index=0,
+            period_index=0,
+            duration_periods=1,
+        ),
+        Assignment(
+            requirement_id="G7-A:subject-3",
+            day_index=0,
+            period_index=1,
+            duration_periods=1,
+        ),
+        Assignment(
+            requirement_id="G7-A:subject-2",
+            day_index=1,
+            period_index=0,
+            duration_periods=1,
+        ),
+        Assignment(
+            requirement_id="G7-A:subject-4",
+            day_index=2,
+            period_index=0,
+            duration_periods=1,
+        ),
+    ]
+
+    scored = score_assignments(request, candidate)
+
+    assert validate_assignments(request, candidate) == []
+    assert scored.breakdown["SOCIAL_STUDIES_DAILY_SPREAD"] == 200
+
+
+def test_solver_avoids_second_social_studies_subject_per_day_when_possible() -> None:
+    base_request = social_studies_request()
+    request = base_request.model_copy(
+        update={
+            "constraint_profile": base_request.constraint_profile.model_copy(
+                update={"weights": {"SOCIAL_STUDIES_DAILY_SPREAD": 200}}
+            )
+        }
+    )
+
+    response = solve(request)
+
+    assert response.status in {"FEASIBLE", "OPTIMAL"}
+    daily_counts: Counter[tuple[str, int]] = Counter()
+    requirements = {item.id: item for item in request.requirements}
+    for assignment in response.alternatives[0].assignments:
+        requirement = requirements[assignment.requirement_id]
+        daily_counts[(requirement.class_section_id, assignment.day_index)] += 1
+    assert max(daily_counts.values()) == 1
+    assert response.alternatives[0].penalty_breakdown["SOCIAL_STUDIES_DAILY_SPREAD"] == 0
 
 
 def test_solver_rejects_fixed_social_studies_daily_overload() -> None:

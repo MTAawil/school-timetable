@@ -11,6 +11,7 @@ components below.
 | `TEACHER_GAP` | One per empty teaching period strictly between a teacher's first and last occupied periods on a day. | 12 |
 | `PART_TIME_COMPACTNESS` | The teacher-gap count, applied only to part-time teachers. | 10 |
 | `TEACHER_CONSECUTIVE_PREFERENCE` | Number of occupied periods minus adjacent occupied-period pairs, summed per teacher and day. This is the number of separate teaching blocks. | 3 |
+| `SOCIAL_STUDIES_DAILY_SPREAD` | One per class-day that uses two History, Geography, Civics, and Religion group sessions. The hard cap still blocks three or more. | 200 |
 | `SUBJECT_SPREAD` | Weekly occurrences minus distinct occupied days, summed per teaching requirement. | 10 |
 | `REPEATED_SUBJECT_DAY` | Weekly occurrences minus distinct occupied days, independently weighted as the same-day repetition cost. | 8 |
 | `LATE_HEAVY_SUBJECT` | For an early subject, the zero-based teaching-period rank; for a late subject, the reversed rank; neutral subjects cost zero. Applied per occupied period. | 4 |

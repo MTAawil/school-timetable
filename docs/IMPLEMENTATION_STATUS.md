@@ -987,6 +987,9 @@ Checks so far:
 - Added focused solver tests for the allowed two-session case, post-solve
   validation rejection, and infeasibility when fixed inputs force three grouped
   sessions on one class day.
+- Added `SOCIAL_STUDIES_DAILY_SPREAD` as a high-weight soft penalty for using
+  the allowed second grouped session on one class-day, and corrected the Al
+  Massar Arabic Civics mapping to `تربية` instead of `اجتماع`.
 
 ### 2026-07-26 - Task 10 release hardening
 

@@ -54,6 +54,7 @@ const socialStudiesSubjectKeys = new Set([
   "CIVICS",
   "RELIGION",
 ]);
+const socialStudiesDailyLimit = 2;
 const socialStudiesSubjectLabels = new Set([
   "history",
   "geography",
@@ -61,7 +62,7 @@ const socialStudiesSubjectLabels = new Set([
   "religion",
   "تاريخ",
   "جغرافيا",
-  "اجتماع",
+  "تربية",
   "دين",
 ]);
 
@@ -667,7 +668,7 @@ function validateSupervisorReadiness(
         isSocialStudiesLimitedSubject(subjectById.get(requirement.subjectId)),
       )
       .reduce((total, requirement) => total + requirement.weeklySessions, 0);
-    const socialStudiesAvailable = workingDayCount * 2;
+    const socialStudiesAvailable = workingDayCount * socialStudiesDailyLimit;
     if (socialStudiesSessions > socialStudiesAvailable) {
       issues.push({
         code: "SOCIAL_STUDIES_DAILY_LIMIT",
@@ -693,7 +694,7 @@ function validateSupervisorReadiness(
     }
   }
   for (const [key, requirementIds] of socialStudiesFixedByClassDay) {
-    if (requirementIds.length <= 2) continue;
+    if (requirementIds.length <= socialStudiesDailyLimit) continue;
     const [classSectionId = "", dayIndex = ""] = key.split(":");
     const classSection = snapshot.classSections.find(
       (item) => item.id === classSectionId,
@@ -703,7 +704,7 @@ function validateSupervisorReadiness(
       summary: `${classSection?.name ?? classSectionId} has more than two fixed History, Geography, Civics, and Religion sessions on day ${dayIndex}.`,
       entityIds: [classSectionId, ...requirementIds],
       required: requirementIds.length,
-      available: 2,
+      available: socialStudiesDailyLimit,
       suggestions: ["/subjects", "/schedules"],
     });
   }

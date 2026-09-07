@@ -213,3 +213,5 @@ A candidate places History, Geography, and Civics for the same class on Monday.
 Expected: independent validation rejects it with
 `SOCIAL_STUDIES_DAILY_LIMIT:G7-A:0`, and fixed inputs that force three of
 History, Geography, Civics, and Religion on one class day are infeasible.
+Two grouped sessions on one day remain hard-feasible but receive a high
+`SOCIAL_STUDIES_DAILY_SPREAD` soft penalty.

@@ -20,7 +20,12 @@ from app.models import (
     SolverTelemetry,
 )
 from app.scoring import SOFT_CONSTRAINT_CODES, score_assignments
-from app.subject_group_rules import is_social_studies_limited_subject
+from app.subject_group_rules import (
+    SOCIAL_STUDIES_DAILY_LIMIT,
+    SOCIAL_STUDIES_DAILY_PREFERRED_LIMIT,
+    SOCIAL_STUDIES_DAILY_SPREAD_CODE,
+    is_social_studies_limited_subject,
+)
 from app.validator import validate_assignments
 
 MAX_STRUCTURAL_DIAGNOSTICS = 5
@@ -472,8 +477,20 @@ def solve(request: SolveRequest) -> SolveResponse:
                     if requirement_by_id[requirement_id].class_section_id == class_section.id
                 ]
                 if daily_subject_group_starts:
-                    model.add(sum(daily_subject_group_starts) <= 2)
+                    daily_subject_group_count = sum(daily_subject_group_starts)
+                    model.add(daily_subject_group_count <= SOCIAL_STUDIES_DAILY_LIMIT)
                     constraints += 1
+                    daily_subject_group_excess = model.new_int_var(
+                        0,
+                        SOCIAL_STUDIES_DAILY_LIMIT - SOCIAL_STUDIES_DAILY_PREFERRED_LIMIT,
+                        f"social_studies_daily_spread_{class_section.id}_{day}",
+                    )
+                    model.add(
+                        daily_subject_group_excess
+                        >= daily_subject_group_count - SOCIAL_STUDIES_DAILY_PREFERRED_LIMIT
+                    )
+                    constraints += 1
+                    raw_terms[SOCIAL_STUDIES_DAILY_SPREAD_CODE].append(daily_subject_group_excess)
 
     for requirement in request.requirements:
         relax_part_time_distribution = part_time_distribution_can_relax(request, requirement)

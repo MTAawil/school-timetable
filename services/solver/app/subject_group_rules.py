@@ -3,9 +3,21 @@ import re
 from app.models import Subject
 
 SOCIAL_STUDIES_DAILY_LIMIT_CODE = "SOCIAL_STUDIES_DAILY_LIMIT"
+SOCIAL_STUDIES_DAILY_SPREAD_CODE = "SOCIAL_STUDIES_DAILY_SPREAD"
+SOCIAL_STUDIES_DAILY_LIMIT = 2
+SOCIAL_STUDIES_DAILY_PREFERRED_LIMIT = 1
 SOCIAL_STUDIES_SUBJECT_KEYS = frozenset({"HISTORY", "GEOGRAPHY", "CIVICS", "RELIGION"})
 SOCIAL_STUDIES_SUBJECT_LABELS = frozenset(
-    {"history", "geography", "civics", "religion", "تاريخ", "جغرافيا", "اجتماع", "دين"}
+    {
+        "history",
+        "geography",
+        "civics",
+        "religion",
+        "\u062a\u0627\u0631\u064a\u062e",
+        "\u062c\u063a\u0631\u0627\u0641\u064a\u0627",
+        "\u062a\u0631\u0628\u064a\u0629",
+        "\u062f\u064a\u0646",
+    }
 )
 
 

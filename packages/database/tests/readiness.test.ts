@@ -269,7 +269,7 @@ function socialStudiesSupervisorSnapshot(): SupervisorSolverSnapshot {
       },
       {
         id: "subject-3",
-        name: "اجتماع",
+        name: "تربية",
         preferredTimeBand: "NEUTRAL",
         consecutivePeriodsPreferred: false,
         defaultRoomType: null,

@@ -46,6 +46,13 @@ export const softConstraints = [
     defaultWeight: 12,
   },
   {
+    code: "SOCIAL_STUDIES_DAILY_SPREAD",
+    label: "Social studies daily spread",
+    description:
+      "Strongly prefer at most one History, Geography, Civics, or Religion session per class each day.",
+    defaultWeight: 200,
+  },
+  {
     code: "SUBJECT_SPREAD",
     label: "Subject spread",
     description: "Spread repeated class-subject sessions across more days.",
