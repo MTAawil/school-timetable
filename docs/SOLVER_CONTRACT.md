@@ -156,7 +156,13 @@ The redesigned solver must enforce:
 16. A teacher may not have more than two internal free teaching sessions total
     between lessons on the same day. Free time before the first lesson or after
     the last lesson is allowed.
-17. For each class, History, Geography, Civics, and Religion may occupy at most
+17. For schema version 2, a teacher who teaches on a day receives a high soft
+    penalty when both teaching sessions 1 and 2 are free. One of the first two
+    sessions may be free, and both may be free only when necessary.
+18. For schema version 2, a full-time teacher may have at most two free
+    available teaching sessions on a working day. Breaks and unavailable
+    teaching sessions are excluded from this count.
+19. For each class, History, Geography, Civics, and Religion may occupy at most
     two total sessions on the same day.
     In the Al Massar Arabic seed data, this group is matched as `تاريخ`,
     `جغرافيا`, `تربية`, and `دين`; `اجتماع` is Sociology/Social Studies and is
@@ -220,6 +226,14 @@ per class-day. LS and SV use the same soft target as grades 1 through 9: one
 grouped session per class-day. More than the hard cap remains infeasible for
 the applicable group.
 
+For schema version 2, teacher internal gaps receive the named
+`TEACHER_MAX_ONE_GAP` high penalty for each gap beyond the preferred first gap.
+Any pair of consecutive free teaching sessions inside a teacher's working
+span receives the high `TEACHER_CONSECUTIVE_FREE` penalty. The
+`TEACHER_FIRST_TWO_FREE` penalty applies when both first sessions are free.
+These are preferences; the hard daily maximum of two internal gaps remains
+authoritative.
+
 ### Full-time workload balance
 
 For each full-time teacher and day:
@@ -257,6 +271,8 @@ The independent validator must additionally prove:
 - no pair when double sessions are disabled, except for named part-time
   distribution relaxation
 - declared and allocated teacher totals in the input contract
+- each full-time teacher has at most two free available teaching sessions on a
+  working day
 - the History, Geography, Civics, and Religion subject group never exceeds two
   total sessions for one class on one day
 

@@ -51,7 +51,7 @@ def supervisor_request(
             {
                 "id": "teacher",
                 "name": "Teacher",
-                "employmentType": "FULL_TIME",
+                "employmentType": "FULL_TIME" if weekly_sessions >= 10 else "PART_TIME",
                 "weeklyTeachingSessions": weekly_sessions,
                 "maxLessonsPerDay": sessions_per_day,
                 "maxConsecutiveLessons": sessions_per_day,
@@ -118,7 +118,7 @@ def social_studies_request(*, class_id: str = "G7-A") -> SolveRequest:
         {
             "id": f"teacher-{subject['id']}",
             "name": f"Teacher {subject['name']}",
-            "employmentType": "FULL_TIME",
+            "employmentType": "PART_TIME",
             "weeklyTeachingSessions": 1,
             "maxLessonsPerDay": 4,
             "maxConsecutiveLessons": 4,
@@ -159,7 +159,7 @@ def social_studies_request_with_subjects(
         {
             "id": f"teacher-{subject['id']}",
             "name": f"Teacher {subject['name']}",
-            "employmentType": "FULL_TIME",
+            "employmentType": "PART_TIME",
             "weeklyTeachingSessions": 1,
             "maxLessonsPerDay": 6,
             "maxConsecutiveLessons": 6,
@@ -418,6 +418,7 @@ def test_class_packing_diagnostic_includes_slot_pressure() -> None:
             "maxConsecutiveLessons": 1,
         }
     )
+    payload["teachers"][0]["employmentType"] = "FULL_TIME"
     payload["subjects"].append({"id": "SCI", "name": "SCI"})
     payload["requirements"].append(
         {
@@ -491,6 +492,9 @@ def test_class_packing_diagnostic_includes_slot_pressure() -> None:
 
 def test_optional_main_double_is_adjacent_and_does_not_cross_break() -> None:
     request = supervisor_request()
+    payload = request.model_dump(by_alias=True)
+    payload["teachers"][0]["employmentType"] = "PART_TIME"
+    request = SolveRequest.model_validate(payload)
 
     response = solve(request)
 
@@ -584,6 +588,9 @@ def test_missing_weekly_main_double_for_grades_one_to_nine_has_high_penalty() ->
 
 def test_solver_prefers_weekly_main_double_for_grades_one_to_nine() -> None:
     request = supervisor_request(weekly_sessions=5, sessions_per_day=6)
+    payload = request.model_dump(by_alias=True)
+    payload["teachers"][0]["employmentType"] = "PART_TIME"
+    request = SolveRequest.model_validate(payload)
 
     response = solve(request)
 
@@ -633,6 +640,9 @@ def test_validator_rejects_repeated_non_main_subject() -> None:
         is_main_subject=False,
         allow_double_session=False,
     )
+    payload = request.model_dump(by_alias=True)
+    payload["teachers"][0]["employmentType"] = "FULL_TIME"
+    request = SolveRequest.model_validate(payload)
     candidate = [
         Assignment(
             requirement_id="G7-A:MATH",
@@ -1202,6 +1212,7 @@ def test_solver_requires_a_gap_for_same_day_triple_subject_sessions() -> None:
         if day != 0
     ]
     request = SolveRequest.model_validate(payload)
+    request.constraint_profile.weights["TEACHER_FIRST_TWO_FREE"] = 200
 
     response = solve(request)
 
@@ -1321,7 +1332,7 @@ def test_class_recess_does_not_block_a_teaching_session() -> None:
         Assignment(
             requirement_id="G7-A:MATH",
             day_index=0,
-            period_index=2,
+            period_index=1,
             duration_periods=1,
         )
     ]
@@ -1332,19 +1343,19 @@ def test_class_recess_does_not_block_a_teaching_session() -> None:
 def test_class_recess_separates_double_session_adjacency() -> None:
     request = supervisor_request(weekly_sessions=2, class_id="G10-A")
     payload = request.model_dump(by_alias=True)
-    payload["classSections"][0]["recessAfterSession"] = 3
+    payload["classSections"][0]["recessAfterSession"] = 1
     request = SolveRequest.model_validate(payload)
     candidate = [
         Assignment(
             requirement_id="G10-A:MATH",
             day_index=0,
-            period_index=2,
+            period_index=0,
             duration_periods=1,
         ),
         Assignment(
             requirement_id="G10-A:MATH",
             day_index=0,
-            period_index=3,
+            period_index=2,
             duration_periods=1,
         ),
     ]
@@ -1387,13 +1398,13 @@ def test_teacher_can_cross_timing_groups_when_clock_times_do_not_overlap() -> No
             "forbiddenSlots": [],
         }
     )
-    payload["requirements"][0]["fixedSlots"] = [{"dayIndex": 0, "periodIndex": 2}]
+    payload["requirements"][0]["fixedSlots"] = [{"dayIndex": 0, "periodIndex": 1}]
     request = SolveRequest.model_validate(payload)
     candidate = [
         Assignment(
             requirement_id="G7-A:MATH",
             day_index=0,
-            period_index=2,
+            period_index=1,
             duration_periods=1,
         ),
         Assignment(
@@ -1447,13 +1458,13 @@ def test_teacher_cannot_cross_timing_groups_when_clock_times_overlap() -> None:
         Assignment(
             requirement_id="G7-A:MATH",
             day_index=0,
-            period_index=3,
+            period_index=1,
             duration_periods=1,
         ),
         Assignment(
             requirement_id="G10-A:MATH",
             day_index=0,
-            period_index=3,
+            period_index=1,
             duration_periods=1,
         ),
     ]
@@ -1487,13 +1498,13 @@ def test_class_recess_uses_teaching_session_order_not_physical_period_index() ->
         Assignment(
             requirement_id="G10-A:MATH",
             day_index=0,
-            period_index=3,
+            period_index=1,
             duration_periods=1,
         ),
         Assignment(
             requirement_id="G10-A:MATH",
             day_index=0,
-            period_index=4,
+            period_index=3,
             duration_periods=1,
         ),
     ]
@@ -1629,6 +1640,62 @@ def test_teacher_allows_two_daily_internal_gaps() -> None:
             period_index=3,
             duration_periods=1,
         ),
+    ]
+
+    assert validate_assignments(request, candidate) == []
+
+
+def test_teacher_can_leave_first_two_sessions_free_when_necessary() -> None:
+    request = supervisor_request(weekly_sessions=1, sessions_per_day=6)
+    candidate = [
+        Assignment(
+            requirement_id="G7-A:MATH",
+            day_index=0,
+            period_index=2,
+            duration_periods=1,
+        )
+    ]
+
+    assert validate_assignments(request, candidate) == []
+
+
+def test_full_time_teacher_cannot_have_more_than_two_free_sessions() -> None:
+    request = supervisor_request(weekly_sessions=1, sessions_per_day=6)
+    payload = request.model_dump(by_alias=True)
+    payload["teachers"][0]["employmentType"] = "FULL_TIME"
+    request = SolveRequest.model_validate(payload)
+    candidate = [
+        Assignment(
+            requirement_id="G7-A:MATH",
+            day_index=0,
+            period_index=2,
+            duration_periods=1,
+        )
+    ]
+
+    assert "TEACHER_DAILY_FREE_SESSIONS:teacher" in validate_assignments(request, candidate)
+
+
+def test_solver_allows_fixed_working_day_with_first_two_sessions_free() -> None:
+    request = supervisor_request(weekly_sessions=1, sessions_per_day=6)
+    payload = request.model_dump(by_alias=True)
+    payload["teachers"][0]["employmentType"] = "PART_TIME"
+    payload["requirements"][0]["fixedSlots"] = [{"dayIndex": 0, "periodIndex": 2}]
+
+    response = solve(SolveRequest.model_validate(payload))
+
+    assert response.status in {"FEASIBLE", "OPTIMAL"}
+
+
+def test_teacher_can_leave_one_of_first_two_sessions_free() -> None:
+    request = supervisor_request(weekly_sessions=1, sessions_per_day=6)
+    candidate = [
+        Assignment(
+            requirement_id="G7-A:MATH",
+            day_index=0,
+            period_index=1,
+            duration_periods=1,
+        )
     ]
 
     assert validate_assignments(request, candidate) == []

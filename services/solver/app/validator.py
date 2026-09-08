@@ -355,6 +355,21 @@ def validate_assignments(
                 internal_gap_count = ordered[-1] - ordered[0] + 1 - len(set(ordered))
                 if internal_gap_count > 2:
                     errors.append(f"TEACHER_DAILY_INTERNAL_GAPS:{teacher.id}")
+                if teacher.employment_type == "FULL_TIME":
+                    unavailable_periods = {
+                        rule.period_index
+                        for rule in request.availability
+                        if rule.entity_type == "TEACHER"
+                        and rule.entity_id == teacher.id
+                        and rule.day_index == _day
+                        and rule.state == "UNAVAILABLE"
+                    }
+                    available_free_count = sum(
+                        period not in unavailable_periods and period not in periods
+                        for period in teaching_periods
+                    )
+                    if available_free_count > 2:
+                        errors.append(f"TEACHER_DAILY_FREE_SESSIONS:{teacher.id}")
     for class_section in request.class_sections:
         if class_section.max_lessons_per_day and any(
             count > class_section.max_lessons_per_day

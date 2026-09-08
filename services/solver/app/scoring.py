@@ -13,6 +13,9 @@ SOFT_CONSTRAINT_CODES = (
     "TEACHER_AVAILABILITY",
     "FIRST_LAST_PERIOD",
     "TEACHER_GAP",
+    "TEACHER_MAX_ONE_GAP",
+    "TEACHER_CONSECUTIVE_FREE",
+    "TEACHER_FIRST_TWO_FREE",
     "PART_TIME_COMPACTNESS",
     "TEACHER_CONSECUTIVE_PREFERENCE",
     "MAIN_DOUBLE_ADJACENCY",
@@ -135,6 +138,19 @@ def score_assignments(request: SolveRequest, assignments: list[Assignment]) -> S
             if ordered[0] < period < ordered[-1] and period not in periods
         )
         raw["TEACHER_GAP"] += internal_gaps
+        if request.schema_version == 2:
+            raw["TEACHER_MAX_ONE_GAP"] += max(0, internal_gaps - 1)
+            ranks = {period_rank[period] for period in periods if period in period_rank}
+            if not ({0, 1} & ranks):
+                raw["TEACHER_FIRST_TWO_FREE"] += 1
+            raw["TEACHER_CONSECUTIVE_FREE"] += sum(
+                1
+                for left, right in zip(teaching_periods, teaching_periods[1:], strict=False)
+                if ordered[0] <= left
+                and right <= ordered[-1]
+                and left not in periods
+                and right not in periods
+            )
         if teachers[teacher_id].employment_type == "PART_TIME":
             raw["PART_TIME_COMPACTNESS"] += internal_gaps
         adjacent = sum(

@@ -29,6 +29,14 @@ progress.
 
 ## Active solver-hardening execution plan
 
+### Teacher free-time preferences
+
+- [x] Keep the hard maximum of two internal teacher gaps per working day.
+- [x] Add high-penalty preferences for both first sessions being free, more
+      than one internal gap, and consecutive internal free sessions.
+- [x] Enforce at most two free available teaching sessions per day for
+      full-time teachers, excluding breaks and unavailable periods.
+
 Current task: Feasibility-first CP-SAT staging.
 
 1. [x] Run the existing hard CP-SAT model with no quality or movement objective

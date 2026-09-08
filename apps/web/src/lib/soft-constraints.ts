@@ -19,6 +19,27 @@ export const softConstraints = [
     defaultWeight: 12,
   },
   {
+    code: "TEACHER_MAX_ONE_GAP",
+    label: "At most one teacher gap",
+    description:
+      "Strongly prefer no more than one internal free period during a teacher's working day.",
+    defaultWeight: 200,
+  },
+  {
+    code: "TEACHER_CONSECUTIVE_FREE",
+    label: "Consecutive teacher free periods",
+    description:
+      "Strongly avoid two consecutive internal free periods during a teacher's working day.",
+    defaultWeight: 200,
+  },
+  {
+    code: "TEACHER_FIRST_TWO_FREE",
+    label: "First two sessions free",
+    description:
+      "Strongly prefer a working teacher to have at least one lesson in sessions 1 or 2.",
+    defaultWeight: 200,
+  },
+  {
     code: "PART_TIME_COMPACTNESS",
     label: "Part-time compactness",
     description:

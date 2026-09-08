@@ -693,9 +693,75 @@ def solve(request: SolveRequest) -> SolveResponse:
                 daily_gap_variables.append(gap)
                 if teacher.employment_type == "PART_TIME":
                     raw_terms["PART_TIME_COMPACTNESS"].append(gap)
+            working = model.new_bool_var(f"working_{teacher.id}_{day}")
+            model.add_max_equality(working, daily_indicators)
+            if request.schema_version == 2 and len(teaching_periods) >= 2:
+                first_two_free = model.new_bool_var(f"first_two_free_{teacher.id}_{day}")
+                first_period_occupied = daily_indicators[0]
+                second_period_occupied = daily_indicators[1]
+                model.add(first_two_free <= working)
+                model.add(first_two_free <= 1 - first_period_occupied)
+                model.add(first_two_free <= 1 - second_period_occupied)
+                model.add(
+                    first_two_free >= working - first_period_occupied - second_period_occupied
+                )
+                raw_terms["TEACHER_FIRST_TWO_FREE"].append(first_two_free)
+                constraints += 5
+            if request.schema_version == 2 and teacher.employment_type == "FULL_TIME":
+                unavailable_periods = {
+                    rule.period_index
+                    for rule in request.availability
+                    if rule.entity_type == "TEACHER"
+                    and rule.entity_id == teacher.id
+                    and rule.day_index == day
+                    and rule.state == "UNAVAILABLE"
+                }
+                available_indicators = [
+                    daily_indicators[index]
+                    for index, period in enumerate(teaching_periods)
+                    if period not in unavailable_periods
+                ]
+                if available_indicators:
+                    model.add(sum(available_indicators) >= len(available_indicators) - 2 * working)
+                    constraints += 1
             if request.schema_version == 2 and daily_gap_variables:
                 model.add(sum(daily_gap_variables) <= 2)
                 constraints += 1
+                max_one_gap = model.new_int_var(0, 1, f"max_one_gap_{teacher.id}_{day}")
+                model.add(max_one_gap >= sum(daily_gap_variables) - 1)
+                raw_terms["TEACHER_MAX_ONE_GAP"].append(max_one_gap)
+                constraints += 1
+                for left, right in zip(teaching_periods, teaching_periods[1:], strict=False):
+                    if right != left + 1:
+                        continue
+                    before = [
+                        occupied_indicator[(teacher.id, day, earlier)]
+                        for earlier in teaching_periods
+                        if earlier < left
+                    ]
+                    after = [
+                        occupied_indicator[(teacher.id, day, later)]
+                        for later in teaching_periods
+                        if later > right
+                    ]
+                    if not before or not after:
+                        continue
+                    has_before = model.new_bool_var(f"free_pair_before_{teacher.id}_{day}_{left}")
+                    has_after = model.new_bool_var(f"free_pair_after_{teacher.id}_{day}_{left}")
+                    free_pair = model.new_bool_var(f"consecutive_free_{teacher.id}_{day}_{left}")
+                    model.add_max_equality(has_before, before)
+                    model.add_max_equality(has_after, after)
+                    left_occupied = occupied_indicator[(teacher.id, day, left)]
+                    right_occupied = occupied_indicator[(teacher.id, day, right)]
+                    model.add(free_pair <= has_before)
+                    model.add(free_pair <= has_after)
+                    model.add(free_pair <= 1 - left_occupied)
+                    model.add(free_pair <= 1 - right_occupied)
+                    model.add(
+                        free_pair >= has_before + has_after - left_occupied - right_occupied - 1
+                    )
+                    constraints += 9
+                    raw_terms["TEACHER_CONSECUTIVE_FREE"].append(free_pair)
 
             for left, right in zip(teaching_periods, teaching_periods[1:], strict=False):
                 if right != left + 1:
